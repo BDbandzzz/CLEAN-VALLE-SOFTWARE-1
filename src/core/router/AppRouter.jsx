@@ -8,18 +8,19 @@ import OperativePage from '../../modules/operative/pages/OperativePage';
 import MyReportsPage from '../../modules/reports/pages/MyReportsPage';
 import CreateReportPage from '../../modules/reports/pages/CreateReportPage';
 import AllReportsPage from '../../modules/reports/pages/AllReportsPage';
-
+import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
 const AppRouter = () => {
   return (
     <Routes>
       
       {/* Autenticación */}
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<LoginPage/>} />
+      <Route path ="/recover-pass" element={<RecoverPassword/>} />
+
 
       {/* Página principal */}
       <Route path="/home" element={<HomePage />} />
 
-    
 
       {/* Perfil del usuario autenticado */}
       <Route path="/profile" element={<ProfilePage />} />
@@ -34,6 +35,7 @@ const AppRouter = () => {
       <Route path="/my-reports" element={<MyReportsPage />} />
       <Route path="/report/new" element={<CreateReportPage />} />
       <Route path="/public" element={<AllReportsPage />} />
+      
     </Routes>
   );
 };

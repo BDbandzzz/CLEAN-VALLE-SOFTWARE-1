@@ -1,0 +1,64 @@
+import { Button } from '@/core/components/ui/button';
+import { Input } from '@/core/components/ui/input';
+import { Label } from '@/core/components/ui/label';
+import { useNavigate } from "react-router-dom"; 
+
+import { ArrowLeft, Mail } from "lucide-react";
+
+const RecoverPassword = () => {
+      const navigate = useNavigate();
+
+    return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md">
+
+        {/* Botón volver */}
+        <button
+          onClick={() => navigate("/")}
+          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver al inicio de sesión
+
+        </button>
+
+        <div className="rounded-2xl border bg-card p-8 shadow-sm">
+
+          {/* Ícono */}
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-muted">
+            <Mail className="-bg-conic-60 h-5 w-5 text-muted-foreground" />
+          </div>
+
+          <h1 className="mb-2 text-2xl font-bold tracking-tight">
+            ¿Olvidaste tu contraseña?
+          </h1>
+          <p className="mb-6 text-sm text-muted-foreground leading-relaxed">
+            Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.
+          </p>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Correo electrónico</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@correo.com"
+                autoComplete="email"
+              />
+            </div>
+
+            <Button type="submit" className="w-full" size="lg">
+              Enviar enlace de recuperación
+            </Button>
+          </div>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Revisa tu bandeja de spam si no recibes el correo.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RecoverPassword;
