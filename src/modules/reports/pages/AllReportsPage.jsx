@@ -1,11 +1,3 @@
-import { useState } from 'react';
-
-const AllReportsPage = () => {
-  const [reports] = useState([
-    { id: 1, title: 'Basura', status: 'Pendiente', date: '2026-05-08', author: 'Juan Pérez' },
-    { id: 2, title: 'Limpieza', status: 'En Proceso', date: '2026-05-07', author: 'María García' },
-    { id: 3, title: 'Mantenimiento', status: 'Completado', date: '2026-05-06', author: 'Carlos López' },
-  ]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -46,6 +38,6 @@ const AllReportsPage = () => {
       </div>
     </div>
   );
-};
+
 
 export default AllReportsPage;
