@@ -1,40 +1,30 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 import LoginPage from '../../modules/auth/pages/LoginPage';
-import HomePage from '../../modules/home/pages/HomePage';
 import ProfilePage from '../../modules/profile/pages/ProfilePage';
 import AdminPage from '../../modules/admin/pages/AdminPage';
 import OperativePage from '../../modules/operative/pages/OperativePage';
-import MyReportsPage from '../../modules/reports/pages/MyReportsPage';
-import CreateReportPage from '../../modules/reports/pages/CreateReportPage';
-import AllReportsPage from '../../modules/reports/pages/AllReportsPage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
+import PrivateRoute from './PrivateRoute';
+
 const AppRouter = () => {
   return (
     <Routes>
       
       {/* Autenticación */}
       <Route path="/" element={<LoginPage/>} />
-      <Route path ="/recover-pass" element={<RecoverPassword/>} />
+      <Route path="/recover-pass" element={<RecoverPassword/>} />
 
+      {/* Rutas Protegidas */}
+      <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
+      <Route path="/admin" element={<PrivateRoute element={<AdminPage />} />} />
+      <Route path="/operative" element={<PrivateRoute element={<OperativePage />} />} />
 
-      {/* Página principal */}
-      <Route path="/home" element={<HomePage />} />
+      {/* Redirección de compatibilidad */}
+      <Route path="/home" element={<Navigate to="/profile" replace />} />
 
-
-      {/* Perfil del usuario autenticado */}
-      <Route path="/profile" element={<ProfilePage />} />
-
-      {/* Panel de administración */}
-      <Route path="/admin" element={<AdminPage />} />
-
-      {/* Panel operativo */}
-      <Route path="/operative" element={<OperativePage />} />
-
-      {/* Reportes */}
-      <Route path="/my-reports" element={<MyReportsPage />} />
-      <Route path="/report/new" element={<CreateReportPage />} />
-      <Route path="/public" element={<AllReportsPage />} />
+      {/* Ruta por defecto */}
+      <Route path="*" element={<Navigate to="/" replace />} />
       
     </Routes>
   );

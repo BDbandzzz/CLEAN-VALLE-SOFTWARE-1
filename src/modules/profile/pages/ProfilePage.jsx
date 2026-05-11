@@ -1,8 +1,4 @@
-const ProfilePage = () => {
-  return (
-    <div>
-      <h1>Mi Perfil</h1>
-      <p>Datos del usuario autenticado</p>
+ ace63cb (Refactor: identificación automática de roles por código de usuario, rediseño perfil y sidebar)
     </div>
   );
 };
