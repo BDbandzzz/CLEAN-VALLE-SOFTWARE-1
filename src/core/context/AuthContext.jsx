@@ -1,9 +1,21 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components -- provider + hook pattern */
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
 const USER_PROFILES_KEY = 'user_profiles';
 const CURRENT_USER_KEY = 'current_user';
+
+const readCurrentUserFromStorage = () => {
+  const storedUser = localStorage.getItem(CURRENT_USER_KEY);
+  if (!storedUser) return null;
+  try {
+    return JSON.parse(storedUser);
+  } catch (error) {
+    console.error('Error parsing current user:', error);
+    return null;
+  }
+};
 
 const loadUserProfiles = () => {
   const stored = localStorage.getItem(USER_PROFILES_KEY);
@@ -25,20 +37,8 @@ const getProfileKey = (userData) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem(CURRENT_USER_KEY);
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing current user:', error);
-      }
-    }
-    setIsLoading(false);
-  }, []);
+  const [user, setUser] = useState(() => readCurrentUserFromStorage());
+  const [isLoading] = useState(false);
 
   const login = (userData) => {
     const profiles = loadUserProfiles();
@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }) => {
       ...existingProfile,
       id: userData.id || userData.dniUser || 'unknown',
       role: userData.role || existingProfile.role || 'estudiante',
+      firstName: userData.firstName || existingProfile.firstName || '',
+      lastName: userData.lastName || existingProfile.lastName || '',
       fullName: userData.fullName || existingProfile.fullName || 'Usuario Test',
       email: userData.email || existingProfile.email || '',
       dniUser: userData.dniUser || existingProfile.dniUser || '',
@@ -72,6 +74,8 @@ export const AuthProvider = ({ children }) => {
     if (user) {
       const updatedUser = {
         ...user,
+        firstName: updatedData.firstName || '',
+        lastName: updatedData.lastName || '',
         fullName: updatedData.fullName || '',
         email: updatedData.email || '',
         dniUser: updatedData.dniUser || '',

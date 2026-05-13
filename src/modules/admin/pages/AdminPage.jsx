@@ -1,52 +1,82 @@
 import { useState } from 'react';
+import { Shield, ClipboardList } from 'lucide-react';
+
 import { Button } from '@/core/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 
 const AdminPage = () => {
   const [reports] = useState([
     { id: 1, title: 'Basura en Calle 5', status: 'Pendiente', author: 'Juan Pérez', assignedTo: null },
     { id: 2, title: 'Bache en Avenida', status: 'Pendiente', author: 'María García', assignedTo: null },
-    { id: 3, title: 'Foco Dañado', status: 'En Proceso', author: 'Carlos López', assignedTo: 'Operador 1' },
+    { id: 3, title: 'Foco dañado', status: 'En proceso', author: 'Carlos López', assignedTo: 'Operador 1' },
   ]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold mb-2">Panel de Administración</h1>
-        <p className="text-muted-foreground">Gestiona reportes y asigna tareas</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <p className="text-sm text-gray-600">Total</p>
-          <p className="text-3xl font-bold">127</p>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-primary">Administración</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Panel de administración</h1>
+          <p className="mt-2 max-w-xl text-muted-foreground">Gestiona reportes y asigna tareas al equipo operativo.</p>
         </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <p className="text-sm text-gray-600">Pendientes</p>
-          <p className="text-3xl font-bold text-yellow-600">45</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <p className="text-sm text-gray-600">En Proceso</p>
-          <p className="text-3xl font-bold text-blue-600">32</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm border">
-          <p className="text-sm text-gray-600">Completados</p>
-          <p className="text-3xl font-bold text-green-600">50</p>
+        <div className="flex gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+          <Shield className="size-5 shrink-0 text-primary" />
+          Vista general del sistema
         </div>
       </div>
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-bold mb-4">Reportes por Asignar</h2>
-        <div className="space-y-3">
-          {reports.map((report) => (
-            <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50">
-              <div className="flex-1">
-                <p className="font-semibold">{report.title}</p>
-                <p className="text-sm text-gray-600">Por: {report.author}</p>
-                <p className="text-xs text-gray-500 mt-1">Asignado: {report.assignedTo || 'Sin asignar'}</p>
-              </div>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Asignar</Button>
-            </div>
-          ))}
-        </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Total', value: '127', hint: 'histórico' },
+          { label: 'Pendientes', value: '45', hint: 'por asignar', tone: 'text-amber-600' },
+          { label: 'En proceso', value: '32', hint: 'activos', tone: 'text-sky-600' },
+          { label: 'Completados', value: '50', hint: 'cerrados', tone: 'text-primary' },
+        ].map((kpi) => (
+          <Card key={kpi.label} className="border-primary/10 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardDescription>{kpi.label}</CardDescription>
+              <CardTitle className={`text-3xl font-bold tabular-nums ${kpi.tone || ''}`}>{kpi.value}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">{kpi.hint}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      <Card className="overflow-hidden border-primary/10 shadow-md">
+        <CardHeader className="border-b border-border bg-muted/30">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ClipboardList className="size-5 text-primary" />
+            Reportes por asignar
+          </CardTitle>
+          <CardDescription>Prioriza y envía al equipo operativo.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-0">
+          <ul className="divide-y divide-border">
+            {reports.map((report) => (
+              <li
+                key={report.id}
+                className="flex flex-col gap-4 p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="font-semibold text-foreground">{report.title}</p>
+                  <p className="text-sm text-muted-foreground">Por: {report.author}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Asignado: <span className="font-medium text-foreground">{report.assignedTo || 'Sin asignar'}</span>
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+                    {report.status}
+                  </span>
+                  <Button size="sm">Asignar</Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 };
