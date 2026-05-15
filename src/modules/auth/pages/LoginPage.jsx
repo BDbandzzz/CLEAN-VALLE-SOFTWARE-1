@@ -1,3 +1,21 @@
+/**
+ * LoginPage.jsx – Página de inicio de sesión.
+ *
+ * Flujo actual (demo local):
+ *   1. El usuario ingresa su código institucional y contraseña.
+ *   2. buildLoginUserPayload() (loginUtils.js) genera un objeto de usuario
+ *      con un rol determinado por el prefijo del código.
+ *   3. login() (AuthContext) persiste el usuario en localStorage.
+ *   4. Se redirige a /profile.
+ *
+ * Integración con backend:
+ *   Reemplazar el bloque handleSubmit por un POST /auth/login que devuelva
+ *   el usuario + token. Luego llamar login(userData) con los datos de la API.
+ *
+ * Notas:
+ *   - El botón de Google aún no tiene implementación real (placeholder).
+ *   - La validación de credenciales es demo (loginUtils.js).
+ */
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
@@ -7,7 +25,7 @@ import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import { useAuth } from '@/core/context/AuthContext';
 import { UNIVALLE_LOGO_SRC, APP_NAME, INSTITUTION_NAME } from '@/core/constants/branding';
-import { buildLoginUserPayload } from '@/modules/auth/validation/LoginValidation';
+import { buildLoginUserPayload } from '@/modules/auth/utils/loginUtils';
 
 const LoginPage = () => {
   const navigate = useNavigate();

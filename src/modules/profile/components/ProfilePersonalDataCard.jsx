@@ -6,7 +6,20 @@ import { Label } from '@/core/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 
 /**
- * Formulario de datos personales (solo correo editable).
+ * ProfilePersonalDataCard.jsx – Formulario de datos personales del perfil.
+ *
+ * Política de edición:
+ *   Solo el correo electrónico es editable por el usuario.
+ *   El resto (nombre, apellido, DNI, tipo de DNI, género) viene del sistema
+ *   institucional y se muestra en modo read-only (bg-muted/50).
+ *
+ * Props:
+ *   formData      {object}    Datos del usuario: firstName, lastName, email, dniUser, typeDni, gender.
+ *   message       {object}    { type: 'success'|'error', text: string } para el feedback.
+ *   isSaving      {boolean}   Muestra spinner en el botón mientras se guarda.
+ *   onEmailChange {Function}  (value: string) => void – solo actualiza el email.
+ *   onSave        {Function}  Handler del botón "Guardar cambios".
+ *   onReset       {Function}  Handler del botón "Restablecer" (vuelve al estado original).
  */
 export function ProfilePersonalDataCard({
   formData,

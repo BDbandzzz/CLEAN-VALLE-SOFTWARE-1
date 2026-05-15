@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Lock, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 
 const PASSWORD_FIELDS = [
   { id: 'cp-current',  field: 'currentPassword', label: 'Contraseña actual',     key: 'current' },

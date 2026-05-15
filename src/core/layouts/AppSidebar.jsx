@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from '@/core/components/ui/sidebar';
 import { useAuth } from '@/core/context/AuthContext';
-import { sidebarConfig } from '@/core/config/sidebarConfig';
+import { sidebarConfig } from '@/core/constants/sidebarConfig';
 import { UNIVALLE_LOGO_SRC, APP_NAME, INSTITUTION_NAME } from '@/core/constants/branding';
 import { cn } from '@/core/lib/utils';
 

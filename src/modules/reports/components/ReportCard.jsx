@@ -1,13 +1,43 @@
+/**
+ * ReportCard.jsx – Tarjeta desplegable para un reporte individual.
+ *
+ * Qué hace:
+ *   Muestra un resumen del reporte siempre visible (tipo, riesgo, estado, título,
+ *   localización, fecha) con un botón "Ver más / Ocultar" que expande un panel
+ *   con la descripción completa, metadatos adicionales, resolución del operador
+ *   (si está resuelto) e imágenes adjuntas.
+ *
+ * Props:
+ *   report {object} – Objeto de reporte con los campos:
+ *     id, title, description, location, reportType, riskLevel,
+ *     status, incidentDate, createdAt, images[],
+ *     resolution?, resolvedAt?, operatorName?
+ *
+ * Componentes internos:
+ *   StatusPill  – Pastilla de estado con ícono y color según STATUS_META.
+ *   InfoItem    – Par label/valor en la cuadrícula de metadatos.
+ *
+ * Para agregar un nuevo estado de reporte:
+ *   Agregar la entrada en STATUS_META con { label, icon, color }.
+ */
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, Calendar, Clock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  ChevronDown, ChevronUp, MapPin, Calendar,
+  Clock, CheckCircle2, AlertCircle, Loader2,
+} from 'lucide-react';
 import { ReportBadge } from './ReportBadge';
 
+/**
+ * Metadatos visuales por estado de reporte.
+ * Para agregar un nuevo estado, añadir una entrada aquí.
+ */
 const STATUS_META = {
-  pendiente:    { label: 'Pendiente',    icon: Clock,         color: '#d97706' },
-  en_progreso:  { label: 'En progreso',  icon: Loader2,       color: '#2563eb' },
-  resuelto:     { label: 'Resuelto',     icon: CheckCircle2,  color: '#16a34a' },
+  pendiente:   { label: 'Pendiente',   icon: Clock,        color: '#d97706' },
+  en_progreso: { label: 'En progreso', icon: Loader2,      color: '#2563eb' },
+  resuelto:    { label: 'Resuelto',    icon: CheckCircle2, color: '#16a34a' },
 };
 
+/** Pastilla de estado con ícono y color temático. */
 function StatusPill({ status }) {
   const meta = STATUS_META[status] || STATUS_META.pendiente;
   const Icon = meta.icon;
@@ -22,53 +52,43 @@ function StatusPill({ status }) {
   );
 }
 
-/**
- * Tarjeta desplegable para un reporte individual.
- */
 export function ReportCard({ report }) {
   const [expanded, setExpanded] = useState(false);
 
+  /* Formateo de fechas en locale colombiano */
   const formattedDate = report.incidentDate
     ? new Date(report.incidentDate + 'T00:00:00').toLocaleDateString('es-CO', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+        year: 'numeric', month: 'long', day: 'numeric',
       })
     : '—';
 
   const formattedCreatedAt = report.createdAt
     ? new Date(report.createdAt).toLocaleDateString('es-CO', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
       })
     : '—';
 
   return (
     <article className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
-      {/* Header siempre visible */}
+
+      {/* ── Header siempre visible ── */}
       <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
+          {/* Badges: tipo, riesgo y estado */}
           <div className="flex flex-wrap items-center gap-2">
             <ReportBadge type="reportType" value={report.reportType} />
-            <ReportBadge type="riskLevel" value={report.riskLevel} />
+            <ReportBadge type="riskLevel"  value={report.riskLevel} />
             <StatusPill status={report.status} />
           </div>
           <h3 className="text-base font-semibold text-foreground line-clamp-1">{report.title}</h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <MapPin className="size-3" />
-              {report.location}
-            </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="size-3" />
-              {formattedDate}
-            </span>
+            <span className="flex items-center gap-1"><MapPin className="size-3" />{report.location}</span>
+            <span className="flex items-center gap-1"><Calendar className="size-3" />{formattedDate}</span>
           </div>
         </div>
 
+        {/* Botón toggle */}
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -80,33 +100,30 @@ export function ReportCard({ report }) {
           aria-expanded={expanded}
           aria-label={expanded ? 'Ocultar detalles' : 'Ver detalles'}
         >
-          {expanded ? (
-            <>
-              Ocultar <ChevronUp className="size-3.5" />
-            </>
-          ) : (
-            <>
-              Ver más <ChevronDown className="size-3.5" />
-            </>
-          )}
+          {expanded
+            ? <><span>Ocultar</span><ChevronUp className="size-3.5" /></>
+            : <><span>Ver más</span><ChevronDown className="size-3.5" /></>}
         </button>
       </div>
 
-      {/* Detalle desplegable */}
+      {/* ── Panel desplegable ── */}
       {expanded && (
         <div className="border-t border-border bg-muted/30 px-5 pb-5 pt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+
+          {/* Descripción completa */}
           <div className="space-y-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Descripción</p>
             <p className="text-sm text-foreground">{report.description || 'Sin descripción.'}</p>
           </div>
 
+          {/* Cuadrícula de metadatos */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <InfoItem label="Localización" value={report.location} />
+            <InfoItem label="Localización"      value={report.location} />
             <InfoItem label="Fecha del incidente" value={formattedDate} />
-            <InfoItem label="Reportado el" value={formattedCreatedAt} />
+            <InfoItem label="Reportado el"      value={formattedCreatedAt} />
           </div>
 
-          {/* Resolución (si está resuelto) */}
+          {/* Bloque de resolución (solo si status === 'resuelto') */}
           {report.status === 'resuelto' && report.resolution && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-1.5">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-green-700">
@@ -121,16 +138,14 @@ export function ReportCard({ report }) {
                 <p className="text-xs text-green-600">
                   Resuelto el:{' '}
                   {new Date(report.resolvedAt).toLocaleDateString('es-CO', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
+                    year: 'numeric', month: 'long', day: 'numeric',
                   })}
                 </p>
               )}
             </div>
           )}
 
-          {/* Placeholder de imágenes */}
+          {/* Imágenes adjuntas */}
           {report.images && report.images.length > 0 ? (
             <div className="space-y-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Imágenes</p>
@@ -157,6 +172,10 @@ export function ReportCard({ report }) {
   );
 }
 
+/**
+ * Par label/valor para la cuadrícula de metadatos del panel desplegable.
+ * Muestra '—' si el valor es falsy.
+ */
 function InfoItem({ label, value }) {
   return (
     <div className="space-y-0.5">

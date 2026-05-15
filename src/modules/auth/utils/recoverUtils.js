@@ -1,5 +1,6 @@
 /**
- * Validación del flujo de recuperación (sin UI).
+ * Utilidades del flujo de recuperación de contraseña (sin UI).
+ * El diseño vive en `RecoverPassword.jsx`.
  */
 
 export function validateRecoverEmail(email) {

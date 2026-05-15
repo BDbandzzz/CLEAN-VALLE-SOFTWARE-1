@@ -1,5 +1,5 @@
 /**
- * Reglas de negocio y validación del login (sin UI).
+ * Utilidades de autenticación y login (sin UI).
  * El diseño vive en `LoginPage.jsx`.
  */
 
@@ -40,9 +40,9 @@ export function buildLoginUserPayload(code, password = '') {
   return {
     ...defaultLoginProfile,
     id: trimmed || `user_${Date.now()}`,
-    firstName: "Brayan David",
-    lastName: "Garzon Arboleda",
-    dniUser: "1123121814" || `TEST${Date.now()}`,
-    role: "Estudiante",
+    firstName: 'Brayan David',
+    lastName: 'Garzon Arboleda',
+    dniUser: '1123121814',
+    role,
   };
 }

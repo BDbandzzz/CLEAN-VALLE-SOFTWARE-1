@@ -1,11 +1,20 @@
+/**
+ * ReportBadge.jsx – Etiqueta de color para tipo de reporte o nivel de riesgo.
+ *
+ * Props:
+ *   type  {'reportType'|'riskLevel'}  Determina qué catálogo consultar.
+ *   value {string}                    ID del ítem (ej: 'basura', 'alto').
+ *   size  {'sm'|'md'}                 Tamaño del badge (default: 'sm').
+ *
+ * Los colores y labels vienen de reportConstants.js.
+ * Para agregar un nuevo tipo o nivel, solo editar ese archivo.
+ */
 import { getReportTypeMeta, getRiskLevelMeta } from '../constants/reportConstants';
 
-/**
- * Muestra una etiqueta/badge para el tipo de reporte o nivel de riesgo.
- */
 export function ReportBadge({ type, value, size = 'sm' }) {
-  const meta =
-    type === 'reportType' ? getReportTypeMeta(value) : getRiskLevelMeta(value);
+  const meta = type === 'reportType'
+    ? getReportTypeMeta(value)
+    : getRiskLevelMeta(value);
 
   const sizeClasses = size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-sm';
 
@@ -14,8 +23,8 @@ export function ReportBadge({ type, value, size = 'sm' }) {
       className={`inline-flex items-center rounded-full font-semibold ${sizeClasses}`}
       style={{
         backgroundColor: meta.color + '22',
-        color: meta.color,
-        border: `1.5px solid ${meta.color}55`,
+        color:           meta.color,
+        border:          `1.5px solid ${meta.color}55`,
       }}
     >
       {meta.label}

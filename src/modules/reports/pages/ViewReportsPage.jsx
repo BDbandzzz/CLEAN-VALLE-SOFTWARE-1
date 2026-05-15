@@ -1,3 +1,26 @@
+/**
+ * ViewReportsPage.jsx – Página de visualización de reportes.
+ *
+ * Qué muestra:
+ *   Pestaña "Mis reportes"          → todos los reportes del contexto.
+ *   Pestaña "Resueltos por operadores" → reportes con status 'resuelto'.
+ *
+ * Filtrado:
+ *   applyFilters() aplica en memoria los filtros de ReportFilters.
+ *   El estado de filtros (EMPTY_FILTERS) vive aquí y se pasa a ReportFilters.
+ *
+ * Componentes internos:
+ *   TabButton   – Botón de pestaña con contador de ítems.
+ *   EmptyState  – Placeholder cuando no hay resultados para los filtros.
+ *
+ * Para agregar un nuevo filtro:
+ *   1. Agregar la clave en EMPTY_FILTERS.
+ *   2. Agregar la condición en applyFilters().
+ *   3. Agregar el control en ReportFilters.jsx.
+ *
+ * Integración con backend:
+ *   Reemplazar useReports() por llamadas a la API con los filtros como query params.
+ */
 import { useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
 import { useReports } from '../context/ReportsContext';

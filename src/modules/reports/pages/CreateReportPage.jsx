@@ -1,3 +1,16 @@
+/**
+ * CreateReportPage.jsx – Página de creación de un nuevo reporte ambiental.
+ *
+ * Responsabilidades:
+ *   - Proveer el handler onSubmit a CreateReportForm.
+ *   - Simular latencia de red (setTimeout) mientras se integra el backend.
+ *   - Mostrar el mensaje de éxito tras enviar el formulario.
+ *
+ * Integración con backend:
+ *   En handleSubmit, reemplazar addReport(formData, user?.id) por un
+ *   POST /api/reports con FormData (para incluir las imágenes).
+ *   Luego actualizar el contexto con el reporte devuelto por la API.
+ */
 import { useState } from 'react';
 import { CheckCircle2, ClipboardPlus } from 'lucide-react';
 import { useReports } from '../context/ReportsContext';

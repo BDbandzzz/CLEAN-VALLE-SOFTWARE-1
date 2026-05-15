@@ -1,3 +1,15 @@
+/**
+ * RecoverPassword.jsx – Página de recuperación de contraseña.
+ *
+ * Flujo actual (demo):
+ *   1. El usuario ingresa su correo.
+ *   2. validateRecoverEmail() valida el formato.
+ *   3. Se muestra un mensaje de confirmación (sin envío real de email).
+ *
+ * Integración con backend:
+ *   En handleSubmit, reemplazar el bloque setSent(true) por un
+ *   POST /auth/recover-password con { email } y manejar la respuesta.
+ */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail } from 'lucide-react';
@@ -5,7 +17,7 @@ import { ArrowLeft, Mail } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
-import { validateRecoverEmail } from '@/modules/auth/validation/RecoverPasswordValidation';
+import { validateRecoverEmail } from '@/modules/auth/utils/recoverUtils';
 
 const RecoverPassword = () => {
   const navigate = useNavigate();

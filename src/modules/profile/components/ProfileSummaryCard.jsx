@@ -3,7 +3,14 @@ import { Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 
 /**
- * Columna izquierda: datos rápidos (identificador, correo en resumen).
+ * ProfileSummaryCard.jsx – Columna lateral de resumen del perfil.
+ *
+ * Muestra: DNI del usuario, email de resumen y una nota sobre almacenamiento local.
+ * Esta card está pensada para mostrar datos de solo lectura de forma rápida.
+ *
+ * Props:
+ *   dniUser      {string}  Número de documento del usuario.
+ *   emailPreview {string}  Correo actual del usuario (puede estar vacío).
  */
 export function ProfileSummaryCard({ dniUser, emailPreview }) {
   return (

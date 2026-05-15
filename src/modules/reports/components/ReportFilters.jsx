@@ -1,18 +1,40 @@
+/**
+ * ReportFilters.jsx – Panel de filtros para la vista de reportes.
+ *
+ * Qué hace:
+ *   Renderiza controles de filtrado sin gestionar estado propio.
+ *   Todo el estado vive en ViewReportsPage y se pasa vía props.
+ *
+ * Filtros disponibles:
+ *   search     – Texto libre (título o localización).
+ *   reportType – Selector de tipo (toggle: segundo clic limpia).
+ *   riskLevel  – Selector de nivel de riesgo (toggle).
+ *   dateFrom   – Fecha de inicio del rango.
+ *   dateTo     – Fecha de fin del rango.
+ *
+ * Props:
+ *   filters  {object}    Estado actual de filtros (ver EMPTY_FILTERS en ViewReportsPage).
+ *   onChange {Function}  Recibe un objeto parcial: onChange({ search: 'texto' }).
+ *   onClear  {Function}  Limpia todos los filtros de una vez.
+ *
+ * Para agregar un nuevo filtro:
+ *   1. Agregar la clave en EMPTY_FILTERS (ViewReportsPage).
+ *   2. Agregar el control aquí y llamar onChange({ nuevaClave: valor }).
+ *   3. Agregar la condición en applyFilters() (ViewReportsPage).
+ */
 import { Search, X } from 'lucide-react';
 import { REPORT_TYPES, RISK_LEVELS } from '../constants/reportConstants';
 import { TypeButton } from './TypeButton';
 
-/**
- * Filtros de búsqueda para la vista de reportes:
- * texto libre, tipo de reporte, nivel de riesgo y fecha.
- */
 export function ReportFilters({ filters, onChange, onClear }) {
   const hasActiveFilters =
-    filters.search || filters.reportType || filters.riskLevel || filters.dateFrom || filters.dateTo;
+    filters.search || filters.reportType || filters.riskLevel ||
+    filters.dateFrom || filters.dateTo;
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-5">
-      {/* Buscador de texto */}
+
+      {/* Buscador de texto libre */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
@@ -28,7 +50,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
         />
       </div>
 
-      {/* Tipo de reporte */}
+      {/* Filtro por tipo de reporte – toggle: segundo clic limpia */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de reporte</p>
         <div className="flex flex-wrap gap-2">
@@ -45,7 +67,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
         </div>
       </div>
 
-      {/* Nivel de riesgo */}
+      {/* Filtro por nivel de riesgo – toggle */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nivel de riesgo</p>
         <div className="flex flex-wrap gap-2">
@@ -62,7 +84,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
         </div>
       </div>
 
-      {/* Rango de fecha */}
+      {/* Rango de fecha del incidente */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="filter-date-from" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -73,10 +95,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
             type="date"
             value={filters.dateFrom}
             onChange={(e) => onChange({ dateFrom: e.target.value })}
-            className="
-              w-full rounded-lg border border-input bg-background px-3 py-2 text-sm
-              focus:outline-none focus:ring-2 focus:ring-ring
-            "
+            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div className="space-y-1">
@@ -88,15 +107,12 @@ export function ReportFilters({ filters, onChange, onClear }) {
             type="date"
             value={filters.dateTo}
             onChange={(e) => onChange({ dateTo: e.target.value })}
-            className="
-              w-full rounded-lg border border-input bg-background px-3 py-2 text-sm
-              focus:outline-none focus:ring-2 focus:ring-ring
-            "
+            className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
 
-      {/* Limpiar filtros */}
+      {/* Botón limpiar – solo visible si hay al menos un filtro activo */}
       {hasActiveFilters && (
         <button
           type="button"

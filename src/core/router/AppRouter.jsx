@@ -1,15 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import LandingPage from '../../modules/auth/pages/LandingPage';
-import LoginPage from '../../modules/auth/pages/LoginPage';
-import ProfilePage from '../../modules/profile/pages/ProfilePage';
-import AdminPage from '../../modules/admin/pages/AdminPage';
-import OperativePage from '../../modules/operative/pages/OperativePage';
+import LandingPage from '@/modules/auth/pages/LandingPage';
+import LoginPage from '@/modules/auth/pages/LoginPage';
+import ProfilePage from '@/modules/profile/pages/ProfilePage';
+import AdminPage from '@/modules/admin/pages/AdminPage';
+import OperativePage from '@/modules/operative/pages/OperativePage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
 import CreateReportPage from '@/modules/reports/pages/CreateReportPage';
 import ViewReportsPage from '@/modules/reports/pages/ViewReportsPage';
-import ChangePasswordPage from '@/modules/reports/pages/ChangePasswordPage';
-import PrivateRoute from './PrivateRoute';
+import ChangePasswordPage from '@/modules/security/pages/ChangePasswordPage';
+import PrivateRoute from '@/core/router/PrivateRoute';
 
 const AppRouter = () => {
   return (

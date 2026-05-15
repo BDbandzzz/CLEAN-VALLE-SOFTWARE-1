@@ -4,7 +4,18 @@ import { Button } from '@/core/components/ui/button';
 import { getRoleDisplayName } from '@/core/lib/utils';
 
 /**
- * Franja superior del perfil: avatar, rol, nombre y cierre de sesión.
+ * ProfileHero.jsx – Encabezado visual del perfil de usuario.
+ *
+ * Muestra un banner de gradiente verde con:
+ *   - Avatar con las iniciales del usuario.
+ *   - Nombre completo y descripción estática.
+ *   - Botón de "Cerrar sesión".
+ *
+ * Props:
+ *   initials    {string}    Dos letras del avatar (ej: 'BG').
+ *   displayName {string}    Nombre completo del usuario.
+ *   userRole    {string}    Rol actual (no mostrado directamente, disponible para extensión).
+ *   onLogout    {Function}  Handler del botón "Cerrar sesión".
  */
 export function ProfileHero({ initials, displayName, userRole, onLogout }) {
   return (

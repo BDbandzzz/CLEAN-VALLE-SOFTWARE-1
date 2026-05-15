@@ -1,80 +1,65 @@
-import { useState } from 'react';
-import { Send, RotateCcw, MapPin, Calendar, FileText, AlertTriangle } from 'lucide-react';
-import { REPORT_TYPES, RISK_LEVELS } from '../constants/reportConstants';
-import { TypeButton } from './TypeButton';
-
-const INITIAL_FORM = {
-  title: '',
-  description: '',
-  location: '',
-  riskLevel: '',
-  reportType: '',
-  incidentDate: '',
-};
-
-const FIELD_ERRORS_INITIAL = {
-  title: '',
-  description: '',
-  location: '',
-  riskLevel: '',
-  reportType: '',
-  incidentDate: '',
-};
-
-function validateReport(data) {
-  const errors = { ...FIELD_ERRORS_INITIAL };
-  let ok = true;
-
-  if (!data.title.trim()) { errors.title = 'El título es requerido.'; ok = false; }
-  else if (data.title.trim().length < 5) { errors.title = 'Mínimo 5 caracteres.'; ok = false; }
-
-  if (!data.description.trim()) { errors.description = 'La descripción es requerida.'; ok = false; }
-  else if (data.description.trim().length < 10) { errors.description = 'Mínimo 10 caracteres.'; ok = false; }
-
-  if (!data.location.trim()) { errors.location = 'La localización es requerida.'; ok = false; }
-
-  if (!data.riskLevel) { errors.riskLevel = 'Selecciona un nivel de riesgo.'; ok = false; }
-
-  if (!data.reportType) { errors.reportType = 'Selecciona un tipo de reporte.'; ok = false; }
-
-  if (!data.incidentDate) { errors.incidentDate = 'La fecha del incidente es requerida.'; ok = false; }
-
-  return { ok, errors };
-}
-
 /**
- * Formulario de creación de reporte.
- * Recibe onSubmit(formData) para manejo externo.
+ * CreateReportForm
+ * ----------------
+ * Orquestador del formulario de creación de reporte.
+ *
+ * Responsabilidades de ESTE archivo:
+ *   - Componer el layout del formulario conectando hooks y componentes.
+ *   - Delegar el estado del formulario a useReportForm.
+ *   - Delegar el estado de imágenes a useImageUpload.
+ *   - Renderizar campos simples (título, descripción, localización, fecha).
+ *   - Pasar props a los sub-componentes (SelectionGroup, ImageUploadZone, ImagePreviewGrid).
+ *
+ * NO es responsable de:
+ *   - Validación de campos (→ useReportForm / validateReport).
+ *   - Validación de imágenes (→ useImageUpload).
+ *   - Lógica de drag & drop (→ useImageUpload).
+ *   - Envío al backend (→ CreateReportPage vía prop onSubmit).
+ *   - Render de thumbnails (→ ImagePreviewGrid).
+ *   - Render de la zona de drop (→ ImageUploadZone).
+ *   - Render de los grupos de selección (→ SelectionGroup).
+ *
+ * Props:
+ *   onSubmit     {Function(formData)}  Handler externo invocado con los datos validados.
+ *   isSubmitting {boolean}             Deshabilita el formulario mientras el padre procesa.
+ *
+ * Para añadir un campo nuevo:
+ *   1. Agregar la clave a INITIAL_FORM en useReportForm.js.
+ *   2. Agregar la validación en validateReport() en useReportForm.js.
+ *   3. Agregar el <FormField> correspondiente aquí.
  */
+import {
+  Send, RotateCcw, MapPin, Calendar,
+  FileText, AlertTriangle, Tag, ImagePlus, AlertCircle,
+} from 'lucide-react';
+
+import { REPORT_TYPES, RISK_LEVELS } from '../constants/reportConstants';
+import { useReportForm }             from '../hooks/useReportForm';
+import { useImageUpload, MAX_FILES, MAX_MB } from '../hooks/useImageUpload';
+import { SelectionGroup }   from './SelectionGroup';
+import { ImageUploadZone }  from './ImageUploadZone';
+import { ImagePreviewGrid } from './ImagePreviewGrid';
+
 export function CreateReportForm({ onSubmit, isSubmitting }) {
-  const [form, setForm] = useState(INITIAL_FORM);
-  const [errors, setErrors] = useState(FIELD_ERRORS_INITIAL);
-  const [touched, setTouched] = useState({});
+  /* ── Hooks ── */
+  const { form, errors, touched, set, reset, handleSubmit } = useReportForm();
+  const {
+    images, imgError, isDragging, slotsLeft,
+    getRootProps, getInputProps,
+    removeImage, clearImages,
+  } = useImageUpload();
 
-  const set = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
-
-  const handleReset = () => {
-    setForm(INITIAL_FORM);
-    setErrors(FIELD_ERRORS_INITIAL);
-    setTouched({});
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setTouched(Object.fromEntries(Object.keys(INITIAL_FORM).map((k) => [k, true])));
-    const { ok, errors: newErrors } = validateReport(form);
-    setErrors(newErrors);
-    if (!ok) return;
-    onSubmit(form);
-  };
+  /** Reset global: limpia campos y revoca Object URLs de imágenes. */
+  const handleReset = () => { reset(); clearImages(); };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-6" id="create-report-form">
-      {/* Título */}
+    <form
+      onSubmit={(e) => handleSubmit(e, images.map((i) => i.file), onSubmit)}
+      noValidate
+      className="space-y-6"
+      id="create-report-form"
+    >
+      {/* ── Título ── */}
       <FormField
         id="report-title"
         label="Título del reporte"
@@ -93,7 +78,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       </FormField>
 
-      {/* Descripción */}
+      {/* ── Descripción ── */}
       <FormField
         id="report-description"
         label="Descripción del reporte"
@@ -110,10 +95,36 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           maxLength={800}
           className={`${inputClass(touched.description && errors.description)} resize-none`}
         />
-        <p className="mt-1 text-right text-[10px] text-muted-foreground">{form.description.length}/800</p>
+        <p className="mt-1 text-right text-[10px] text-muted-foreground">
+          {form.description.length}/800
+        </p>
       </FormField>
 
-      {/* Localización */}
+      {/* ── Tipo de reporte ── */}
+      <SelectionGroup
+        label="Tipo de reporte"
+        icon={<Tag className="size-4" />}
+        required
+        items={REPORT_TYPES}
+        idPrefix="type"
+        selected={form.reportType}
+        onSelect={(id) => set('reportType', id)}
+        error={touched.reportType ? errors.reportType : ''}
+      />
+
+      {/* ── Nivel de riesgo ── */}
+      <SelectionGroup
+        label="Nivel de riesgo"
+        icon={<AlertTriangle className="size-4" />}
+        required
+        items={RISK_LEVELS}
+        idPrefix="risk"
+        selected={form.riskLevel}
+        onSelect={(id) => set('riskLevel', id)}
+        error={touched.riskLevel ? errors.riskLevel : ''}
+      />
+
+      {/* ── Localización ── */}
       <FormField
         id="report-location"
         label="Localización"
@@ -132,7 +143,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       </FormField>
 
-      {/* Fecha del incidente */}
+      {/* ── Fecha del incidente ── */}
       <FormField
         id="report-incident-date"
         label="Fecha del incidente"
@@ -150,51 +161,50 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       </FormField>
 
-      {/* Nivel de riesgo */}
-      <FormField
-        id="report-risk-level"
-        label="Nivel de riesgo"
-        required
-        icon={<AlertTriangle className="size-4" />}
-        error={touched.riskLevel ? errors.riskLevel : ''}
-      >
-        <div className="flex flex-wrap gap-2 pt-1">
-          {RISK_LEVELS.map((r) => (
-            <TypeButton
-              key={r.id}
-              id={`risk-${r.id}`}
-              label={r.label}
-              color={r.color}
-              isSelected={form.riskLevel === r.id}
-              onClick={() => set('riskLevel', r.id)}
-            />
-          ))}
+      {/* ── Evidencia fotográfica ── */}
+      <div className="space-y-2">
+        {/* Encabezado de la sección con contador */}
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+            <ImagePlus className="size-4" />
+            Evidencia fotográfica
+            <span className="text-xs font-normal text-muted-foreground ml-1">(opcional)</span>
+          </label>
+          <span className="text-xs text-muted-foreground">{images.length}/{MAX_FILES} fotos</span>
         </div>
-      </FormField>
 
-      {/* Tipo de reporte */}
-      <FormField
-        id="report-type"
-        label="Tipo de reporte"
-        required
-        icon={<FileText className="size-4" />}
-        error={touched.reportType ? errors.reportType : ''}
-      >
-        <div className="flex flex-wrap gap-2 pt-1">
-          {REPORT_TYPES.map((t) => (
-            <TypeButton
-              key={t.id}
-              id={`type-${t.id}`}
-              label={t.label}
-              color={t.color}
-              isSelected={form.reportType === t.id}
-              onClick={() => set('reportType', t.id)}
-            />
-          ))}
-        </div>
-      </FormField>
+        {/* Zona de drag & drop — se oculta cuando se llena el cupo */}
+        {slotsLeft > 0 && (
+          <ImageUploadZone
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+            isDragging={isDragging}
+            slotsLeft={slotsLeft}
+            maxFiles={MAX_FILES}
+            maxMb={MAX_MB}
+          />
+        )}
 
-      {/* Acciones */}
+        {/* El input nativo lo inyecta ImageUploadZone a través de getInputProps() */}
+
+        {/* Mensajes de error de imagen (tamaño excedido, tipo inválido, etc.) */}
+        {imgError && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
+            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
+            <p className="text-xs text-destructive">{imgError}</p>
+          </div>
+        )}
+
+        {/* Grilla de thumbnails con botón de eliminar y slot de agregar más */}
+        <ImagePreviewGrid
+          images={images}
+          slotsLeft={slotsLeft}
+          onRemove={removeImage}
+          onAddMore={() => getRootProps().onClick?.()}
+        />
+      </div>
+
+      {/* ── Acciones del formulario ── */}
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <button
           type="submit"
@@ -210,6 +220,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           <Send className="size-4" />
           {isSubmitting ? 'Enviando…' : 'Enviar reporte'}
         </button>
+
         <button
           type="button"
           onClick={handleReset}
@@ -228,16 +239,12 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
   );
 }
 
-/* ── helpers ── */
+/* ─────────────────────────────────────────────────────────────────────────────
+   FormField – wrapper reutilizable para cualquier campo del formulario.
 
-function inputClass(hasError) {
-  return [
-    'w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm transition',
-    'placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
-    hasError ? 'border-destructive focus:ring-destructive/40' : 'border-input',
-  ].join(' ');
-}
-
+   Muestra: ícono + etiqueta + asterisco opcional + children + mensaje de error.
+   Para campos con lógica de selección especial (tipo/riesgo), usar SelectionGroup.
+───────────────────────────────────────────────────────────────────────────── */
 function FormField({ id, label, required, icon, error, children }) {
   return (
     <div className="space-y-1.5">
@@ -250,4 +257,13 @@ function FormField({ id, label, required, icon, error, children }) {
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
+}
+
+/* ── Utilidad de clases para inputs ── */
+function inputClass(hasError) {
+  return [
+    'w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm transition',
+    'placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
+    hasError ? 'border-destructive focus:ring-destructive/40' : 'border-input',
+  ].join(' ');
 }

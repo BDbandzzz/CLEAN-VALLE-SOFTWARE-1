@@ -1,13 +1,36 @@
+/**
+ * ProfilePage.jsx – Página de perfil del usuario autenticado.
+ *
+ * Responsabilidades:
+ *   - Leer el usuario de AuthContext y poblar formData al montar.
+ *   - Gestionar el estado del formulario de datos personales (solo email editable).
+ *   - Orquestar los handlers de guardado (updateUser) y reset.
+ *
+ * Estado local:
+ *   formData   – Copia editable de los datos del usuario (firstName, lastName, email, etc.)
+ *   isSaving   – Spinner de carga mientras se persiste.
+ *   message    – Mensaje de éxito/error tras guardar.
+ *
+ * Componentes que compone:
+ *   ProfileHero            – Encabezado con avatar, nombre y botón de logout.
+ *   ProfileSummaryCard     – Columna lateral con DNI y email de resumen.
+ *   ProfilePersonalDataCard – Formulario de datos (email editable + campos read-only).
+ *
+ * Nota: ProfileSecurityCard está definido pero no se usa aquí.
+ *       El cambio de contraseña ocurre en /change-password (ChangePasswordPage).
+ *
+ * Integración con backend:
+ *   handleSave → reemplazar updateUser(formData) por PUT /users/me con formData.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '@/core/context/AuthContext';
-import { validatePasswordChangeForm, validateProfileForm } from '@/modules/profile/validation/ProfileValidation';
+import { validatePasswordChangeForm, validateProfileForm } from '@/modules/profile/utils/profileValidation';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfileSummaryCard } from '@/modules/profile/components/ProfileSummaryCard';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
-import { ProfileSecurityCard } from '@/modules/profile/components/ProfileSecurityCard';
-import { getProfileInitials } from '@/modules/profile/lib/getProfileInitials';
+import { getProfileInitials } from '@/modules/profile/utils/getProfileInitials';
 
 const ProfilePage = () => {
   const { user, logout, updateUser } = useAuth();

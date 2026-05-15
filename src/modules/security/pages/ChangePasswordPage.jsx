@@ -1,5 +1,5 @@
 import { ShieldCheck } from 'lucide-react';
-import { ChangePasswordForm } from '../components/ChangePasswordForm';
+import { ChangePasswordForm } from '@/modules/security/components/ChangePasswordForm';
 
 /**
  * Página de cambio de contraseña, accesible desde el sidebar.
