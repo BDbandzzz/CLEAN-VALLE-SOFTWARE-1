@@ -1,6 +1,6 @@
 import { Shield } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardBox} from '@/core/components/ui/card';
 
 /**
  * ProfileSummaryCard.jsx – Columna lateral de resumen del perfil.
@@ -23,17 +23,21 @@ export function ProfileSummaryCard({ dniUser, emailPreview }) {
         <CardDescription>Tu rol y datos clave</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-xl border border-border bg-background/80 p-4">
-          <p className="text-xs font-medium uppercase text-muted-foreground">Identificador</p>
-          <p className="mt-1 font-mono text-sm font-semibold text-foreground">{dniUser || '—'}</p>
-        </div>
-        <div className="rounded-xl border border-border bg-background/80 p-4">
-          <p className="text-xs font-medium uppercase text-muted-foreground">Correo</p>
-          <p className="mt-1 truncate text-sm text-foreground">{emailPreview || 'Sin registrar'}</p>
-        </div>
-        <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4 text-xs leading-relaxed text-muted-foreground">
-          Los cambios se guardan en este dispositivo (demo local). Conecta una API para sincronizar en la nube.
-        </div>
+      <CardBox
+      title="DNI"
+      value ={dniUser}
+      />
+
+      <CardBox
+      title="Email"
+      value ={emailPreview}
+      />
+      
+      <CardBox
+      title="Rol"
+      value ="Estudiante"
+      />
+
       </CardContent>
     </Card>
   );

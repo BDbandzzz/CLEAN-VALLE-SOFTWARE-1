@@ -52,4 +52,22 @@ function CardFooter({ className, ...props }) {
   );
 }
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+
+function CardBox({ className = "", title, value, children }) {
+  return (
+    <div
+      className={`rounded-xl border border-border bg-background/80 p-4 ${className}`}
+    >
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {title}
+      </p>
+
+      <p className="mt-1 font-mono text-sm font-semibold text-foreground">
+        {value || "—"}
+      </p>
+
+      {children}
+    </div>
+  );
+}
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardBox };

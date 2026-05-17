@@ -15,3 +15,4 @@ export function Logo({ className = '' }) {
     </div>
   );
 }
+

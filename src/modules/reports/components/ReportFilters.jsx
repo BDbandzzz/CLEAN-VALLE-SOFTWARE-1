@@ -53,7 +53,8 @@ export function ReportFilters({ filters, onChange, onClear }) {
       {/* Filtro por tipo de reporte – toggle: segundo clic limpia */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de reporte</p>
-        <div className="flex flex-wrap gap-2">
+        {/* Mobile: 2 columnas simétricas. sm+: pills con wrap natural */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {REPORT_TYPES.map((t) => (
             <TypeButton
               key={t.id}
@@ -62,6 +63,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
               color={t.color}
               isSelected={filters.reportType === t.id}
               onClick={() => onChange({ reportType: filters.reportType === t.id ? '' : t.id })}
+              fullWidth
             />
           ))}
         </div>
@@ -70,7 +72,8 @@ export function ReportFilters({ filters, onChange, onClear }) {
       {/* Filtro por nivel de riesgo – toggle */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nivel de riesgo</p>
-        <div className="flex flex-wrap gap-2">
+        {/* Mobile: 2 columnas simétricas. sm+: pills con wrap natural */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {RISK_LEVELS.map((r) => (
             <TypeButton
               key={r.id}
@@ -79,6 +82,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
               color={r.color}
               isSelected={filters.riskLevel === r.id}
               onClick={() => onChange({ riskLevel: filters.riskLevel === r.id ? '' : r.id })}
+              fullWidth
             />
           ))}
         </div>

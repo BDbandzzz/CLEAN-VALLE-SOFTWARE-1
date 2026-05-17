@@ -9,17 +9,12 @@ import { APP_NAME, INSTITUTION_NAME } from '@/core/constants/branding';
 
 export function LandingFooter() {
   return (
-    <footer style={{
-      borderTop: '1px solid #e5e7eb',
-      background: '#fff',
-      padding: '1.75rem 1.25rem',
-      textAlign: 'center',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '0.4rem' }}>
-        <Leaf size={14} style={{ color: '#16a34a' }} />
-        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>{APP_NAME}</span>
+    <footer className="border-t border-border bg-background px-5 py-7 text-center">
+      <div className="mb-1 flex items-center justify-center gap-1.5">
+        <Leaf size={14} className="text-primary" />
+        <span className="text-sm font-semibold text-foreground">{APP_NAME}</span>
       </div>
-      <p style={{ margin: 0, fontSize: '0.75rem', color: '#9ca3af' }}>
+      <p className="text-xs text-muted-foreground">
         © {new Date().getFullYear()} {INSTITUTION_NAME} · Todos los derechos reservados
       </p>
     </footer>

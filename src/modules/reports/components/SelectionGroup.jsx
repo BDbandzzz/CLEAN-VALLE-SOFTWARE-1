@@ -18,6 +18,23 @@
  *   onSelect  {Function}    Callback llamado con el id del ítem al hacer clic.
  *   error     {string}      Mensaje de error de validación. Vacío = sin error.
  */
+/**
+ * Devuelve la clase `sm:grid-cols-N` correspondiente al número de ítems,
+ * permitiendo que en mobile siempre se usen 2 columnas (nunca se solapan)
+ * y en pantallas ≥640 px se expanda al ancho real del arreglo.
+ */
+function smColsClass(count) {
+  const map = {
+    1: 'sm:grid-cols-1',
+    2: 'sm:grid-cols-2',
+    3: 'sm:grid-cols-3',
+    4: 'sm:grid-cols-4',
+    5: 'sm:grid-cols-5',
+    6: 'sm:grid-cols-6',
+  };
+  return map[count] ?? 'sm:grid-cols-4';
+}
+
 export function SelectionGroup({ label, icon, required, items, idPrefix, selected, onSelect, error }) {
   return (
     <div className="space-y-1.5">
@@ -30,15 +47,13 @@ export function SelectionGroup({ label, icon, required, items, idPrefix, selecte
       </label>
 
       {/*
-        ── Grilla simétrica ──
-        gridTemplateColumns con repeat(N, 1fr) garantiza que todos los botones
-        tengan exactamente el mismo ancho, independientemente de la cantidad de ítems.
+        ── Grilla responsiva ──
+        Mobile (< 640 px): siempre 2 columnas → los botones nunca se solapan.
+        sm+ (≥ 640 px):    tantas columnas como ítems haya en el arreglo,
+                           manteniendo la simetría original.
         Para agregar/quitar opciones, editar el arreglo en reportConstants.js.
       */}
-      <div
-        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
-        className="grid gap-2 pt-1"
-      >
+      <div className={`grid grid-cols-2 ${smColsClass(items.length)} gap-2 pt-1`}>
         {items.map((item) => (
           <SelectionButton
             key={item.id}

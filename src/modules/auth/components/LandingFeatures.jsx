@@ -6,107 +6,71 @@
  *
  * Para agregar, quitar o editar tarjetas:
  *   → src/core/constants/landingContent.js (LANDING_FEATURE_CARDS)
- *
- * La cuadrícula escala automáticamente:
- *   Mobile  → 1 columna
- *   Tablet  → 2 columnas
- *   Desktop → 3 columnas
  */
 import { LANDING_FEATURE_CARDS } from '@/core/constants/landingContent';
 
 /**
  * Tarjeta individual de característica.
- *
- * Props:
- *   card  {{ icon, tag, title, body, color, colorLight }}
- *   index {number}  Índice para escalonar la animación fadeUp.
+ * Nota: colorLight y color son valores dinámicos de datos, por eso usan style inline.
  */
-function FeatureCard({ card, index }) {
+function FeatureCard({ card }) {
   return (
-    <div className="feature-card" style={{ animationDelay: `${index * 0.08}s` }}>
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6 transition-transform hover:-translate-y-1 hover:shadow-md">
+
       {/* Ícono + etiqueta de categoría */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{
-          width: '48px', height: '48px', borderRadius: '0.75rem',
-          background: card.colorLight,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.5rem',
-        }}>
+      <div className="flex items-center justify-between">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-xl text-2xl"
+          style={{ background: card.colorLight }}
+        >
           {card.icon}
         </div>
-        <span className="stat-chip" style={{ background: card.colorLight, color: card.color }}>
+        <span
+          className="rounded-full px-3 py-1 text-xs font-semibold"
+          style={{ background: card.colorLight, color: card.color }}
+        >
           {card.tag}
         </span>
       </div>
 
-      {/* Título de la característica */}
-      <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>
-        {card.title}
-      </h3>
+      {/* Título */}
+      <h3 className="text-base font-bold text-foreground">{card.title}</h3>
 
       {/* Descripción */}
-      <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', lineHeight: 1.65 }}>
-        {card.body}
-      </p>
+      <p className="text-sm leading-relaxed text-muted-foreground">{card.body}</p>
 
-      {/* Línea decorativa inferior con el color de la tarjeta */}
-      <div style={{
-        marginTop: 'auto',
-        height: '3px',
-        borderRadius: '999px',
-        background: `linear-gradient(90deg, ${card.color}55, transparent)`,
-      }} />
     </div>
   );
 }
 
 export function LandingFeatures() {
   return (
-    <section style={{
-      borderTop: '1px solid #e5e7eb',
-      background: '#fff',
-      padding: '4.5rem 1.25rem',
-    }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <section className="border-t border-border bg-card px-5 py-16">
+      <div className="mx-auto max-w-5xl">
 
         {/* Encabezado de la sección */}
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            background: '#f0fdf4', border: '1px solid #bbf7d0',
-            borderRadius: '999px', padding: '0.3rem 0.9rem',
-            marginBottom: '1rem',
-          }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#15803d' }}>
+        <div className="mb-12 text-center">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-4 py-1">
+            <span className="text-xs font-semibold text-secondary-foreground">
               ✦ Capacidades del sistema
             </span>
           </div>
-          <h2 style={{
-            margin: '0 0 0.75rem',
-            fontSize: 'clamp(1.5rem, 4vw, 2.1rem)',
-            fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em',
-          }}>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
             Todo lo que necesitas para gestionar el campus
           </h2>
-          <p style={{
-            margin: 0,
-            maxWidth: '540px', marginLeft: 'auto', marginRight: 'auto',
-            fontSize: '1rem', color: '#6b7280', lineHeight: 1.65,
-          }}>
+          <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
             Una plataforma completa orientada a la sostenibilidad, el monitoreo ambiental
             y la transparencia institucional universitaria.
           </p>
         </div>
 
         {/* Grid de tarjetas */}
-        <div
-          className="features-grid"
-          style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}
-        >
-          {LANDING_FEATURE_CARDS.map((card, i) => (
-            <FeatureCard key={card.title} card={card} index={i} />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {LANDING_FEATURE_CARDS.map((card) => (
+            <FeatureCard key={card.title} card={card} />
           ))}
         </div>
+
       </div>
     </section>
   );

@@ -3,52 +3,69 @@
  *
  * Flujo actual (demo local):
  *   1. El usuario ingresa su código institucional y contraseña.
- *   2. buildLoginUserPayload() (loginUtils.js) genera un objeto de usuario
+ *   2. buildLoginUserPayload() genera un objeto de usuario
  *      con un rol determinado por el prefijo del código.
- *   3. login() (AuthContext) persiste el usuario en localStorage.
+ *   3. login() persiste el usuario en localStorage.
  *   4. Se redirige a /profile.
  *
  * Integración con backend:
- *   Reemplazar el bloque handleSubmit por un POST /auth/login que devuelva
- *   el usuario + token. Luego llamar login(userData) con los datos de la API.
+ *   Reemplazar handleSubmit por un POST /auth/login
+ *   que retorne usuario + token.
  *
  * Notas:
- *   - El botón de Google aún no tiene implementación real (placeholder).
- *   - La validación de credenciales es demo (loginUtils.js).
+ *   - Google Login aún es placeholder.
+ *   - Validación actual es demo.
  */
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { FcGoogle } from 'react-icons/fc';
 
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FcGoogle } from 'react-icons/fc';
 import { Button } from '@/core/components/ui/button';
-import { Input } from '@/core/components/ui/input';
-import { Label } from '@/core/components/ui/label';
 import { useAuth } from '@/core/context/AuthContext';
-import { UNIVALLE_LOGO_SRC, APP_NAME, INSTITUTION_NAME } from '@/core/constants/branding';
+import { Field } from '@/core/components/ui/fields';
+
+
+import {
+  APP_NAME,
+  INSTITUTION_NAME,
+  UNIVALLE_LOGO_SRC,
+} from '@/core/constants/branding';
+
 import { buildLoginUserPayload } from '@/modules/auth/utils/loginUtils';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+
   const { login } = useAuth();
+
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const userData = buildLoginUserPayload(code, password);
+
     login(userData);
+
     navigate('/profile');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-background to-teal-50/40 px-4 py-10">
+      {/* Botón volver */}
       <div className="mx-auto mb-8 flex max-w-lg justify-start">
-        <Button variant="ghost" asChild className="gap-2 text-muted-foreground hover:text-foreground">
+        <Button
+          variant="ghost"
+          asChild
+          className="gap-2 text-muted-foreground hover:text-foreground"
+        >
           <Link to="/">← Volver al inicio</Link>
         </Button>
       </div>
 
       <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
+        {/* Header */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-md">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="flex shrink-0 justify-center sm:justify-start">
@@ -58,41 +75,50 @@ const LoginPage = () => {
                 className="h-16 w-auto max-w-[200px] object-contain"
               />
             </div>
+
             <div className="min-w-0 flex-1 text-center sm:text-left">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">{APP_NAME}</h1>
-              <p className="text-sm text-muted-foreground">Plataforma de gestión de reportes ambientales</p>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                {APP_NAME}
+              </h1>
+
+              <p className="text-sm text-muted-foreground">
+                Plataforma de gestión de reportes ambientales
+              </p>
             </div>
           </div>
         </div>
 
+        {/* Card Login */}
         <div className="rounded-2xl border border-border bg-card p-8 shadow-md">
-          <h2 className="mb-1 text-center text-2xl font-bold tracking-tight text-foreground">Bienvenido</h2>
+          <h2 className="mb-1 text-center text-2xl font-bold tracking-tight text-foreground">
+            Bienvenido
+          </h2>
+
           <p className="mb-8 text-center text-sm text-muted-foreground">
             Inicia sesión para acceder a tu cuenta y administrar tus reportes.
           </p>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="code">Código</Label>
-              <Input
-                id="code"
-                type="text"
-                placeholder="Ingresa tu código"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </div>
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
+            <Field
+              id="code"
+              label="Código"
+              type="text"
+              placeholder="Ingresa tu código"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            <Field
+              id="password"
+              label="Contraseña"
+              type="password"
+              placeholder="Ingresa tu contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
             <Button
               type="submit"
@@ -102,7 +128,12 @@ const LoginPage = () => {
               Iniciar sesión
             </Button>
 
-            <Button type="button" variant="outline" className="w-full" size="lg">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
               <FcGoogle size={18} />
               Iniciar sesión con Google
             </Button>
@@ -124,3 +155,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
