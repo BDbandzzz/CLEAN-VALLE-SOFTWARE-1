@@ -24,7 +24,7 @@ jobs:
       - name: Build del proyecto
         run: npm run build
 
-      - name: Limpiar carpeta
+      - name: Limpiar carpeta (sin borrar .htaccess)
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
