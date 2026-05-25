@@ -9,4 +9,3 @@ export async function changePasswordAfterLogin(codeUser, passwordData) {
     },
   });
 }
-j
