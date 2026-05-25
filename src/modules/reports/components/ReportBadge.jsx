@@ -10,11 +10,13 @@
  * Para agregar un nuevo tipo o nivel, solo editar ese archivo.
  */
 import { getReportTypeMeta, getRiskLevelMeta } from '../constants/reportConstants';
+import { useCatalogs } from '@/core/context/CatalogContext';
 
 export function ReportBadge({ type, value, size = 'sm' }) {
+  const { getOptions } = useCatalogs();
   const meta = type === 'reportType'
-    ? getReportTypeMeta(value)
-    : getRiskLevelMeta(value);
+    ? getReportTypeMeta(value, getOptions('typeReport'))
+    : getRiskLevelMeta(value, getOptions('riskLevel'));
 
   const sizeClasses = size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-sm';
 

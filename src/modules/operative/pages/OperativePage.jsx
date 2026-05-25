@@ -1,113 +1,164 @@
-import { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { HardHat, CheckCircle2, Wrench, Loader2 } from 'lucide-react';
 
+import { useAuth } from '@/core/context/AuthContext';
+import { useReports } from '@/modules/reports/context/ReportsContext';
+import { ReportCard } from '@/modules/reports/components/ReportCard';
 import { Button } from '@/core/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 
 const OperativePage = () => {
-  const [assignedReports] = useState([
-    { id: 1, title: 'Basura en Calle 5', location: 'Calle 5, Zona Centro', status: 'Pendiente', priority: 'Alta' },
-    { id: 2, title: 'Bache en Avenida', location: 'Avenida Principal', status: 'En proceso', priority: 'Media' },
-    { id: 3, title: 'Limpieza de parque', location: 'Parque Central', status: 'Pendiente', priority: 'Media' },
-  ]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { getAssignedReportsToOperator, getResolvedReportsByOperator } = useReports();
 
-  const statusClass = (status) => {
-    switch (status) {
-      case 'Pendiente':
-        return 'bg-amber-500/15 text-amber-800 border-amber-500/30';
-      case 'En proceso':
-        return 'bg-sky-500/15 text-sky-900 border-sky-500/30';
-      case 'Completado':
-        return 'bg-primary/15 text-primary border-primary/25';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
+  const [activeTab, setActiveTab] = useState('asignados');
 
-  const priorityClass = (priority) => {
-    switch (priority) {
-      case 'Alta':
-        return 'text-red-600 font-semibold';
-      case 'Media':
-        return 'text-amber-600 font-medium';
-      case 'Baja':
-        return 'text-primary font-medium';
-      default:
-        return 'text-muted-foreground';
-    }
-  };
+  const assignedReports = useMemo(
+    () => getAssignedReportsToOperator(user?.id),
+    [getAssignedReportsToOperator, user?.id]
+  );
+
+  const resolvedReports = useMemo(
+    () => getResolvedReportsByOperator(user?.id),
+    [getResolvedReportsByOperator, user?.id]
+  );
+
+  const displayedReports = activeTab === 'asignados' ? assignedReports : resolvedReports;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <div>
-        <p className="text-sm font-medium text-primary">Operativo</p>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Mis tareas asignadas</h1>
-        <p className="mt-2 max-w-xl text-muted-foreground">Reportes que te corresponden resolver en campo.</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          { label: 'Total asignados', value: '3' },
-          { label: 'En proceso', value: '1', tone: 'text-sky-600' },
-          { label: 'Pendientes', value: '2', tone: 'text-amber-600' },
-        ].map((kpi) => (
-          <Card key={kpi.label} className="border-primary/10 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardDescription>{kpi.label}</CardDescription>
-              <CardTitle className={`text-3xl font-bold tabular-nums ${kpi.tone || ''}`}>{kpi.value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="overflow-hidden border-primary/10 shadow-md">
-        <CardHeader className="border-b border-border bg-muted/30">
-          <CardTitle className="text-lg">Listado de tareas</CardTitle>
-          <CardDescription>Ubicación, estado y prioridad.</CardDescription>
-        </CardHeader>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/20 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Título</th>
-                <th className="px-4 py-3">Ubicación</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Prioridad</th>
-                <th className="px-4 py-3">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignedReports.map((report) => (
-                <tr key={report.id} className="border-b border-border transition-colors hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-foreground">{report.title}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="size-3.5 shrink-0 text-primary" />
-                      {report.location}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusClass(report.status)}`}>
-                      {report.status}
-                    </span>
-                  </td>
-                  <td className={`px-4 py-3 ${priorityClass(report.priority)}`}>{report.priority}</td>
-                  <td className="px-4 py-3">
-                    <Button size="sm" variant="secondary">
-                      Hecho
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="mx-auto max-w-4xl space-y-8 pb-12">
+      {/* Hero section */}
+      <section className="relative overflow-hidden rounded-2xl border border-sky-600/20 bg-gradient-to-br from-sky-600 via-blue-700 to-indigo-800 p-8 text-primary-foreground shadow-xl">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-1/3 size-72 rounded-full bg-black/10 blur-3xl" />
+        <div className="relative flex items-center gap-4">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/15 backdrop-blur-sm">
+            <HardHat className="size-7" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Panel Operativo</h1>
+            <p className="mt-1 text-sm text-sky-100/80">
+              Gestiona tus tareas asignadas y envía resoluciones en campo.
+            </p>
+          </div>
         </div>
-        <CardContent className="border-t border-border bg-muted/20 py-3 text-center text-xs text-muted-foreground">
-          Los datos son de demostración hasta conectar el backend.
-        </CardContent>
-      </Card>
+      </section>
+
+      {/* KPIs Rápidos */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="border-sky-600/10 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardDescription className="flex items-center gap-2">
+              <Loader2 className="size-4 text-sky-600" />
+              Tareas Pendientes
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold tabular-nums text-sky-700">{assignedReports.length}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="border-green-600/10 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardDescription className="flex items-center gap-2">
+              <CheckCircle2 className="size-4 text-green-600" />
+              Tareas Resueltas
+            </CardDescription>
+            <CardTitle className="text-3xl font-bold tabular-nums text-green-700">{resolvedReports.length}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex rounded-xl border border-border bg-muted/40 p-1 gap-1">
+        <TabButton
+          id="tab-asignados"
+          label="Reportes Asignados"
+          count={assignedReports.length}
+          isActive={activeTab === 'asignados'}
+          onClick={() => setActiveTab('asignados')}
+        />
+        <TabButton
+          id="tab-resueltos"
+          label="Mis Resoluciones"
+          count={resolvedReports.length}
+          isActive={activeTab === 'resueltos'}
+          onClick={() => setActiveTab('resueltos')}
+        />
+      </div>
+
+      {/* Lista de reportes */}
+      <div className="space-y-4">
+        {displayedReports.length > 0 ? (
+          displayedReports.map((report) => (
+            <ReportCard 
+              key={report.id} 
+              report={report} 
+              actionButton={
+                activeTab === 'asignados' ? (
+                  <Button 
+                    onClick={() => navigate(`/operative/resolve/${report.id}`)}
+                    className="w-full sm:w-auto gap-2"
+                  >
+                    <Wrench className="size-4" />
+                    Enviar Resolución
+                  </Button>
+                ) : null
+              }
+            />
+          ))
+        ) : (
+          <EmptyState activeTab={activeTab} />
+        )}
+      </div>
     </div>
   );
 };
+
+function TabButton({ id, label, count, isActive, onClick }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      onClick={onClick}
+      className={[
+        'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+        isActive
+          ? 'bg-card text-foreground shadow-sm border border-border'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+      ].join(' ')}
+    >
+      <div className="flex items-center justify-center gap-2">
+        <span>{label}</span>
+        <span
+          className={[
+            'rounded-full px-2 py-0.5 text-xs font-semibold',
+            isActive ? 'bg-sky-100 text-sky-700' : 'bg-muted text-muted-foreground',
+          ].join(' ')}
+        >
+          {count}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function EmptyState({ activeTab }) {
+  const isAssigned = activeTab === 'asignados';
+  const Icon = isAssigned ? Wrench : CheckCircle2;
+  
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center bg-muted/10">
+      <Icon className="size-12 text-muted-foreground/40" />
+      <p className="mt-4 text-base font-medium text-muted-foreground">
+        {isAssigned ? 'No tienes tareas asignadas' : 'Aún no has resuelto ningún reporte'}
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground/70 max-w-sm">
+        {isAssigned 
+          ? 'El gestor te asignará reportes cuando haya incidentes que requieran tu atención.' 
+          : 'Cuando completes una tarea y envíes su resolución, aparecerá en este historial.'}
+      </p>
+    </div>
+  );
+}
 
 export default OperativePage;

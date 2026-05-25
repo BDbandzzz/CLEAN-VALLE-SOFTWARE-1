@@ -47,8 +47,12 @@ function applyFilters(reports, filters) {
     }
     if (filters.reportType && r.reportType !== filters.reportType) return false;
     if (filters.riskLevel && r.riskLevel !== filters.riskLevel) return false;
-    if (filters.dateFrom && r.incidentDate < filters.dateFrom) return false;
-    if (filters.dateTo && r.incidentDate > filters.dateTo) return false;
+    if (filters.dateFrom || filters.dateTo) {
+      const reportDate = r.incidentDate ? new Date(r.incidentDate) : null;
+      if (!reportDate) return false;
+      if (filters.dateFrom && reportDate < new Date(filters.dateFrom)) return false;
+      if (filters.dateTo && reportDate > new Date(`${filters.dateTo}T23:59:59`)) return false;
+    }
     return true;
   });
 }

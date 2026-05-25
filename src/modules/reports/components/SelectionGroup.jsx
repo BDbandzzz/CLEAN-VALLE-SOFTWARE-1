@@ -35,7 +35,7 @@ function smColsClass(count) {
   return map[count] ?? 'sm:grid-cols-4';
 }
 
-export function SelectionGroup({ label, icon, required, items, idPrefix, selected, onSelect, error }) {
+export function SelectionGroup({ label, icon, required, items, idPrefix, selected, onSelect, error, disabled = false }) {
   return (
     <div className="space-y-1.5">
 
@@ -61,6 +61,7 @@ export function SelectionGroup({ label, icon, required, items, idPrefix, selecte
             label={item.label}
             color={item.color}
             isSelected={selected === item.id}
+            disabled={disabled}
             onClick={() => onSelect(item.id)}
           />
         ))}
@@ -79,11 +80,12 @@ export function SelectionGroup({ label, icon, required, items, idPrefix, selecte
    El color de fondo, borde y texto se controla por la prop `color` (hex).
    Al seleccionarse muestra un glow ring del mismo color con 20% de opacidad.
 ───────────────────────────────────────────────────────────────────────────── */
-function SelectionButton({ id, label, color, isSelected, onClick }) {
+function SelectionButton({ id, label, color, isSelected, disabled, onClick }) {
   return (
     <button
       type="button"
       id={id}
+      disabled={disabled}
       onClick={onClick}
       aria-pressed={isSelected}
       style={{
@@ -95,7 +97,7 @@ function SelectionButton({ id, label, color, isSelected, onClick }) {
       className="
         flex w-full cursor-pointer items-center justify-center gap-2
         rounded-xl border-2 py-2.5 text-sm font-semibold
-        transition-all duration-200 hover:opacity-85 select-none
+        transition-all duration-200 hover:opacity-85 disabled:pointer-events-none disabled:opacity-50 select-none
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1
       "
     >

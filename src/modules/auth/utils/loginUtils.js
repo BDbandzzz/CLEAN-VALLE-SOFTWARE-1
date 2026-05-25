@@ -1,48 +1,12 @@
 /**
- * Utilidades de autenticación y login (sin UI).
- * El diseño vive en `LoginPage.jsx`.
+ * Utilidades de autenticación y login.
  */
 
-export const defaultLoginProfile = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  dniUser: '',
-  typeDni: '',
-  gender: '',
-  userCredentials: '',
-};
+// Ya no construimos perfiles mockeados aquí, el backend se encargará de validar
+// y devolver el payload del usuario (incluido en el JWT y su perfil respectivo).
 
-export function getRoleFromCredentials(codeValue) {
-  const normalized = String(codeValue).toLowerCase().trim();
-
-  if (normalized === '2455194-2724') {
-    return 'estudiante';
-  }
-  if (normalized.startsWith('pro')) {
-    return 'profesor';
-  }
-  if (normalized.startsWith('ope')) {
-    return 'operador';
-  }
-  if (normalized.startsWith('adm')) {
-    return 'admin';
-  }
-
-  return 'estudiante';
-}
-
-export function buildLoginUserPayload(code, password = '') {
-  void password;
-  const trimmed = code.trim();
-  const role = getRoleFromCredentials(trimmed);
-
-  return {
-    ...defaultLoginProfile,
-    id: trimmed || `user_${Date.now()}`,
-    firstName: 'Brayan David',
-    lastName: 'Garzon Arboleda',
-    dniUser: '1123121814',
-    role,
-  };
+// Si necesitas utilidades futuras de auth (ej. validaciones de código) puedes colocarlas aquí.
+export function validateLoginCode(code) {
+  if (!code || code.trim().length === 0) return false;
+  return true;
 }

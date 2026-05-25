@@ -25,22 +25,25 @@ import {
   ChevronDown, ChevronUp, MapPin, Calendar,
   Clock, CheckCircle2, AlertCircle, Loader2,
 } from 'lucide-react';
+import { useCatalogs } from '@/core/context/CatalogContext';
 import { ReportBadge } from './ReportBadge';
+import { getStatusMeta } from '../constants/reportConstants';
 
 /**
  * Metadatos visuales por estado de reporte.
  * Para agregar un nuevo estado, añadir una entrada aquí.
  */
-const STATUS_META = {
-  pendiente:   { label: 'Pendiente',   icon: Clock,        color: '#d97706' },
-  en_progreso: { label: 'En progreso', icon: Loader2,      color: '#2563eb' },
-  resuelto:    { label: 'Resuelto',    icon: CheckCircle2, color: '#16a34a' },
+const STATUS_ICONS = {
+  submitted: Clock,
+  inProgress: Loader2,
+  resolved: CheckCircle2,
+  closed: CheckCircle2,
+  discarded: AlertCircle,
 };
 
 /** Pastilla de estado con ícono y color temático. */
-function StatusPill({ status }) {
-  const meta = STATUS_META[status] || STATUS_META.pendiente;
-  const Icon = meta.icon;
+function StatusPill({ meta }) {
+  const Icon = STATUS_ICONS[meta.key] ?? Clock;
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
@@ -52,12 +55,14 @@ function StatusPill({ status }) {
   );
 }
 
-export function ReportCard({ report }) {
+export function ReportCard({ report, actionButton }) {
   const [expanded, setExpanded] = useState(false);
+  const { getOptions } = useCatalogs();
+  const statusMeta = getStatusMeta(report.statusKey || report.status, getOptions('statusReport'));
 
   /* Formateo de fechas en locale colombiano */
   const formattedDate = report.incidentDate
-    ? new Date(report.incidentDate + 'T00:00:00').toLocaleDateString('es-CO', {
+    ? new Date(report.incidentDate).toLocaleDateString('es-CO', {
         year: 'numeric', month: 'long', day: 'numeric',
       })
     : '—';
@@ -79,7 +84,7 @@ export function ReportCard({ report }) {
           <div className="flex flex-wrap items-center gap-2">
             <ReportBadge type="reportType" value={report.reportType} />
             <ReportBadge type="riskLevel"  value={report.riskLevel} />
-            <StatusPill status={report.status} />
+            <StatusPill meta={statusMeta} />
           </div>
           <h3 className="text-base font-semibold text-foreground line-clamp-1">{report.title}</h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -123,8 +128,8 @@ export function ReportCard({ report }) {
             <InfoItem label="Reportado el"      value={formattedCreatedAt} />
           </div>
 
-          {/* Bloque de resolución (solo si status === 'resuelto') */}
-          {report.status === 'resuelto' && report.resolution && (
+          {/* Bloque de resolución (solo si status === 'Resuelto') */}
+          {(statusMeta.key === 'resolved' || statusMeta.key === 'closed') && report.resolution && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-1.5">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-green-700">
                 <CheckCircle2 className="size-3.5" />
@@ -165,6 +170,13 @@ export function ReportCard({ report }) {
               <AlertCircle className="size-3.5" />
               Sin imágenes adjuntas
             </p>
+          )}
+
+          {/* Botón de acción opcional (ej: Enviar Resolución) */}
+          {actionButton && (
+            <div className="pt-2">
+              {actionButton}
+            </div>
           )}
         </div>
       )}

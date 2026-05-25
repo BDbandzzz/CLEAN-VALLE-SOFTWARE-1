@@ -1,124 +1,111 @@
-/**
- * Constantes centralizadas para los reportes de Clean-Valle.
- * Incluye tipos de reporte, niveles de riesgo y su metadata de display.
- */
+import { findCatalogOption, normalizeCatalogText } from '@/core/catalogs/catalogUtils';
 
-export const REPORT_TYPES = [
-  {
-    id: 'basura',
-    label: 'Basura',
-    color: '#16a34a',         // verde
-    bgClass: 'report-type-basura',
-  },
-  {
-    id: 'agua',
-    label: 'Agua',
-    color: '#2563eb',         // azul
-    bgClass: 'report-type-agua',
-  },
-  {
-    id: 'riesgo',
-    label: 'Riesgo',
-    color: '#dc2626',         // rojo
-    bgClass: 'report-type-riesgo',
-  },
-  {
-    id: 'contaminacion',
-    label: 'Contaminación',
-    color: '#7c3aed',         // morado
-    bgClass: 'report-type-contaminacion',
-  },
-  {
-    id: 'otro',
-    label: 'Otro',
-    color: '#6b7280',         // gris
-    bgClass: 'report-type-otro',
-  },
+const REPORT_TYPE_STYLES = [
+  { aliases: ['basura', 'basuras', 'residuo', 'residuos'], color: '#16a34a', bgClass: 'report-type-basura' },
+  { aliases: ['agua', 'hidrico'], color: '#2563eb', bgClass: 'report-type-agua' },
+  { aliases: ['riesgo', 'seguridad', 'peligro'], color: '#dc2626', bgClass: 'report-type-riesgo' },
+  { aliases: ['ruido', 'sonoro'], color: '#7c3aed', bgClass: 'report-type-ruido' },
+  { aliases: ['contaminacion', 'ambiental'], color: '#0891b2', bgClass: 'report-type-contaminacion' },
+  { aliases: ['otro', 'otros'], color: '#6b7280', bgClass: 'report-type-otro' },
 ];
 
-export const RISK_LEVELS = [
-  {
-    id: 'bajo',
-    label: 'Bajo',
-    color: '#16a34a',
-    bgClass: 'risk-bajo',
-  },
-  {
-    id: 'medio',
-    label: 'Medio',
-    color: '#d97706',
-    bgClass: 'risk-medio',
-  },
-  {
-    id: 'alto',
-    label: 'Alto',
-    color: '#dc2626',
-    bgClass: 'risk-alto',
-  },
+const RISK_LEVEL_STYLES = [
+  { aliases: ['bajo'], color: '#16a34a', bgClass: 'risk-bajo' },
+  { aliases: ['medio', 'moderado'], color: '#d97706', bgClass: 'risk-medio' },
+  { aliases: ['alto'], color: '#dc2626', bgClass: 'risk-alto' },
+  { aliases: ['critico'], color: '#991b1b', bgClass: 'risk-critico' },
 ];
 
-/** Retorna la metadata de un tipo de reporte por su id. */
-export const getReportTypeMeta = (id) =>
-  REPORT_TYPES.find((t) => t.id === id) || REPORT_TYPES[REPORT_TYPES.length - 1];
-
-/** Retorna la metadata de un nivel de riesgo por su id. */
-export const getRiskLevelMeta = (id) =>
-  RISK_LEVELS.find((r) => r.id === id) || RISK_LEVELS[0];
-
-/** Mock inicial de reportes para demostración. */
-export const MOCK_REPORTS = [
-  {
-    id: 'r-001',
-    title: 'Basura acumulada en zona norte',
-    description: 'Se ha acumulado una gran cantidad de basura en la zona norte del campus, generando malos olores y atrayendo animales.',
-    location: 'Zona norte – Bloque A',
-    riskLevel: 'alto',
-    reportType: 'basura',
-    incidentDate: '2026-05-10',
-    status: 'pendiente',
-    createdAt: '2026-05-10T09:00:00Z',
-    images: [],
-  },
-  {
-    id: 'r-002',
-    title: 'Tubería rota en cafetería',
-    description: 'La tubería del baño de la cafetería presenta una fuga que está encharcando el pasillo.',
-    location: 'Cafetería Central',
-    riskLevel: 'medio',
-    reportType: 'agua',
-    incidentDate: '2026-05-12',
-    status: 'resuelto',
-    createdAt: '2026-05-12T11:30:00Z',
-    images: [],
-    resolution: 'El equipo de mantenimiento reparó la tubería el 13 de mayo.',
-    resolvedAt: '2026-05-13T14:00:00Z',
-    operatorName: 'Carlos Méndez',
-  },
-  {
-    id: 'r-003',
-    title: 'Cables eléctricos expuestos',
-    description: 'Hay cables eléctricos expuestos en el pasillo del edificio de ingeniería, representando un riesgo para los estudiantes.',
-    location: 'Edificio de Ingeniería – Pasillo 2',
-    riskLevel: 'alto',
-    reportType: 'riesgo',
-    incidentDate: '2026-05-13',
-    status: 'en_progreso',
-    createdAt: '2026-05-13T08:15:00Z',
-    images: [],
-  },
-  {
-    id: 'r-004',
-    title: 'Derrame de químicos en laboratorio',
-    description: 'Un derrame menor de químicos ocurrió en el laboratorio de química. El área fue ventilada pero requiere limpieza especializada.',
-    location: 'Laboratorio de Química – Piso 3',
-    riskLevel: 'alto',
-    reportType: 'contaminacion',
-    incidentDate: '2026-05-11',
-    status: 'resuelto',
-    createdAt: '2026-05-11T15:45:00Z',
-    images: [],
-    resolution: 'Equipo especializado realizó la limpieza y descontaminación del área.',
-    resolvedAt: '2026-05-12T10:00:00Z',
-    operatorName: 'Laura Torres',
-  },
+const STATUS_STYLES = [
+  { key: 'submitted', aliases: ['enviado', 'pendiente', 'nuevo', 'registrado'], label: 'Enviado', color: '#d97706' },
+  { key: 'inProgress', aliases: ['en proceso', 'en progreso', 'proceso', 'asignado'], label: 'En Proceso', color: '#2563eb' },
+  { key: 'resolved', aliases: ['resuelto', 'resuelta'], label: 'Resuelto', color: '#16a34a' },
+  { key: 'closed', aliases: ['cerrado', 'cerrada'], label: 'Cerrado', color: '#0f766e' },
+  { key: 'discarded', aliases: ['descartado', 'descartada', 'rechazado', 'rechazada'], label: 'Descartado', color: '#dc2626' },
 ];
+
+function findStyle(label, styles, fallbackColor) {
+  const normalized = normalizeCatalogText(label);
+  const match = styles.find((style) =>
+    style.aliases.some((alias) => normalized.includes(normalizeCatalogText(alias)))
+  );
+
+  return match ?? { color: fallbackColor, bgClass: '' };
+}
+
+function decorateOptions(options, styles, fallbackColor) {
+  return options.map((option) => {
+    const style = findStyle(option.label, styles, fallbackColor);
+    return {
+      ...option,
+      color: style.color,
+      bgClass: style.bgClass,
+    };
+  });
+}
+
+function resolveStatusStyle(value) {
+  const normalized = normalizeCatalogText(value);
+  return (
+    STATUS_STYLES.find((status) => status.key === value) ||
+    STATUS_STYLES.find((status) => status.aliases.some((alias) => normalized.includes(normalizeCatalogText(alias)))) ||
+    null
+  );
+}
+
+export function getReportTypeOptions(catalogOptions = []) {
+  return decorateOptions(catalogOptions, REPORT_TYPE_STYLES, '#6b7280');
+}
+
+export function getRiskLevelOptions(catalogOptions = []) {
+  return decorateOptions(catalogOptions, RISK_LEVEL_STYLES, '#6b7280');
+}
+
+export function getStatusOptions(catalogOptions = []) {
+  return catalogOptions.map((option) => {
+    const style = resolveStatusStyle(option.label);
+    return {
+      ...option,
+      key: style?.key ?? 'unknown',
+      color: style?.color ?? '#6b7280',
+    };
+  });
+}
+
+export function getReportTypeMeta(value, catalogOptions = []) {
+  const options = getReportTypeOptions(catalogOptions);
+  const option = findCatalogOption(options, value);
+  const label = option?.label ?? String(value || '');
+  const style = findStyle(label, REPORT_TYPE_STYLES, '#6b7280');
+  return { id: String(value || ''), label, ...option, color: style.color, bgClass: style.bgClass };
+}
+
+export function getRiskLevelMeta(value, catalogOptions = []) {
+  const options = getRiskLevelOptions(catalogOptions);
+  const option = findCatalogOption(options, value);
+  const label = option?.label ?? String(value || '');
+  const style = findStyle(label, RISK_LEVEL_STYLES, '#6b7280');
+  return { id: String(value || ''), label, ...option, color: style.color, bgClass: style.bgClass };
+}
+
+export function getStatusMeta(value, catalogOptions = []) {
+  const options = getStatusOptions(catalogOptions);
+  const option = findCatalogOption(options, value);
+  const style = resolveStatusStyle(option?.label ?? value);
+
+  return {
+    id: option?.id ?? String(value || ''),
+    value: option?.value ?? null,
+    label: option?.label ?? style?.label ?? String(value || ''),
+    key: option?.key ?? style?.key ?? 'unknown',
+    color: option?.color ?? style?.color ?? '#6b7280',
+  };
+}
+
+export function getStatusKey(value, catalogOptions = []) {
+  return getStatusMeta(value, catalogOptions).key;
+}
+
+export function findStatusOptionByKey(statusKey, catalogOptions = []) {
+  return getStatusOptions(catalogOptions).find((option) => option.key === statusKey) ?? null;
+}

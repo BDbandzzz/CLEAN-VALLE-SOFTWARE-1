@@ -10,7 +10,8 @@ export const getRoleDisplayName = (role) => {
     estudiante: 'Estudiante universitario',
     profesor: 'Profesor universitario',
     operador: 'Operador del sistema',
-    admin: 'Administrador del sistema',
+    gestor: 'Gestor del sistema',
+    root: 'Administrador del sistema',
   };
   return roleNames[role] || 'Usuario';
 };
@@ -20,7 +21,8 @@ export const getWelcomeMessage = (role) => {
     estudiante: 'Bienvenido, Estudiante universitario',
     profesor: 'Bienvenido, Profesor universitario',
     operador: 'Bienvenido, Operador del sistema',
-    admin: 'Bienvenido, Administrador del sistema',
+    gestor: 'Bienvenido, Gestor del sistema',
+    root: 'Bienvenido, Administrador del sistema',
   };
   return welcomeMessages[role] || 'Bienvenido';
 };

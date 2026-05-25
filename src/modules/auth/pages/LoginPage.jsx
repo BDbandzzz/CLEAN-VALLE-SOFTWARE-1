@@ -20,6 +20,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { useAuth } from '@/core/context/AuthContext';
 import { Field } from '@/core/components/ui/fields';
@@ -31,8 +32,6 @@ import {
   UNIVALLE_LOGO_SRC,
 } from '@/core/constants/branding';
 
-import { buildLoginUserPayload } from '@/modules/auth/utils/loginUtils';
-
 const LoginPage = () => {
   const navigate = useNavigate();
 
@@ -40,15 +39,26 @@ const LoginPage = () => {
 
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
 
-    const userData = buildLoginUserPayload(code, password);
-
-    login(userData);
-
-    navigate('/profile');
+    try {
+      const role = await login(code, password);
+      if (role === 'gestor') {
+        navigate('/gestor/reports');
+      } else if (role === 'operador') {
+        navigate('/operative');
+      } else if (role === 'root') {
+        navigate('/admin');
+      } else {
+        navigate('/reports/view');
+      }
+    } catch {
+      setErrorMsg("Credenciales incorrectas. Por favor, intenta de nuevo.");
+    }
   };
 
   return (
@@ -94,9 +104,16 @@ const LoginPage = () => {
             Bienvenido
           </h2>
 
-          <p className="mb-8 text-center text-sm text-muted-foreground">
+          <p className="mb-6 text-center text-sm text-muted-foreground">
             Inicia sesión para acceder a tu cuenta y administrar tus reportes.
           </p>
+
+          {errorMsg && (
+            <div className="mb-6 flex items-center gap-2 rounded-lg bg-destructive/15 p-3 text-sm text-destructive">
+              <AlertCircle size={16} />
+              <p>{errorMsg}</p>
+            </div>
+          )}
 
           <form
             className="space-y-5"
@@ -123,6 +140,7 @@ const LoginPage = () => {
             <Button
               type="submit"
               size="lg"
+              id="login"
               className="h-11 w-full text-base font-semibold shadow-sm transition-[transform,box-shadow,filter] duration-150"
             >
               Iniciar sesión

@@ -24,10 +24,11 @@ const STATS = [
 ];
 
 /** Chip numérico de estadística: ícono + valor + etiqueta. */
-function StatBadge({ icon: Icon, label, value }) {
+function StatBadge({ icon, label, value }) {
+  const StatIcon = icon;
   return (
     <div className="flex min-w-[90px] flex-col items-center rounded-xl border border-border bg-card px-5 py-4">
-      <Icon size={18} className="mb-1 text-primary" />
+      <StatIcon size={18} className="mb-1 text-primary" />
       <span className="text-lg font-extrabold text-foreground">{value}</span>
       <span className="mt-0.5 text-center text-xs text-muted-foreground">{label}</span>
     </div>

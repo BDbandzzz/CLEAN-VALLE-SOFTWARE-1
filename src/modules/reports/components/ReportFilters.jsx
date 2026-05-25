@@ -22,11 +22,17 @@
  *   2. Agregar el control aquí y llamar onChange({ nuevaClave: valor }).
  *   3. Agregar la condición en applyFilters() (ViewReportsPage).
  */
-import { Search, X } from 'lucide-react';
-import { REPORT_TYPES, RISK_LEVELS } from '../constants/reportConstants';
-import { TypeButton } from './TypeButton';
+import { Search, X, Tag, AlertTriangle } from 'lucide-react';
+import { useCatalogs } from '@/core/context/CatalogContext';
+import { getReportTypeOptions, getRiskLevelOptions } from '../constants/reportConstants';
+import { SelectionGroup } from './SelectionGroup';
 
 export function ReportFilters({ filters, onChange, onClear }) {
+  const { getOptions, hasOptions } = useCatalogs();
+  const reportTypeOptions = getReportTypeOptions(getOptions('typeReport'));
+  const riskLevelOptions = getRiskLevelOptions(getOptions('riskLevel'));
+  const catalogsReady = hasOptions('typeReport') && hasOptions('riskLevel');
+
   const hasActiveFilters =
     filters.search || filters.reportType || filters.riskLevel ||
     filters.dateFrom || filters.dateTo;
@@ -50,43 +56,27 @@ export function ReportFilters({ filters, onChange, onClear }) {
         />
       </div>
 
-      {/* Filtro por tipo de reporte – toggle: segundo clic limpia */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tipo de reporte</p>
-        {/* Mobile: 2 columnas simétricas. sm+: pills con wrap natural */}
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          {REPORT_TYPES.map((t) => (
-            <TypeButton
-              key={t.id}
-              id={`filter-type-${t.id}`}
-              label={t.label}
-              color={t.color}
-              isSelected={filters.reportType === t.id}
-              onClick={() => onChange({ reportType: filters.reportType === t.id ? '' : t.id })}
-              fullWidth
-            />
-          ))}
-        </div>
-      </div>
+      {/* ── Filtro por tipo de reporte – toggle: segundo clic limpia ── */}
+      <SelectionGroup
+        label="Tipo de reporte"
+        icon={<Tag className="size-4" />}
+        items={reportTypeOptions}
+        idPrefix="filter-type"
+        selected={filters.reportType}
+        onSelect={(id) => onChange({ reportType: filters.reportType === id ? '' : id })}
+        disabled={!catalogsReady}
+      />
 
-      {/* Filtro por nivel de riesgo – toggle */}
-      <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nivel de riesgo</p>
-        {/* Mobile: 2 columnas simétricas. sm+: pills con wrap natural */}
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-          {RISK_LEVELS.map((r) => (
-            <TypeButton
-              key={r.id}
-              id={`filter-risk-${r.id}`}
-              label={r.label}
-              color={r.color}
-              isSelected={filters.riskLevel === r.id}
-              onClick={() => onChange({ riskLevel: filters.riskLevel === r.id ? '' : r.id })}
-              fullWidth
-            />
-          ))}
-        </div>
-      </div>
+      {/* ── Filtro por nivel de riesgo – toggle ── */}
+      <SelectionGroup
+        label="Nivel de riesgo"
+        icon={<AlertTriangle className="size-4" />}
+        items={riskLevelOptions}
+        idPrefix="filter-risk"
+        selected={filters.riskLevel}
+        onSelect={(id) => onChange({ riskLevel: filters.riskLevel === id ? '' : id })}
+        disabled={!catalogsReady}
+      />
 
       {/* Rango de fecha del incidente */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

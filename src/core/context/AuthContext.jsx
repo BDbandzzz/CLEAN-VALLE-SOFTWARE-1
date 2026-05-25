@@ -1,159 +1,176 @@
-/**
- * AuthContext.jsx – Contexto global de autenticación.
- *
- * Qué hace:
- *   Gestiona el estado de la sesión del usuario en toda la aplicación.
- *   Persiste el usuario activo en localStorage (clave: 'current_user') y
- *   mantiene perfiles históricos por DNI (clave: 'user_profiles').
- *
- * Cuándo conectar al backend:
- *   Las funciones login(), logout() y updateUser() son los únicos puntos
- *   que deben modificarse. Reemplazar las escrituras en localStorage por
- *   llamadas a la API REST y manejar el token JWT en su lugar.
- *
- * API expuesta por useAuth():
- *   user        {object|null}   – Datos del usuario autenticado o null.
- *   isLoading   {boolean}       – true mientras se valida la sesión (útil para spinners).
- *   login(userData)             – Inicia sesión: persiste el usuario y lo carga en contexto.
- *   logout()                    – Cierra sesión: limpia el estado y localStorage.
- *   updateUser(updatedData)     – Actualiza los datos del perfil del usuario activo.
- *   setUserRole(role)           – Cambia el rol del usuario (útil en tests/demo).
- *
- * Estructura del objeto user:
- *   id, role, firstName, lastName, fullName,
- *   email, dniUser, typeDni, gender, userCredentials
- */
-/* eslint-disable react-refresh/only-export-components -- provider + hook pattern */
-import { createContext, useContext, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
+
+import { resolveCatalogLabel } from '@/core/catalogs/catalogUtils';
+import { API_BASE_URL } from '@/core/constants/api';
+import { normalizeRole } from '@/core/constants/roles';
+import { useCatalogs } from '@/core/context/CatalogContext';
+import { updateUserEmail } from '@/modules/profile/utils/profileService';
 
 const AuthContext = createContext();
+const CURRENT_TOKEN_KEY = 'auth_token';
 
-const USER_PROFILES_KEY = 'user_profiles';
-const CURRENT_USER_KEY  = 'current_user';
+function pickFirst(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== '');
+}
 
-/* ── Helpers de persistencia ─────────────────────────────────────────────── */
+function getCatalogLabel(catalogs, catalogKey, value, fallback = '') {
+  return resolveCatalogLabel(catalogs?.[catalogKey] ?? [], value, fallback);
+}
 
-/** Lee el usuario activo de localStorage al iniciar la app. */
-const readCurrentUserFromStorage = () => {
-  const storedUser = localStorage.getItem(CURRENT_USER_KEY);
-  if (!storedUser) return null;
-  try {
-    return JSON.parse(storedUser);
-  } catch (error) {
-    console.error('Error parsing current user:', error);
-    return null;
-  }
-};
+function buildAuthUser(userData = {}, decoded = {}, userId, catalogs) {
+  const firstName = pickFirst(userData.firstName, decoded.firstName, '');
+  const lastName = pickFirst(userData.lastName, decoded.lastName, '');
+  const fullName = [firstName, lastName].filter(Boolean).join(' ');
+  const roleValue = pickFirst(
+    userData.idRole,
+    userData.role?.idRole,
+    userData.roleName,
+    userData.role?.roleName,
+    decoded.role
+  );
+  const roleFallback = pickFirst(userData.roleName, userData.role?.roleName, decoded.role);
+  const typeDniValue = pickFirst(userData.typeDni, userData.idTypeDni);
+  const genderValue = pickFirst(userData.gender, userData.idGender);
 
-/** Carga el mapa de perfiles históricos (keyed by DNI). */
-const loadUserProfiles = () => {
-  const stored = localStorage.getItem(USER_PROFILES_KEY);
-  if (!stored) return {};
-  try {
-    return JSON.parse(stored) || {};
-  } catch (error) {
-    console.error('Error parsing user profiles:', error);
-    return {};
-  }
-};
-
-/** Persiste el mapa de perfiles históricos. */
-const saveUserProfiles = (profiles) => {
-  localStorage.setItem(USER_PROFILES_KEY, JSON.stringify(profiles));
-};
-
-/**
- * Genera la clave única de perfil a partir de los datos del usuario.
- * Prioriza dniUser, cae a id si no existe.
- */
-const getProfileKey = (userData) =>
-  userData.dniUser
-    ? `user_${userData.dniUser}`
-    : `user_${userData.id || 'unknown'}`;
-
-/* ── Provider ─────────────────────────────────────────────────────────────── */
+  return {
+    id: pickFirst(userData.codeUser, userData.id, userId),
+    role: normalizeRole(decoded.role || getCatalogLabel(catalogs, 'roles', roleValue, roleFallback)),
+    email: pickFirst(userData.email, decoded.email, ''),
+    name: pickFirst(fullName, userData.name, decoded.name, decoded.fullName, ''),
+    firstName,
+    lastName,
+    dniUser: pickFirst(userData.dniUser, userData.dni, userData.document, ''),
+    typeDniId: typeDniValue,
+    typeDni: getCatalogLabel(catalogs, 'typeDni', typeDniValue),
+    genderId: genderValue,
+    gender: getCatalogLabel(catalogs, 'genders', genderValue),
+  };
+}
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser]     = useState(() => readCurrentUserFromStorage());
-  const [isLoading]         = useState(false); // → true mientras se valida token con API
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { refreshCatalogs } = useCatalogs();
 
-  /**
-   * Inicia sesión con los datos recibidos (futuro: del endpoint /auth/login).
-   * Fusiona con el perfil histórico del mismo usuario para no perder datos previos.
-   * @param {object} userData
-   */
-  const login = (userData) => {
-    const profiles    = loadUserProfiles();
-    const userKey     = getProfileKey(userData);
-    const existingProfile = profiles[userKey] || {};
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = localStorage.getItem(CURRENT_TOKEN_KEY);
 
-    const userWithRole = {
-      ...existingProfile,
-      id:              userData.id              || existingProfile.id              || 'unknown',
-      role:            userData.role            || existingProfile.role            || 'estudiante',
-      firstName:       userData.firstName       || existingProfile.firstName       || '',
-      lastName:        userData.lastName        || existingProfile.lastName        || '',
-      fullName:        userData.fullName        || existingProfile.fullName        || 'Usuario Test',
-      email:           userData.email           || existingProfile.email           || '',
-      dniUser:         userData.dniUser         || existingProfile.dniUser         || '',
-      typeDni:         userData.typeDni         || existingProfile.typeDni         || '',
-      gender:          userData.gender          || existingProfile.gender          || '',
-      userCredentials: userData.userCredentials || existingProfile.userCredentials || '',
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const decoded = jwtDecode(token);
+
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem(CURRENT_TOKEN_KEY);
+          setUser(null);
+          return;
+        }
+
+        const activeCatalogs = await refreshCatalogs();
+        const userId = decoded.sub || decoded.code_user || decoded.id;
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/users/get-user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (res.ok) {
+            const userData = await res.json();
+            setUser(buildAuthUser(userData, decoded, userId, activeCatalogs));
+          } else {
+            setUser(buildAuthUser({}, decoded, userId, activeCatalogs));
+          }
+        } catch (fetchError) {
+          console.error('Error fetching user data', fetchError);
+          setUser(buildAuthUser({}, decoded, userId, activeCatalogs));
+        }
+      } catch (error) {
+        console.error('Token invalido', error);
+        localStorage.removeItem(CURRENT_TOKEN_KEY);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setUser(userWithRole);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithRole));
-    profiles[userKey] = userWithRole;
-    saveUserProfiles(profiles);
+    checkToken();
+  }, [refreshCatalogs]);
+
+  const login = async (code, password) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ codeUser: code, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Credenciales invalidas');
+      }
+
+      const data = await response.json();
+      const token = data.accessToken;
+
+      localStorage.setItem(CURRENT_TOKEN_KEY, token);
+
+      const activeCatalogs = await refreshCatalogs();
+      const decoded = jwtDecode(token);
+      const userId = decoded.sub || decoded.code_user || decoded.id;
+      let nextUser = buildAuthUser({}, decoded, userId, activeCatalogs);
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/users/get-user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.ok) {
+          const userData = await res.json();
+          nextUser = buildAuthUser(userData, decoded, userId, activeCatalogs);
+        }
+      } catch (error) {
+        console.error('Error fetching user data on login', error);
+      }
+
+      setUser(nextUser);
+      return nextUser.role || null;
+    } catch (error) {
+      console.error('Error en login', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  /** Cierra la sesión y limpia el usuario activo (no borra perfiles históricos). */
   const logout = () => {
     setUser(null);
-    localStorage.removeItem(CURRENT_USER_KEY);
+    localStorage.removeItem(CURRENT_TOKEN_KEY);
   };
 
-  /**
-   * Actualiza los datos del perfil del usuario activo.
-   * @param {object} updatedData
-   * @returns {boolean} true si se actualizó correctamente.
-   */
-  const updateUser = (updatedData) => {
-    if (!user) return false;
+  const updateUser = async (updatedData) => {
+    try {
+      if (!user?.id) throw new Error('Usuario no autenticado');
 
-    const updatedUser = {
-      ...user,
-      firstName:       updatedData.firstName       || '',
-      lastName:        updatedData.lastName        || '',
-      fullName:        updatedData.fullName        || '',
-      email:           updatedData.email           || '',
-      dniUser:         updatedData.dniUser         || '',
-      typeDni:         updatedData.typeDni         || '',
-      gender:          updatedData.gender          || '',
-      userCredentials: updatedData.userCredentials || '',
-    };
-
-    setUser(updatedUser);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-
-    const profiles = loadUserProfiles();
-    profiles[getProfileKey(updatedUser)] = updatedUser;
-    saveUserProfiles(profiles);
-    return true;
+      await updateUserEmail(user.id, updatedData.email);
+      setUser((currentUser) => ({ ...currentUser, email: updatedData.email }));
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   };
 
-  /**
-   * Cambia el rol del usuario activo (útil para demos y pruebas de UI por rol).
-   * @param {'estudiante'|'profesor'|'operador'|'admin'} role
-   */
   const setUserRole = (role) => {
     if (!user) return;
-    const updatedUser = { ...user, role };
-    setUser(updatedUser);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-    const profiles = loadUserProfiles();
-    profiles[getProfileKey(updatedUser)] = updatedUser;
-    saveUserProfiles(profiles);
+    setUser({ ...user, role });
   };
 
   return (
@@ -163,11 +180,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-/**
- * Hook para consumir el contexto de autenticación.
- * Debe usarse dentro de <AuthProvider>.
- * @returns {{ user, isLoading, login, logout, updateUser, setUserRole }}
- */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

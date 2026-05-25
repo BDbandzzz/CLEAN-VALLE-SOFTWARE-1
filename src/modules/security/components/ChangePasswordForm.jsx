@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 
+import { useAuth } from '@/core/context/AuthContext';
+import { changePasswordAfterLogin } from '@/modules/security/utils/changePasswordService';
+
 const PASSWORD_FIELDS = [
   { id: 'cp-current',  field: 'currentPassword', label: 'Contraseña actual',     key: 'current' },
   { id: 'cp-new',      field: 'newPassword',      label: 'Nueva contraseña',       key: 'new'     },
@@ -24,6 +27,7 @@ function validate(data) {
  * Reutilizable desde el sidebar.
  */
 export function ChangePasswordForm({ onSuccess }) {
+  const { user } = useAuth();
   const [data, setData] = useState(INITIAL_DATA);
   const [show, setShow] = useState(INITIAL_SHOW);
   const [error, setError] = useState('');
@@ -42,10 +46,19 @@ export function ChangePasswordForm({ onSuccess }) {
 
     setIsLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1200));
+      const codeUser = user?.id;
+
+      if (!codeUser) {
+        setError('No se pudo identificar el usuario autenticado.');
+        return;
+      }
+
+      await changePasswordAfterLogin(codeUser, data);
       setDone(true);
       setData(INITIAL_DATA);
       onSuccess?.();
+    } catch {
+      setError('No se pudo actualizar la contraseÃ±a. Revisa la contraseÃ±a actual.');
     } finally {
       setIsLoading(false);
     }

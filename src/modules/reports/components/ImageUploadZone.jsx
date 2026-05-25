@@ -17,7 +17,7 @@
  */
 import { ImagePlus } from 'lucide-react';
 
-export function ImageUploadZone({ getRootProps, getInputProps, isDragging, slotsLeft, maxFiles, maxMb }) {
+export function ImageUploadZone({ getRootProps, getInputProps, isDragging, slotsLeft, maxMb }) {
   return (
     <div
       {...getRootProps()}

@@ -84,7 +84,7 @@ export const sidebarConfig = {
     },
   ],
 
-  admin: [
+  root: [
     {
       title: 'Perfil',
       url: '/profile',
@@ -99,6 +99,40 @@ export const sidebarConfig = {
       title: 'Panel operativo',
       url: '/operative',
       icon: ClipboardList,
+    },
+    {
+      title: 'Cambiar Contraseña',
+      url: '/change-password',
+      icon: Lock,
+      section: 'seguridad',
+    },
+    {
+      title: 'Cerrar sesión',
+      action: 'logout',
+      icon: LogOut,
+    },
+  ],
+
+  gestor: [
+    {
+      title: 'Perfil',
+      url: '/profile',
+      icon: User,
+    },
+    {
+      title: 'Gestionar Reportes',
+      url: '/gestor/reports',
+      icon: ClipboardList,
+    },
+    {
+      title: 'Resolución de Reporte',
+      url: '/gestor/resolutions',
+      icon: Eye,
+    },
+    {
+      title: 'Asignación de Reporte',
+      url: '/gestor/assignments',
+      icon: ClipboardPlus,
     },
     {
       title: 'Cambiar Contraseña',

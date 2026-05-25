@@ -1,7 +1,4 @@
-import { Sparkles } from 'lucide-react';
-
 import { Button } from '@/core/components/ui/button';
-import { getRoleDisplayName } from '@/core/lib/utils';
 
 /**
  * ProfileHero.jsx – Encabezado visual del perfil de usuario.
@@ -17,7 +14,7 @@ import { getRoleDisplayName } from '@/core/lib/utils';
  *   userRole    {string}    Rol actual (no mostrado directamente, disponible para extensión).
  *   onLogout    {Function}  Handler del botón "Cerrar sesión".
  */
-export function ProfileHero({ initials, displayName, userRole, onLogout }) {
+export function ProfileHero({ initials, displayName, onLogout }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl sm:p-10">
       <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
