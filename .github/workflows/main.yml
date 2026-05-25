@@ -32,7 +32,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            find /var/www/ds2/cleanvalle -mindepth 1 ! -name '.htaccess' -exec rm -rf {} +
+            find /var/www/ds1/cleanvalle -mindepth 1 ! -name '.htaccess' -exec rm -rf {} +
 
       - name: Desplegar al VPS vía SCP
         uses: appleboy/scp-action@v0.1.7
@@ -42,6 +42,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           source: "dist/*"
-          target: "/var/www/ds2/cleanvalle"
+          target: "/var/www/ds1/cleanvalle"
           strip_components: 1
           rm: false
