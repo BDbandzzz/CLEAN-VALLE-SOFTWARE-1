@@ -1,78 +1,54 @@
-/**
- * ViewReportsPage.jsx – Página de visualización de reportes.
- *
- * Qué muestra:
- *   Pestaña "Mis reportes"          → todos los reportes del contexto.
- *   Pestaña "Resueltos por operadores" → reportes con status 'resuelto'.
- *
- * Filtrado:
- *   applyFilters() aplica en memoria los filtros de ReportFilters.
- *   El estado de filtros (EMPTY_FILTERS) vive aquí y se pasa a ReportFilters.
- *
- * Componentes internos:
- *   TabButton   – Botón de pestaña con contador de ítems.
- *   EmptyState  – Placeholder cuando no hay resultados para los filtros.
- *
- * Para agregar un nuevo filtro:
- *   1. Agregar la clave en EMPTY_FILTERS.
- *   2. Agregar la condición en applyFilters().
- *   3. Agregar el control en ReportFilters.jsx.
- *
- * Integración con backend:
- *   Reemplazar useReports() por llamadas a la API con los filtros como query params.
- */
 import { useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
-import { useReports } from '../context/ReportsContext';
+
 import { ReportCard } from '../components/ReportCard';
 import { ReportFilters } from '../components/ReportFilters';
+import { useReports } from '../context/ReportsContext';
 
 const EMPTY_FILTERS = {
   search: '',
-  reportType: '',
-  riskLevel: '',
+  categoryId: '',
+  riskLevelId: '',
   dateFrom: '',
   dateTo: '',
 };
 
 function applyFilters(reports, filters) {
-  return reports.filter((r) => {
+  return reports.filter((report) => {
     if (filters.search) {
-      const q = filters.search.toLowerCase();
-      if (
-        !r.title.toLowerCase().includes(q) &&
-        !r.location.toLowerCase().includes(q)
-      )
-        return false;
+      const query = filters.search.toLowerCase();
+      const searchable = [
+        report.title,
+        report.description,
+        report.locationName,
+        report.customContext,
+      ].join(' ').toLowerCase();
+
+      if (!searchable.includes(query)) return false;
     }
-    if (filters.reportType && r.reportType !== filters.reportType) return false;
-    if (filters.riskLevel && r.riskLevel !== filters.riskLevel) return false;
+
+    if (filters.categoryId && report.categoryId !== filters.categoryId) return false;
+    if (filters.riskLevelId && report.riskLevelId !== filters.riskLevelId) return false;
+
     if (filters.dateFrom || filters.dateTo) {
-      const reportDate = r.incidentDate ? new Date(r.incidentDate) : null;
+      const reportDate = report.incidentDate ? new Date(report.incidentDate) : null;
       if (!reportDate) return false;
       if (filters.dateFrom && reportDate < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && reportDate > new Date(`${filters.dateTo}T23:59:59`)) return false;
     }
+
     return true;
   });
 }
 
-/**
- * Página de visualización de reportes para Estudiante y Docente.
- * Muestra los reportes propios y los resueltos públicamente.
- */
 const ViewReportsPage = () => {
-  const { reports, getResolvedReports } = useReports();
-
-  const [activeTab, setActiveTab] = useState('mis-reportes'); // 'mis-reportes' | 'resueltos'
+  const { reports, deleteReport } = useReports();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
 
-  const resolvedReports = useMemo(() => getResolvedReports(), [getResolvedReports]);
-
-  const displayedReports = useMemo(() => {
-    const base = activeTab === 'resueltos' ? resolvedReports : reports;
-    return applyFilters(base, filters);
-  }, [activeTab, reports, resolvedReports, filters]);
+  const displayedReports = useMemo(
+    () => applyFilters(reports, filters),
+    [reports, filters]
+  );
 
   const handleFilterChange = (partial) =>
     setFilters((prev) => ({ ...prev, ...partial }));
@@ -81,7 +57,6 @@ const ViewReportsPage = () => {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-12">
-      {/* Hero section */}
       <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl">
         <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-20 left-1/3 size-72 rounded-full bg-black/10 blur-3xl" />
@@ -92,42 +67,22 @@ const ViewReportsPage = () => {
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Mis Reportes</h1>
             <p className="mt-1 text-sm text-primary-foreground/80">
-              Consulta el estado de tus reportes y los resueltos por operadores.
+              Consulta el estado y el historial de reportes creados por tu cuenta.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Tabs */}
-      <div className="flex rounded-xl border border-border bg-muted/40 p-1 gap-1">
-        <TabButton
-          id="tab-mis-reportes"
-          label="Mis reportes"
-          count={reports.length}
-          isActive={activeTab === 'mis-reportes'}
-          onClick={() => setActiveTab('mis-reportes')}
-        />
-        <TabButton
-          id="tab-resueltos"
-          label="Resueltos por operadores"
-          count={resolvedReports.length}
-          isActive={activeTab === 'resueltos'}
-          onClick={() => setActiveTab('resueltos')}
-        />
-      </div>
-
-      {/* Filtros */}
       <ReportFilters
         filters={filters}
         onChange={handleFilterChange}
         onClear={handleClearFilters}
       />
 
-      {/* Lista de reportes */}
       <div className="space-y-4">
         {displayedReports.length > 0 ? (
           displayedReports.map((report) => (
-            <ReportCard key={report.id} report={report} />
+            <ReportCard key={report.id} report={report} onDelete={deleteReport} />
           ))
         ) : (
           <EmptyState />
@@ -137,32 +92,6 @@ const ViewReportsPage = () => {
   );
 };
 
-function TabButton({ id, label, count, isActive, onClick }) {
-  return (
-    <button
-      id={id}
-      type="button"
-      onClick={onClick}
-      className={[
-        'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-all',
-        isActive
-          ? 'bg-card text-foreground shadow-sm'
-          : 'text-muted-foreground hover:text-foreground',
-      ].join(' ')}
-    >
-      {label}
-      <span
-        className={[
-          'ml-2 rounded-full px-2 py-0.5 text-xs font-semibold',
-          isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
-        ].join(' ')}
-      >
-        {count}
-      </span>
-    </button>
-  );
-}
-
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
@@ -171,7 +100,7 @@ function EmptyState() {
         No se encontraron reportes
       </p>
       <p className="mt-1 text-sm text-muted-foreground/70">
-        Prueba ajustando los filtros o crea un nuevo reporte.
+        Crea un reporte o ajusta los filtros activos.
       </p>
     </div>
   );

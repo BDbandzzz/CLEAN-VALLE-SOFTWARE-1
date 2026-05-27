@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 
 import { useAuth } from '@/core/context/AuthContext';
-import { changePasswordAfterLogin } from '@/modules/security/utils/changePasswordService';
 
 const PASSWORD_FIELDS = [
   { id: 'cp-current',  field: 'currentPassword', label: 'Contraseña actual',     key: 'current' },
@@ -27,7 +26,7 @@ function validate(data) {
  * Reutilizable desde el sidebar.
  */
 export function ChangePasswordForm({ onSuccess }) {
-  const { user } = useAuth();
+  const { user, changePassword } = useAuth();
   const [data, setData] = useState(INITIAL_DATA);
   const [show, setShow] = useState(INITIAL_SHOW);
   const [error, setError] = useState('');
@@ -53,7 +52,7 @@ export function ChangePasswordForm({ onSuccess }) {
         return;
       }
 
-      await changePasswordAfterLogin(codeUser, data);
+      await changePassword(codeUser, data);
       setDone(true);
       setData(INITIAL_DATA);
       onSuccess?.();

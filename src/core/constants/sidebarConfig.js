@@ -1,4 +1,37 @@
-import { User, LogOut, Shield, ClipboardList, GraduationCap, ClipboardPlus, Eye, Lock } from 'lucide-react';
+import { Bell, Eye, GraduationCap, Lock, LogOut, ClipboardPlus, User, Wrench } from 'lucide-react';
+
+const reportItems = [
+  {
+    title: 'Crear Reporte',
+    url: '/reports/create',
+    icon: ClipboardPlus,
+  },
+  {
+    title: 'Mis Reportes',
+    url: '/reports/view',
+    icon: Eye,
+  },
+];
+
+const securityItems = [
+  {
+    title: 'Notificaciones',
+    url: '/notifications',
+    icon: Bell,
+    section: 'seguridad',
+  },
+  {
+    title: 'Cambiar Contrasena',
+    url: '/change-password',
+    icon: Lock,
+    section: 'seguridad',
+  },
+  {
+    title: 'Cerrar sesion',
+    action: 'logout',
+    icon: LogOut,
+  },
+];
 
 export const sidebarConfig = {
   estudiante: [
@@ -7,28 +40,8 @@ export const sidebarConfig = {
       url: '/profile',
       icon: User,
     },
-    {
-      title: 'Crear Reporte',
-      url: '/reports/create',
-      icon: ClipboardPlus,
-    },
-    {
-      title: 'Mis Reportes',
-      url: '/reports/view',
-      icon: Eye,
-    },
-    {
-      // Separador visual (sección de seguridad)
-      title: 'Cambiar Contraseña',
-      url: '/change-password',
-      icon: Lock,
-      section: 'seguridad',
-    },
-    {
-      title: 'Cerrar sesión',
-      action: 'logout',
-      icon: LogOut,
-    },
+    ...reportItems,
+    ...securityItems,
   ],
 
   profesor: [
@@ -37,27 +50,8 @@ export const sidebarConfig = {
       url: '/profile',
       icon: GraduationCap,
     },
-    {
-      title: 'Crear Reporte',
-      url: '/reports/create',
-      icon: ClipboardPlus,
-    },
-    {
-      title: 'Mis Reportes',
-      url: '/reports/view',
-      icon: Eye,
-    },
-    {
-      title: 'Cambiar Contraseña',
-      url: '/change-password',
-      icon: Lock,
-      section: 'seguridad',
-    },
-    {
-      title: 'Cerrar sesión',
-      action: 'logout',
-      icon: LogOut,
-    },
+    ...reportItems,
+    ...securityItems,
   ],
 
   operador: [
@@ -67,83 +61,10 @@ export const sidebarConfig = {
       icon: User,
     },
     {
-      title: 'Panel operativo',
-      url: '/operative',
-      icon: ClipboardList,
+      title: 'Panel operador',
+      url: '/operator',
+      icon: Wrench,
     },
-    {
-      title: 'Cambiar Contraseña',
-      url: '/change-password',
-      icon: Lock,
-      section: 'seguridad',
-    },
-    {
-      title: 'Cerrar sesión',
-      action: 'logout',
-      icon: LogOut,
-    },
-  ],
-
-  root: [
-    {
-      title: 'Perfil',
-      url: '/profile',
-      icon: User,
-    },
-    {
-      title: 'Administración',
-      url: '/admin',
-      icon: Shield,
-    },
-    {
-      title: 'Panel operativo',
-      url: '/operative',
-      icon: ClipboardList,
-    },
-    {
-      title: 'Cambiar Contraseña',
-      url: '/change-password',
-      icon: Lock,
-      section: 'seguridad',
-    },
-    {
-      title: 'Cerrar sesión',
-      action: 'logout',
-      icon: LogOut,
-    },
-  ],
-
-  gestor: [
-    {
-      title: 'Perfil',
-      url: '/profile',
-      icon: User,
-    },
-    {
-      title: 'Gestionar Reportes',
-      url: '/gestor/reports',
-      icon: ClipboardList,
-    },
-    {
-      title: 'Resolución de Reporte',
-      url: '/gestor/resolutions',
-      icon: Eye,
-    },
-    {
-      title: 'Asignación de Reporte',
-      url: '/gestor/assignments',
-      icon: ClipboardPlus,
-    },
-    {
-      title: 'Cambiar Contraseña',
-      url: '/change-password',
-      icon: Lock,
-      section: 'seguridad',
-    },
-    {
-      title: 'Cerrar sesión',
-      action: 'logout',
-      icon: LogOut,
-    },
+    ...securityItems,
   ],
 };

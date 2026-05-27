@@ -1,10 +1,10 @@
 import {
   Send, RotateCcw, MapPin, Calendar,
-  FileText, AlertTriangle, Tag, ImagePlus, AlertCircle,
+  FileText, AlertTriangle, Tag, ImagePlus, AlertCircle, Layers,
 } from 'lucide-react';
 
-import { useCatalogs } from '@/core/context/CatalogContext';
-import { getReportTypeOptions, getRiskLevelOptions } from '../constants/reportConstants';
+import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
+import { getReportCategoryOptions, getRiskLevelOptions, getSubTypeOptions } from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
 import { useImageUpload, MAX_FILES, MAX_MB } from '../hooks/useImageUpload';
 import { SelectionGroup } from './SelectionGroup';
@@ -12,7 +12,6 @@ import { ImageUploadZone } from './ImageUploadZone';
 import { ImagePreviewGrid } from './ImagePreviewGrid';
 
 export function CreateReportForm({ onSubmit, isSubmitting }) {
-  const { getOptions, hasOptions, isLoading: catalogsLoading } = useCatalogs();
   const { form, errors, touched, set, reset, handleSubmit } = useReportForm();
   const {
     images, imgError, isDragging, slotsLeft,
@@ -20,9 +19,11 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
     removeImage, clearImages,
   } = useImageUpload();
 
-  const reportTypeOptions = getReportTypeOptions(getOptions('typeReport'));
-  const riskLevelOptions = getRiskLevelOptions(getOptions('riskLevel'));
-  const catalogsReady = hasOptions('typeReport') && hasOptions('riskLevel') && hasOptions('statusReport');
+  const categoryOptions = getReportCategoryOptions();
+  const subtypeOptions = getSubTypeOptions(form.categoryId);
+  const riskLevelOptions = getRiskLevelOptions();
+  const shouldShowReasonOptions = form.categoryId && form.categoryId !== 'otro';
+  const shouldShowCustomContext = form.categoryId === 'otro' || form.subtypeId === 'otro';
 
   const handleReset = () => {
     reset();
@@ -31,7 +32,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
 
   return (
     <form
-      onSubmit={(e) => handleSubmit(e, images.map((i) => i.file), onSubmit)}
+      onSubmit={(e) => handleSubmit(e, images.map((image) => image.previewUrl), onSubmit)}
       noValidate
       className="space-y-6"
       id="create-report-form"
@@ -48,7 +49,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           type="text"
           value={form.title}
           onChange={(e) => set('title', e.target.value)}
-          placeholder="Ej. Basura acumulada en la zona norte"
+          placeholder="Ej. Falla electrica en laboratorio"
           maxLength={120}
           className={inputClass(touched.title && errors.title)}
         />
@@ -66,7 +67,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           rows={4}
           value={form.description}
           onChange={(e) => set('description', e.target.value)}
-          placeholder="Describe el problema con el mayor detalle posible..."
+          placeholder="Describe que ocurre, desde cuando y a quien afecta..."
           maxLength={800}
           className={`${inputClass(touched.description && errors.description)} resize-none`}
         />
@@ -79,13 +80,46 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         label="Tipo de reporte"
         icon={<Tag className="size-4" />}
         required
-        items={reportTypeOptions}
-        idPrefix="type"
-        selected={form.reportType}
-        onSelect={(id) => set('reportType', id)}
-        disabled={!catalogsReady}
-        error={touched.reportType ? errors.reportType : ''}
+        items={categoryOptions}
+        idPrefix="category"
+        selected={form.categoryId}
+        onSelect={(id) => set('categoryId', id)}
+        error={touched.categoryId ? errors.categoryId : ''}
       />
+
+      {shouldShowReasonOptions && (
+        <SelectionGroup
+          label="Razon del reporte"
+          icon={<Layers className="size-4" />}
+          required
+          items={subtypeOptions}
+          idPrefix="subtype"
+          selected={form.subtypeId}
+          onSelect={(id) => set('subtypeId', id)}
+          error={touched.subtypeId ? errors.subtypeId : ''}
+          hideLabel={false}
+        />
+      )}
+
+      {shouldShowCustomContext && (
+        <FormField
+          id="report-custom-context"
+          label="Especifica aqui el problema"
+          required
+          icon={<FileText className="size-4" />}
+          error={touched.customContext ? errors.customContext : ''}
+        >
+          <textarea
+            id="report-custom-context"
+            rows={3}
+            value={form.customContext}
+            onChange={(e) => set('customContext', e.target.value)}
+            placeholder="Explica que tipo de incidente es y por que no encaja en las opciones anteriores."
+            maxLength={500}
+            className={`${inputClass(touched.customContext && errors.customContext)} resize-none`}
+          />
+        </FormField>
+      )}
 
       <SelectionGroup
         label="Nivel de riesgo"
@@ -93,28 +127,31 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         required
         items={riskLevelOptions}
         idPrefix="risk"
-        selected={form.riskLevel}
-        onSelect={(id) => set('riskLevel', id)}
-        disabled={!catalogsReady}
-        error={touched.riskLevel ? errors.riskLevel : ''}
+        selected={form.riskLevelId}
+        onSelect={(id) => set('riskLevelId', id)}
+        error={touched.riskLevelId ? errors.riskLevelId : ''}
       />
 
       <FormField
         id="report-location"
-        label="Localizacion"
+        label="Ubicacion"
         required
         icon={<MapPin className="size-4" />}
-        error={touched.location ? errors.location : ''}
+        error={touched.locationId ? errors.locationId : ''}
       >
-        <input
+        <select
           id="report-location"
-          type="text"
-          value={form.location}
-          onChange={(e) => set('location', e.target.value)}
-          placeholder="Ej. Bloque A - Piso 2, Cafeteria Central"
-          maxLength={200}
-          className={inputClass(touched.location && errors.location)}
-        />
+          value={form.locationId}
+          onChange={(e) => set('locationId', e.target.value)}
+          className={inputClass(touched.locationId && errors.locationId)}
+        >
+          <option value="">Selecciona un lugar del campus</option>
+          {CAMPUS_LOCATIONS.map((location) => (
+            <option key={location.id} value={location.id}>
+              {location.label}
+            </option>
+          ))}
+        </select>
       </FormField>
 
       <FormField
@@ -174,7 +211,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         <button
           type="submit"
           id="submit-report-btn"
-          disabled={isSubmitting || !catalogsReady}
+          disabled={isSubmitting}
           className="
             inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm
             font-semibold text-primary-foreground shadow-sm transition
@@ -183,7 +220,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           "
         >
           <Send className="size-4" />
-          {isSubmitting ? 'Enviando...' : catalogsReady ? 'Enviar reporte' : catalogsLoading ? 'Cargando opciones...' : 'Catalogos no disponibles'}
+          {isSubmitting ? 'Enviando...' : 'Enviar reporte'}
         </button>
 
         <button

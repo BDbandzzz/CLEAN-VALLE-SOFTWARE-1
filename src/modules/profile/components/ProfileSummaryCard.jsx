@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardBox} fro
  *   dniUser      {string}  Número de documento del usuario.
  *   emailPreview {string}  Correo actual del usuario (puede estar vacío).
  */
-export function ProfileSummaryCard({ dniUser, emailPreview }) {
+export function ProfileSummaryCard({ dniUser, emailPreview, role }) {
   return (
     <Card className="h-fit border-primary/15 bg-gradient-to-br from-card to-emerald-50/40 lg:col-span-1">
       <CardHeader>
@@ -35,7 +35,7 @@ export function ProfileSummaryCard({ dniUser, emailPreview }) {
       
       <CardBox
       title="Rol"
-      value ="Estudiante"
+      value={role === 'operador' ? 'Operador' : role === 'profesor' ? 'Profesor' : 'Estudiante'}
       />
 
       </CardContent>

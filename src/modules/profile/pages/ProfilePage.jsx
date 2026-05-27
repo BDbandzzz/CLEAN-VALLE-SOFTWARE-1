@@ -103,7 +103,7 @@ const ProfilePage = () => {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <ProfileSummaryCard dniUser={user.dniUser} emailPreview={formData.email} />
+        <ProfileSummaryCard dniUser={user.dniUser} emailPreview={formData.email} role={user.role} />
 
         <div className="space-y-6 lg:col-span-2">
           <ProfilePersonalDataCard

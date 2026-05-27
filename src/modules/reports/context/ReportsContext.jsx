@@ -1,366 +1,258 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { API_BASE_URL } from '@/core/constants/api';
 import { useAuth } from '@/core/context/AuthContext';
-import { useCatalogs } from '@/core/context/CatalogContext';
-import { findStatusOptionByKey, getStatusMeta } from '@/modules/reports/constants/reportConstants';
+import { CAMPUS_LOCATIONS, INITIAL_REPORTS } from '@/core/data/cleanvalleSchema';
 
 const ReportsContext = createContext();
-const CURRENT_TOKEN_KEY = 'auth_token';
+const REPORTS_STORAGE_KEY = 'cleanvalle_reports_v2';
 
-function pickFirst(...values) {
-  return values.find((value) => value !== undefined && value !== null && value !== '');
+function readReports() {
+  try {
+    const storedReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY));
+    if (!storedReports?.length) return INITIAL_REPORTS;
+
+    const storedIds = new Set(storedReports.map((report) => report.id));
+    const missingInitialReports = INITIAL_REPORTS.filter((report) => !storedIds.has(report.id));
+    return [...storedReports, ...missingInitialReports];
+  } catch {
+    return [];
+  }
 }
 
-function getUserCode(value) {
-  if (!value || typeof value !== 'object') return value;
-  return pickFirst(value.codeUser, value.id, value.operatorId, value.studentCode, value.adminId);
+function saveReports(reports) {
+  localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
 }
 
-function parseOccurredAt(occurredAt) {
-  if (!occurredAt) return null;
-  if (Array.isArray(occurredAt)) {
-    const [year, month, day, hour = 0, minute = 0, second = 0] = occurredAt;
-    return new Date(year, month - 1, day, hour, minute, second);
+function buildReport(formData, userId) {
+  const location = CAMPUS_LOCATIONS.find((item) => item.id === formData.locationId);
+
+  return {
+    id: `rep-${Date.now()}`,
+    title: formData.title.trim(),
+    description: formData.description.trim(),
+    categoryId: formData.categoryId,
+    subtypeId: formData.subtypeId,
+    customContext: formData.customContext?.trim() ?? '',
+    riskLevelId: formData.riskLevelId,
+    locationId: formData.locationId,
+    locationName: location?.label ?? formData.locationName?.trim() ?? '',
+    coordinates: location?.coordinates ?? null,
+    incidentDate: formData.incidentDate,
+    evidences: formData.images ?? [],
+    statusId: 'pendiente',
+    createdBy: userId,
+    createdAt: new Date().toISOString(),
+    history: [
+      {
+        statusId: 'pendiente',
+        at: new Date().toISOString(),
+        by: userId,
+        note: 'Reporte creado por el usuario.',
+      },
+    ],
+  };
+}
+
+function buildOperatorNotifications(reports, operatorId) {
+  return reports
+    .flatMap((report) => {
+      if (String(report.assignedTo) !== String(operatorId)) return [];
+
+      const notifications = [
+        {
+          id: `${report.id}-assigned`,
+          title: 'Reporte asignado',
+          detail: report.title,
+          at: report.assignedAt ?? report.createdAt,
+          reportId: report.id,
+        },
+      ];
+
+      if (report.resolution) {
+        notifications.push({
+          id: `${report.id}-resolution`,
+          title: 'Resolucion enviada',
+          detail: report.resolution.description,
+          at: report.resolution.sentAt,
+          reportId: report.id,
+        });
+      }
+
+      if (report.resolution?.feedback) {
+        notifications.push({
+          id: `${report.id}-feedback`,
+          title: 'Feedback del gestor',
+          detail: report.resolution.feedback,
+          at: report.resolution.reviewedAt ?? report.resolution.sentAt,
+          reportId: report.id,
+        });
+      }
+
+      return notifications;
+    })
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
+function buildUserNotifications(reports, user) {
+  if (!user?.id) return [];
+
+  if (user.role === 'operador') {
+    return buildOperatorNotifications(reports, user.id);
   }
 
-  return new Date(occurredAt);
-}
+  return reports
+    .flatMap((report) => {
+      if (String(report.createdBy) !== String(user.id)) return [];
 
-function toDateInputValue(value) {
-  if (!value) return null;
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return `${value}T00:00:00`;
-  }
-  return value;
+      const notifications = [
+        {
+          id: `${report.id}-created`,
+          title: 'Reporte creado',
+          detail: report.title,
+          at: report.createdAt,
+          reportId: report.id,
+        },
+      ];
+
+      if (report.assignedTo) {
+        notifications.push({
+          id: `${report.id}-assigned-to-operator`,
+          title: 'Reporte asignado',
+          detail: report.title,
+          at: report.assignedAt ?? report.createdAt,
+          reportId: report.id,
+        });
+      }
+
+      if (report.resolution) {
+        notifications.push({
+          id: `${report.id}-resolved`,
+          title: 'Resolucion registrada',
+          detail: report.resolution.description,
+          at: report.resolution.sentAt,
+          reportId: report.id,
+        });
+      }
+
+      return notifications;
+    })
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
 }
 
 export const ReportsProvider = ({ children }) => {
-  const [reports, setReports] = useState([]);
   const { user } = useAuth();
-  const { findOption, getOptions, getPayloadId } = useCatalogs();
+  const [reports, setReports] = useState(readReports);
 
-  const getStatusPayloadId = useCallback(
-    (statusKey) => {
-      const option = findStatusOptionByKey(statusKey, getOptions('statusReport'));
-      return option?.value ?? null;
-    },
-    [getOptions]
+  const userReports = useMemo(
+    () => reports.filter((report) => String(report.createdBy) === String(user?.id)),
+    [reports, user?.id]
   );
 
-  const buildStatusPatch = useCallback(
-    (statusKey) => {
-      const statusOptions = getOptions('statusReport');
-      const payloadId = getStatusPayloadId(statusKey);
-      const meta = getStatusMeta(payloadId ?? statusKey, statusOptions);
-
-      return {
-        statusId: payloadId,
-        status: meta.label,
-        statusKey: meta.key,
-      };
-    },
-    [getOptions, getStatusPayloadId]
-  );
-
-  const mapReportResponse = useCallback(
-    (data) => {
-      const source = Array.isArray(data) ? data : [data].filter(Boolean);
-      const statusOptions = getOptions('statusReport');
-
-      return source.map((report) => {
-        const typeValue = pickFirst(report.idType, report.typeReport);
-        const riskValue = pickFirst(report.idRisk, report.riskLevel);
-        const statusValue = pickFirst(report.idStatus, report.statusReport);
-        const typeOption = findOption('typeReport', typeValue);
-        const riskOption = findOption('riskLevel', riskValue);
-        const statusOption = findOption('statusReport', statusValue);
-        const statusMeta = getStatusMeta(statusOption?.id ?? statusValue, statusOptions);
-
-        return {
-          ...report,
-          id: pickFirst(report.idReport, report.reportId, report.id),
-          incidentDate: parseOccurredAt(report.occurredAt ?? report.incidentDate),
-          reportType: typeOption?.id ?? String(typeValue ?? ''),
-          reportTypeLabel: typeOption?.label ?? String(typeValue ?? ''),
-          riskLevel: riskOption?.id ?? String(riskValue ?? ''),
-          riskLevelLabel: riskOption?.label ?? String(riskValue ?? ''),
-          statusId: statusOption?.value ?? statusOption?.id ?? statusValue,
-          status: statusMeta.label,
-          statusKey: statusMeta.key,
-          createdBy: getUserCode(pickFirst(report.studentCode, report.student, report.createdBy, report.user)),
-          operatorId: getUserCode(pickFirst(report.operatorId, report.operatorCode, report.operator)),
-          operatorName: pickFirst(
-            report.operatorName,
-            report.operator?.name,
-            [report.operator?.firstName, report.operator?.lastName].filter(Boolean).join(' ')
-          ),
-          images: report.images ?? report.imageUrls ?? report.evidenceImages ?? [],
-        };
-      });
-    },
-    [findOption, getOptions]
-  );
-
-  const fetchReports = useCallback(
-    async (userId, role) => {
-      try {
-        const token = localStorage.getItem(CURRENT_TOKEN_KEY);
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        let endpoint = `${API_BASE_URL}/api/reports`;
-
-        if (role === 'estudiante' || role === 'profesor') {
-          endpoint = `${API_BASE_URL}/api/reports/student/${userId}`;
-        }
-
-        const res = await fetch(endpoint, { headers });
-        if (!res.ok) {
-          console.error('Fetch reports failed with status', res.status);
-          return;
-        }
-
-        const data = await res.json();
-        setReports(mapReportResponse(data));
-      } catch (error) {
-        console.error('Error fetching reports', error);
-      }
-    },
-    [mapReportResponse]
-  );
-
-  useEffect(() => {
-    if (user?.id && user?.role) {
-      Promise.resolve().then(() => fetchReports(user.id, user.role));
-    }
-  }, [user, fetchReports]);
-
-  const addReport = useCallback(
-    async (reportData, userId) => {
-      try {
-        const token = localStorage.getItem(CURRENT_TOKEN_KEY);
-        const riskLevelId = getPayloadId('riskLevel', reportData.riskLevel);
-        const typeReportId = getPayloadId('typeReport', reportData.reportType);
-        const statusReportId = getStatusPayloadId('submitted');
-
-        if (riskLevelId === null || typeReportId === null || statusReportId === null) {
-          console.error('No se pudo crear el reporte: catalogos incompletos o seleccion invalida');
-          return null;
-        }
-
-        const payload = {
-          title: reportData.title,
-          description: reportData.description,
-          location: reportData.location,
-          riskLevelId,
-          typeReportId,
-          statusReportId,
-          occurredAt: reportData.incidentDate ? toDateInputValue(reportData.incidentDate) : new Date().toISOString(),
-          studentCode: userId,
-        };
-
-        const res = await fetch(`${API_BASE_URL}/api/reports`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-          const err = await res.text();
-          console.error('Error adding report:', err);
-          return null;
-        }
-
-        const newReport = await res.json();
-        const mapped = mapReportResponse(newReport)[0];
-        setReports((prev) => [mapped, ...prev]);
-        return mapped;
-      } catch (error) {
-        console.error('Error adding report', error);
-        return null;
-      }
-    },
-    [getPayloadId, getStatusPayloadId, mapReportResponse]
-  );
-
-  const getUserReports = useCallback(
-    (userId) => reports.filter((report) => !userId || String(report.createdBy) === String(userId) || report.createdBy === undefined),
-    [reports]
-  );
-
-  const getResolvedReports = useCallback(
-    () => reports.filter((report) => report.statusKey === 'resolved'),
-    [reports]
-  );
-
-  const assignReport = useCallback(
-    async (reportId, operator, adminId) => {
-      try {
-        const token = localStorage.getItem(CURRENT_TOKEN_KEY);
-        const operatorId = pickFirst(operator.id, operator.codeUser, operator.operatorId);
-        const payload = {
-          idReport: { idReport: reportId },
-          operatorId: { codeUser: operatorId },
-          adminId: { codeUser: adminId },
-          isActive: true,
-        };
-
-        const res = await fetch(`${API_BASE_URL}/api/assignation`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          const statusPatch = buildStatusPatch('inProgress');
-          setReports((prev) =>
-            prev.map((report) =>
-              report.id === reportId
-                ? { ...report, ...statusPatch, operatorId, operatorName: operator.name }
-                : report
-            )
-          );
-        }
-      } catch (error) {
-        console.error('Error assigning report', error);
-      }
-    },
-    [buildStatusPatch]
-  );
-
-  const discardReport = useCallback(
-    async (reportId) => {
-      try {
-        const token = localStorage.getItem(CURRENT_TOKEN_KEY);
-        const statusReportId = getStatusPayloadId('discarded');
-        if (statusReportId === null) {
-          console.error('No se pudo descartar el reporte: estado no encontrado en catalogos');
-          return;
-        }
-
-        const payload = { statusReportId };
-
-        const res = await fetch(`${API_BASE_URL}/api/reports/${reportId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          const statusPatch = buildStatusPatch('discarded');
-          setReports((prev) =>
-            prev.map((report) => (report.id === reportId ? { ...report, ...statusPatch } : report))
-          );
-        }
-      } catch (error) {
-        console.error('Error discarding report', error);
-      }
-    },
-    [buildStatusPatch, getStatusPayloadId]
-  );
-
-  const evaluateResolution = useCallback(
-    async (reportId, isValid) => {
-      try {
-        const token = localStorage.getItem(CURRENT_TOKEN_KEY);
-        const nextStatusKey = isValid ? 'closed' : 'inProgress';
-        const statusReportId = getStatusPayloadId(nextStatusKey);
-        if (statusReportId === null) {
-          console.error('No se pudo evaluar el reporte: estado no encontrado en catalogos');
-          return;
-        }
-
-        const payload = { statusReportId };
-
-        const res = await fetch(`${API_BASE_URL}/api/reports/${reportId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (res.ok) {
-          const statusPatch = buildStatusPatch(nextStatusKey);
-          setReports((prev) =>
-            prev.map((report) => (report.id === reportId ? { ...report, ...statusPatch } : report))
-          );
-        }
-      } catch (error) {
-        console.error('Error evaluating report resolution', error);
-      }
-    },
-    [buildStatusPatch, getStatusPayloadId]
-  );
-
-  const getAssignedReportsToOperator = useCallback(
-    (operatorId) =>
-      reports.filter(
-        (report) => String(report.operatorId) === String(operatorId) && report.statusKey === 'inProgress'
-      ),
-    [reports]
-  );
-
-  const getResolvedReportsByOperator = useCallback(
-    (operatorId) =>
+  const operatorAssignedReports = useMemo(
+    () =>
       reports.filter(
         (report) =>
-          String(report.operatorId) === String(operatorId) &&
-          (report.statusKey === 'resolved' || report.statusKey === 'closed')
+          String(report.assignedTo) === String(user?.id) &&
+          !report.resolution &&
+          report.statusId !== 'cerrado' &&
+          report.statusId !== 'rechazado'
       ),
-    [reports]
+    [reports, user?.id]
   );
 
-  const submitResolution = useCallback(
-    async (reportId, resolutionData) => {
-      try {
-        const statusPatch = buildStatusPatch('resolved');
-        setReports((prev) =>
-          prev.map((report) =>
-            report.id === reportId
-              ? {
-                  ...report,
-                  ...statusPatch,
-                  resolution: resolutionData.description,
-                  resolutionImages: resolutionData.images,
-                  resolvedAt: resolutionData.date || new Date().toISOString(),
-                }
-              : report
-          )
-        );
-        return true;
-      } catch (error) {
-        console.error('Error submitting resolution', error);
-        return false;
-      }
-    },
-    [buildStatusPatch]
+  const operatorResolvedReports = useMemo(
+    () => reports.filter((report) => String(report.assignedTo) === String(user?.id) && report.resolution),
+    [reports, user?.id]
   );
+
+  const operatorNotifications = useMemo(
+    () => buildOperatorNotifications(reports, user?.id),
+    [reports, user?.id]
+  );
+
+  const notifications = useMemo(
+    () => buildUserNotifications(reports, user),
+    [reports, user]
+  );
+
+  const addReport = useCallback(async (formData, userId) => {
+    const report = buildReport(formData, userId);
+
+    setReports((prev) => {
+      const nextReports = [report, ...prev];
+      saveReports(nextReports);
+      return nextReports;
+    });
+
+    return report;
+  }, []);
+
+  const deleteReport = useCallback((reportId) => {
+    setReports((prev) => {
+      const nextReports = prev.filter(
+        (report) => !(report.id === reportId && report.statusId === 'pendiente')
+      );
+      saveReports(nextReports);
+      return nextReports;
+    });
+  }, []);
+
+  const submitResolution = useCallback((reportId, resolutionData, operatorId) => {
+    let updatedReport = null;
+
+    setReports((prev) => {
+      const nextReports = prev.map((report) => {
+        if (report.id !== reportId || String(report.assignedTo) !== String(operatorId)) {
+          return report;
+        }
+
+        updatedReport = {
+          ...report,
+          statusId: 'resuelto',
+          resolution: {
+            id: `res-${Date.now()}`,
+            description: resolutionData.description.trim(),
+            evidences: resolutionData.evidences ?? [],
+            statusId: 'enviada',
+            sentAt: new Date().toISOString(),
+            feedback: '',
+          },
+          history: [
+            ...(report.history ?? []),
+            {
+              statusId: 'resuelto',
+              at: new Date().toISOString(),
+              by: operatorId,
+              note: 'Resolucion enviada por el operador.',
+            },
+          ],
+        };
+
+        return updatedReport;
+      });
+
+      saveReports(nextReports);
+      return nextReports;
+    });
+
+    return updatedReport;
+  }, []);
 
   return (
-    <ReportsContext.Provider value={{
-      reports,
-      addReport,
-      getUserReports,
-      getResolvedReports,
-      getAssignedReportsToOperator,
-      getResolvedReportsByOperator,
-      assignReport,
-      discardReport,
-      evaluateResolution,
-      submitResolution,
-      fetchReports,
-    }}>
+    <ReportsContext.Provider
+      value={{
+        reports: userReports,
+        allReports: reports,
+        operatorAssignedReports,
+        operatorResolvedReports,
+        operatorNotifications,
+        notifications,
+        addReport,
+        deleteReport,
+        submitResolution,
+      }}
+    >
       {children}
     </ReportsContext.Provider>
   );

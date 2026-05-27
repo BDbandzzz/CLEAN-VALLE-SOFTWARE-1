@@ -1,16 +1,15 @@
-import { resolveCatalogLabel } from '@/core/catalogs/catalogUtils';
-
 function pickFirst(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== '');
 }
 
 function getCatalogLabel(catalogs, catalogKey, value, fallback = '') {
-  return resolveCatalogLabel(catalogs?.[catalogKey] ?? [], value, fallback);
+  const option = catalogs?.[catalogKey]?.find((item) => String(item.id) === String(value));
+  return option?.label ?? fallback;
 }
 
 export function getTypeDniLabel(user, catalogs) {
   const value = pickFirst(user?.typeDniId, user?.typeDni);
-  return getCatalogLabel(catalogs, 'typeDni', value);
+  return getCatalogLabel(catalogs, 'documentTypes', value);
 }
 
 export function getGenderLabel(user, catalogs) {

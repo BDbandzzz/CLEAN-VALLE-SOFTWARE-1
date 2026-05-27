@@ -17,7 +17,7 @@
  *   - Validación actual es demo.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { AlertCircle } from 'lucide-react';
@@ -31,15 +31,20 @@ import {
   INSTITUTION_NAME,
   UNIVALLE_LOGO_SRC,
 } from '@/core/constants/branding';
+import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
 
 const LoginPage = () => {
   const navigate = useNavigate();
 
-  const { login } = useAuth();
+  const { login, clearSession } = useAuth();
 
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    clearSession();
+  }, [clearSession]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,15 +52,7 @@ const LoginPage = () => {
 
     try {
       const role = await login(code, password);
-      if (role === 'gestor') {
-        navigate('/gestor/reports');
-      } else if (role === 'operador') {
-        navigate('/operative');
-      } else if (role === 'root') {
-        navigate('/admin');
-      } else {
-        navigate('/reports/view');
-      }
+      navigate(role === 'operador' ? '/operator' : '/reports/view');
     } catch {
       setErrorMsg("Credenciales incorrectas. Por favor, intenta de nuevo.");
     }
@@ -166,6 +163,29 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Usuarios demo
+            </p>
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              {DEMO_USERS.map((demoUser) => (
+                <button
+                  key={demoUser.codeUser}
+                  type="button"
+                  onClick={() => {
+                    setCode(demoUser.codeUser);
+                    setPassword(demoUser.password);
+                    setErrorMsg('');
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-left transition hover:bg-muted"
+                >
+                  <span className="font-medium text-foreground">{demoUser.codeUser}</span>
+                  <span>{demoUser.role}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

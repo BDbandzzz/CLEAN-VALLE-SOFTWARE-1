@@ -1,53 +1,33 @@
-/**
- * ReportCard.jsx – Tarjeta desplegable para un reporte individual.
- *
- * Qué hace:
- *   Muestra un resumen del reporte siempre visible (tipo, riesgo, estado, título,
- *   localización, fecha) con un botón "Ver más / Ocultar" que expande un panel
- *   con la descripción completa, metadatos adicionales, resolución del operador
- *   (si está resuelto) e imágenes adjuntas.
- *
- * Props:
- *   report {object} – Objeto de reporte con los campos:
- *     id, title, description, location, reportType, riskLevel,
- *     status, incidentDate, createdAt, images[],
- *     resolution?, resolvedAt?, operatorName?
- *
- * Componentes internos:
- *   StatusPill  – Pastilla de estado con ícono y color según STATUS_META.
- *   InfoItem    – Par label/valor en la cuadrícula de metadatos.
- *
- * Para agregar un nuevo estado de reporte:
- *   Agregar la entrada en STATUS_META con { label, icon, color }.
- */
 import { useState } from 'react';
 import {
-  ChevronDown, ChevronUp, MapPin, Calendar,
-  Clock, CheckCircle2, AlertCircle, Loader2,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  MapPin,
 } from 'lucide-react';
-import { useCatalogs } from '@/core/context/CatalogContext';
-import { ReportBadge } from './ReportBadge';
-import { getStatusMeta } from '../constants/reportConstants';
 
-/**
- * Metadatos visuales por estado de reporte.
- * Para agregar un nuevo estado, añadir una entrada aquí.
- */
+import { ReportBadge } from './ReportBadge';
+import { getStatusMeta, getSubtypeLabel } from '../constants/reportConstants';
+
 const STATUS_ICONS = {
-  submitted: Clock,
-  inProgress: Loader2,
-  resolved: CheckCircle2,
-  closed: CheckCircle2,
-  discarded: AlertCircle,
+  pendiente: Clock,
+  'en-revision': Clock,
+  asignado: Clock,
+  'en-proceso': Clock,
+  resuelto: CheckCircle2,
+  cerrado: CheckCircle2,
+  rechazado: AlertCircle,
 };
 
-/** Pastilla de estado con ícono y color temático. */
 function StatusPill({ meta }) {
-  const Icon = STATUS_ICONS[meta.key] ?? Clock;
+  const Icon = STATUS_ICONS[meta.id] ?? Clock;
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-      style={{ backgroundColor: meta.color + '18', color: meta.color, border: `1.5px solid ${meta.color}44` }}
+      style={{ backgroundColor: `${meta.color}18`, color: meta.color, border: `1.5px solid ${meta.color}44` }}
     >
       <Icon className="size-3" />
       {meta.label}
@@ -55,48 +35,48 @@ function StatusPill({ meta }) {
   );
 }
 
-export function ReportCard({ report, actionButton }) {
+export function ReportCard({ report, onDelete }) {
   const [expanded, setExpanded] = useState(false);
-  const { getOptions } = useCatalogs();
-  const statusMeta = getStatusMeta(report.statusKey || report.status, getOptions('statusReport'));
+  const statusMeta = getStatusMeta(report.statusId);
+  const subtypeLabel = getSubtypeLabel(report.categoryId, report.subtypeId);
 
-  /* Formateo de fechas en locale colombiano */
   const formattedDate = report.incidentDate
     ? new Date(report.incidentDate).toLocaleDateString('es-CO', {
-        year: 'numeric', month: 'long', day: 'numeric',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       })
-    : '—';
+    : '-';
 
   const formattedCreatedAt = report.createdAt
     ? new Date(report.createdAt).toLocaleDateString('es-CO', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       })
-    : '—';
+    : '-';
 
   return (
     <article className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
-
-      {/* ── Header siempre visible ── */}
       <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
-          {/* Badges: tipo, riesgo y estado */}
           <div className="flex flex-wrap items-center gap-2">
-            <ReportBadge type="reportType" value={report.reportType} />
-            <ReportBadge type="riskLevel"  value={report.riskLevel} />
+            <ReportBadge type="category" value={report.categoryId} />
+            <ReportBadge type="risk" value={report.riskLevelId} />
             <StatusPill meta={statusMeta} />
           </div>
-          <h3 className="text-base font-semibold text-foreground line-clamp-1">{report.title}</h3>
+          <h3 className="line-clamp-1 text-base font-semibold text-foreground">{report.title}</h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><MapPin className="size-3" />{report.location}</span>
+            <span className="flex items-center gap-1"><MapPin className="size-3" />{report.locationName}</span>
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formattedDate}</span>
           </div>
         </div>
 
-        {/* Botón toggle */}
         <button
           type="button"
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => setExpanded((value) => !value)}
           className="
             mt-1 flex shrink-0 items-center gap-1 self-start rounded-lg border border-border
             bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground
@@ -105,62 +85,40 @@ export function ReportCard({ report, actionButton }) {
           aria-expanded={expanded}
           aria-label={expanded ? 'Ocultar detalles' : 'Ver detalles'}
         >
-          {expanded
-            ? <><span>Ocultar</span><ChevronUp className="size-3.5" /></>
-            : <><span>Ver más</span><ChevronDown className="size-3.5" /></>}
+          {expanded ? (
+            <><span>Ocultar</span><ChevronUp className="size-3.5" /></>
+          ) : (
+            <><span>Ver mas</span><ChevronDown className="size-3.5" /></>
+          )}
         </button>
       </div>
 
-      {/* ── Panel desplegable ── */}
       {expanded && (
-        <div className="border-t border-border bg-muted/30 px-5 pb-5 pt-4 space-y-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="space-y-4 border-t border-border bg-muted/30 px-5 pb-5 pt-4">
+          <InfoBlock label="Descripcion" value={report.description || 'Sin descripcion.'} />
 
-          {/* Descripción completa */}
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Descripción</p>
-            <p className="text-sm text-foreground">{report.description || 'Sin descripción.'}</p>
-          </div>
-
-          {/* Cuadrícula de metadatos */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <InfoItem label="Localización"      value={report.location} />
-            <InfoItem label="Fecha del incidente" value={formattedDate} />
-            <InfoItem label="Reportado el"      value={formattedCreatedAt} />
-          </div>
-
-          {/* Bloque de resolución (solo si status === 'Resuelto') */}
-          {(statusMeta.key === 'resolved' || statusMeta.key === 'closed') && report.resolution && (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-1.5">
-              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-green-700">
-                <CheckCircle2 className="size-3.5" />
-                Resolución del operador
-              </p>
-              <p className="text-sm text-green-800">{report.resolution}</p>
-              {report.operatorName && (
-                <p className="text-xs text-green-600">Operador: {report.operatorName}</p>
-              )}
-              {report.resolvedAt && (
-                <p className="text-xs text-green-600">
-                  Resuelto el:{' '}
-                  {new Date(report.resolvedAt).toLocaleDateString('es-CO', {
-                    year: 'numeric', month: 'long', day: 'numeric',
-                  })}
-                </p>
-              )}
-            </div>
+          {report.customContext && (
+            <InfoBlock label="Contexto adicional" value={report.customContext} />
           )}
 
-          {/* Imágenes adjuntas */}
-          {report.images && report.images.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <InfoItem label="Subtipo" value={subtypeLabel} />
+            <InfoItem label="Ubicacion" value={report.locationName} />
+            <InfoItem label="Fecha del incidente" value={formattedDate} />
+            <InfoItem label="Reportado el" value={formattedCreatedAt} />
+            <InfoItem label="Coordenadas" value={formatCoordinates(report.coordinates)} />
+          </div>
+
+          {report.evidences?.length > 0 ? (
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Imágenes</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Evidencias</p>
               <div className="flex flex-wrap gap-2">
-                {report.images.map((src, idx) => (
+                {report.evidences.map((src, index) => (
                   <img
-                    key={idx}
+                    key={`${report.id}-${index}`}
                     src={src}
-                    alt={`Imagen ${idx + 1}`}
-                    className="h-20 w-20 rounded-lg object-cover border border-border"
+                    alt={`Evidencia ${index + 1}`}
+                    className="h-20 w-20 rounded-lg border border-border object-cover"
                   />
                 ))}
               </div>
@@ -168,15 +126,18 @@ export function ReportCard({ report, actionButton }) {
           ) : (
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <AlertCircle className="size-3.5" />
-              Sin imágenes adjuntas
+              Sin evidencias adjuntas
             </p>
           )}
 
-          {/* Botón de acción opcional (ej: Enviar Resolución) */}
-          {actionButton && (
-            <div className="pt-2">
-              {actionButton}
-            </div>
+          {report.statusId === 'pendiente' && onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(report.id)}
+              className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
+            >
+              Eliminar reporte
+            </button>
           )}
         </div>
       )}
@@ -184,15 +145,25 @@ export function ReportCard({ report, actionButton }) {
   );
 }
 
-/**
- * Par label/valor para la cuadrícula de metadatos del panel desplegable.
- * Muestra '—' si el valor es falsy.
- */
+function InfoBlock({ label, value }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
 function InfoItem({ label, value }) {
   return (
     <div className="space-y-0.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground">{value || '—'}</p>
+      <p className="text-sm text-foreground">{value || '-'}</p>
     </div>
   );
+}
+
+function formatCoordinates(coordinates) {
+  if (!coordinates) return '';
+  return `${coordinates.lat}, ${coordinates.lng}`;
 }
