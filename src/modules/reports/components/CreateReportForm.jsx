@@ -3,6 +3,9 @@ import {
   FileText, AlertTriangle, Tag, ImagePlus, AlertCircle, Layers,
 } from 'lucide-react';
 
+import { FormField } from '@/core/components/forms/FormField';
+import { TextareaField } from '@/core/components/forms/TextareaField';
+import { formControlClass } from '@/core/components/forms/formStyles';
 import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
 import { getReportCategoryOptions, getRiskLevelOptions, getSubTypeOptions } from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
@@ -55,30 +58,11 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           onChange={(e) => set('title', e.target.value)}
           placeholder="Ej. Falla electrica en laboratorio"
           maxLength={120}
-          className={inputClass(touched.title && errors.title)}
+          className={formControlClass(touched.title && errors.title)}
         />
       </FormField>
 
-      <FormField
-        id="report-description"
-        label="Descripcion del reporte"
-        required
-        icon={<FileText className="size-4" />}
-        error={touched.description ? errors.description : ''}
-      >
-        <textarea
-          id="report-description"
-          rows={4}
-          value={form.description}
-          onChange={(e) => set('description', e.target.value)}
-          placeholder="Describe que ocurre, desde cuando y a quien afecta..."
-          maxLength={800}
-          className={`${inputClass(touched.description && errors.description)} resize-none`}
-        />
-        <p className="mt-1 text-right text-[10px] text-muted-foreground">
-          {form.description.length}/800
-        </p>
-      </FormField>
+
 
       <SelectionGroup
         label="Tipo de reporte"
@@ -104,24 +88,32 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       )}
 
+      <TextareaField
+        id="report-description"
+        label="Descripcion del reporte"
+        required
+        icon={<FileText className="size-4" />}
+        error={touched.description ? errors.description : ''}
+        value={form.description}
+        onChange={(e) => set('description', e.target.value)}
+        placeholder="Describe que ocurre, desde cuando y a quien afecta..."
+        maxLength={800}
+      />
+
+
       {shouldShowCustomContext && (
-        <FormField
+        <TextareaField
           id="report-custom-context"
           label="Especifica aqui el problema"
           required
           icon={<FileText className="size-4" />}
           error={touched.customContext ? errors.customContext : ''}
-        >
-          <textarea
-            id="report-custom-context"
-            rows={3}
-            value={form.customContext}
-            onChange={(e) => set('customContext', e.target.value)}
-            placeholder="Explica que tipo de incidente es y por que no encaja en las opciones anteriores."
-            maxLength={500}
-            className={`${inputClass(touched.customContext && errors.customContext)} resize-none`}
-          />
-        </FormField>
+          rows={3}
+          value={form.customContext}
+          onChange={(e) => set('customContext', e.target.value)}
+          placeholder="Explica que tipo de incidente es y por que no encaja en las opciones anteriores."
+          maxLength={500}
+        />
       )}
 
       <SelectionGroup
@@ -146,7 +138,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           id="report-location"
           value={form.locationId}
           onChange={(e) => set('locationId', e.target.value)}
-          className={inputClass(touched.locationId && errors.locationId)}
+          className={formControlClass(touched.locationId && errors.locationId)}
         >
           <option value="">Selecciona un lugar del campus</option>
           {CAMPUS_LOCATIONS.map((location) => (
@@ -170,7 +162,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           value={form.incidentDate}
           max={new Date().toISOString().split('T')[0]}
           onChange={(e) => set('incidentDate', e.target.value)}
-          className={inputClass(touched.incidentDate && errors.incidentDate)}
+          className={formControlClass(touched.incidentDate && errors.incidentDate)}
         />
       </FormField>
 
@@ -242,26 +234,4 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
       </div>
     </form>
   );
-}
-
-function FormField({ id, label, required, icon, error, children }) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-        {icon}
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  );
-}
-
-function inputClass(hasError) {
-  return [
-    'w-full rounded-lg border bg-background px-3.5 py-2.5 text-sm transition',
-    'placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring',
-    hasError ? 'border-destructive focus:ring-destructive/40' : 'border-input',
-  ].join(' ');
 }

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileText, RotateCcw, Send } from 'lucide-react';
 
+import { FormField } from '@/core/components/forms/FormField';
+import { TextareaField } from '@/core/components/forms/TextareaField';
 import { useAuth } from '@/core/context/AuthContext';
 import { Button } from '@/core/components/ui/button';
 import { ImagePreviewGrid } from '@/modules/reports/components/ImagePreviewGrid';
@@ -94,26 +96,30 @@ export default function OperatorResolutionPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-        <Field label="Titulo del reporte" icon={<FileText className="size-4" />}>
+        <FormField id="resolution-report-title" label="Titulo del reporte" icon={<FileText className="size-4" />}>
           <input
+            id="resolution-report-title"
             readOnly
             value={report.title}
             className="w-full cursor-default rounded-lg border border-input bg-muted/50 px-3.5 py-2.5 text-sm"
           />
-        </Field>
+        </FormField>
 
-        <Field label="Descripcion de la resolucion" icon={<FileText className="size-4" />} required error={error}>
-          <textarea
-            rows={5}
-            value={description}
-            onChange={(event) => {
-              setDescription(event.target.value);
-              if (error) setError('');
-            }}
-            placeholder="Describe que se hizo, que materiales se usaron y si el problema quedo solucionado."
-            className="w-full resize-none rounded-lg border border-input bg-background px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </Field>
+        <TextareaField
+          id="resolution-description"
+          label="Descripcion de la resolucion"
+          required
+          icon={<FileText className="size-4" />}
+          error={error}
+          rows={5}
+          value={description}
+          onChange={(event) => {
+            setDescription(event.target.value);
+            if (error) setError('');
+          }}
+          placeholder="Describe que se hizo, que materiales se usaron y si el problema quedo solucionado."
+          showCounter={false}
+        />
 
         <div className="space-y-2">
           <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
@@ -157,20 +163,6 @@ export default function OperatorResolutionPage() {
           </button>
         </div>
       </form>
-    </div>
-  );
-}
-
-function Field({ label, icon, required, error, children }) {
-  return (
-    <div className="space-y-1.5">
-      <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-        {icon}
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
