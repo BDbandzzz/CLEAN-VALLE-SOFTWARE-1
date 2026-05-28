@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 import { ReportBadge } from './ReportBadge';
+import { ResolutionSummary } from './ResolutionSummary';
 import { getStatusMeta, getSubtypeLabel } from '../constants/reportConstants';
 
 const STATUS_ICONS = {
@@ -35,7 +36,7 @@ function StatusPill({ meta }) {
   );
 }
 
-export function ReportCard({ report, onDelete }) {
+export function ReportCard({ report, onDelete, showResolutionSummary = false }) {
   const [expanded, setExpanded] = useState(false);
   const statusMeta = getStatusMeta(report.statusId);
   const subtypeLabel = getSubtypeLabel(report.categoryId, report.subtypeId);
@@ -93,6 +94,12 @@ export function ReportCard({ report, onDelete }) {
         </button>
       </div>
 
+      {showResolutionSummary && report.resolution && (
+        <div className="border-t border-border bg-muted/20 px-5 pb-5 pt-4">
+          <ResolutionSummary report={report} />
+        </div>
+      )}
+
       {expanded && (
         <div className="space-y-4 border-t border-border bg-muted/30 px-5 pb-5 pt-4">
           <InfoBlock label="Descripcion" value={report.description || 'Sin descripcion.'} />
@@ -129,6 +136,8 @@ export function ReportCard({ report, onDelete }) {
               Sin evidencias adjuntas
             </p>
           )}
+
+          {!showResolutionSummary && <ResolutionSummary report={report} />}
 
           {report.statusId === 'pendiente' && onDelete && (
             <button

@@ -4,6 +4,7 @@ import { Bell, ClipboardList, CheckCircle2, Wrench } from 'lucide-react';
 import { useAuth } from '@/core/context/AuthContext';
 import { OPERATOR_SPECIALIZATIONS } from '@/core/data/cleanvalleSchema';
 import { OperatorReportCard } from '@/modules/operator/components/OperatorReportCard';
+import { getResolutionReviewStatusOptions } from '@/modules/reports/constants/reportConstants';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 const TABS = {
@@ -16,6 +17,7 @@ export default function OperatorDashboardPage() {
   const { operatorAssignedReports, operatorResolvedReports, notifications } = useReports();
   const [activeTab, setActiveTab] = useState(TABS.assigned);
   const [resolutionStatus, setResolutionStatus] = useState('enviada');
+  const resolutionStatusOptions = getResolutionReviewStatusOptions();
 
   const specializations = useMemo(
     () =>
@@ -25,7 +27,11 @@ export default function OperatorDashboardPage() {
     [user?.specializationIds]
   );
   const filteredResolvedReports = useMemo(
-    () => operatorResolvedReports.filter((report) => report.resolution?.statusId === resolutionStatus),
+    () =>
+      operatorResolvedReports.filter((report) => {
+        const reviewStatusId = report.resolution?.reviewStatusId ?? report.resolution?.statusId;
+        return reviewStatusId === resolutionStatus;
+      }),
     [operatorResolvedReports, resolutionStatus]
   );
 
@@ -71,11 +77,7 @@ export default function OperatorDashboardPage() {
       {activeTab === TABS.resolved && (
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            {[
-              { id: 'enviada', label: 'Enviadas' },
-              { id: 'aprobada', label: 'Aprobadas' },
-              { id: 'descartada', label: 'Descartadas' },
-            ].map((status) => (
+            {resolutionStatusOptions.map((status) => (
               <button
                 key={status.id}
                 type="button"

@@ -2,6 +2,7 @@ import { Calendar, MapPin, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
+import { ResolutionSummary } from '@/modules/reports/components/ResolutionSummary';
 import { getStatusMeta, getSubtypeLabel } from '@/modules/reports/constants/reportConstants';
 
 export function OperatorReportCard({ report, showResolution = false }) {
@@ -36,14 +37,7 @@ export function OperatorReportCard({ report, showResolution = false }) {
           </div>
 
           {showResolution && report.resolution && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-              <p className="font-semibold">Resolucion enviada</p>
-              <p className="mt-1">{report.resolution.description}</p>
-              <p className="mt-2 text-xs">Estado: {resolutionStatusLabel(report.resolution.statusId)}</p>
-              {report.resolution.feedback && (
-                <p className="mt-1 text-xs">Feedback: {report.resolution.feedback}</p>
-              )}
-            </div>
+            <ResolutionSummary report={report} />
           )}
         </div>
 
@@ -69,14 +63,4 @@ function formatDate(value) {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function resolutionStatusLabel(statusId) {
-  const labels = {
-    enviada: 'Enviada',
-    aprobada: 'Aprobada',
-    descartada: 'Descartada',
-  };
-
-  return labels[statusId] ?? 'Enviada';
 }

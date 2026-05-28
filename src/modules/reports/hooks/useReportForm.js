@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import { getSubTypeOptions } from '../constants/reportConstants';
+
 const INITIAL_FORM = {
   title: '',
   description: '',
@@ -25,6 +27,13 @@ const INITIAL_ERRORS = {
 function validateReport(data) {
   const errors = { ...INITIAL_ERRORS };
   let ok = true;
+  const subtypeOptions = getSubTypeOptions(data.categoryId);
+  const needsSubtype = Boolean(data.categoryId && data.categoryId !== 'otro' && subtypeOptions.length);
+  const needsContext = Boolean(
+    data.categoryId === 'otro' ||
+    data.subtypeId === 'otro' ||
+    (data.categoryId && !subtypeOptions.length)
+  );
 
   if (!data.title.trim()) {
     errors.title = 'El titulo es requerido.';
@@ -47,12 +56,12 @@ function validateReport(data) {
     ok = false;
   }
 
-  if (data.categoryId !== 'otro' && !data.subtypeId) {
+  if (needsSubtype && !data.subtypeId) {
     errors.subtypeId = 'Selecciona la razon del reporte.';
     ok = false;
   }
 
-  if ((data.categoryId === 'otro' || data.subtypeId === 'otro') && !data.customContext.trim()) {
+  if (needsContext && !data.customContext.trim()) {
     errors.customContext = 'Agrega el contexto del reporte.';
     ok = false;
   }

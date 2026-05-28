@@ -1,7 +1,18 @@
-import { REPORT_CATEGORIES, REPORT_STATUSES, RISK_LEVELS } from '@/core/data/cleanvalleSchema';
+import {
+  REPORT_CATEGORIES,
+  REPORT_STATUSES,
+  RESOLUTION_QUALITIES,
+  RESOLUTION_STATUSES,
+  RISK_LEVELS,
+} from '@/core/data/cleanvalleSchema';
 
 export function getReportCategoryOptions() {
-  return REPORT_CATEGORIES.map(({ id, label, color }) => ({ id, label, color }));
+  return REPORT_CATEGORIES.map(({ id, label, description, color }) => ({
+    id,
+    label,
+    description,
+    color,
+  }));
 }
 
 export function getSubTypeOptions(categoryId) {
@@ -34,4 +45,16 @@ export function getSubtypeLabel(categoryId, subtypeId) {
 
 export function getRiskMeta(riskLevelId) {
   return RISK_LEVELS.find((risk) => risk.id === riskLevelId) ?? RISK_LEVELS[0];
+}
+
+export function getResolutionReviewStatusMeta(statusId) {
+  return RESOLUTION_STATUSES.find((status) => status.id === statusId) ?? RESOLUTION_STATUSES[0];
+}
+
+export function getResolutionReviewStatusOptions() {
+  return RESOLUTION_STATUSES;
+}
+
+export function getResolutionQualityMeta(qualityId) {
+  return RESOLUTION_QUALITIES.find((quality) => quality.id === qualityId) ?? null;
 }

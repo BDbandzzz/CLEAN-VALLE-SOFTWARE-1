@@ -13,6 +13,11 @@ const EMPTY_FILTERS = {
   dateTo: '',
 };
 
+const TABS = {
+  mine: 'mine',
+  resolved: 'resolved',
+};
+
 function applyFilters(reports, filters) {
   return reports.filter((report) => {
     if (filters.search) {
@@ -44,10 +49,16 @@ function applyFilters(reports, filters) {
 const ViewReportsPage = () => {
   const { reports, deleteReport } = useReports();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [activeTab, setActiveTab] = useState(TABS.mine);
+
+  const resolvedByOperators = useMemo(
+    () => reports.filter((report) => report.resolution),
+    [reports]
+  );
 
   const displayedReports = useMemo(
-    () => applyFilters(reports, filters),
-    [reports, filters]
+    () => applyFilters(activeTab === TABS.resolved ? resolvedByOperators : reports, filters),
+    [activeTab, reports, resolvedByOperators, filters]
   );
 
   const handleFilterChange = (partial) =>
@@ -79,10 +90,30 @@ const ViewReportsPage = () => {
         onClear={handleClearFilters}
       />
 
+      <div className="flex rounded-xl border border-border bg-muted/40 p-1">
+        <TabButton
+          label="Mis reportes"
+          count={reports.length}
+          active={activeTab === TABS.mine}
+          onClick={() => setActiveTab(TABS.mine)}
+        />
+        <TabButton
+          label="Resueltos por operadores"
+          count={resolvedByOperators.length}
+          active={activeTab === TABS.resolved}
+          onClick={() => setActiveTab(TABS.resolved)}
+        />
+      </div>
+
       <div className="space-y-4">
         {displayedReports.length > 0 ? (
           displayedReports.map((report) => (
-            <ReportCard key={report.id} report={report} onDelete={deleteReport} />
+            <ReportCard
+              key={report.id}
+              report={report}
+              onDelete={deleteReport}
+              showResolutionSummary={activeTab === TABS.resolved}
+            />
           ))
         ) : (
           <EmptyState />
@@ -91,6 +122,22 @@ const ViewReportsPage = () => {
     </div>
   );
 };
+
+function TabButton({ label, count, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition',
+        active ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+      ].join(' ')}
+    >
+      {label}
+      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{count}</span>
+    </button>
+  );
+}
 
 function EmptyState() {
   return (

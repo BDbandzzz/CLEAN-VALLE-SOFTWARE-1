@@ -69,19 +69,24 @@ export const REPORT_CATEGORIES = [
   {
     id: 'infraestructura-mantenimiento',
     label: 'Infraestructura y Mantenimiento',
+    description: 'Daños físicos en edificios, mobiliario y servicios básicos',
     color: '#0f766e',
     subtypes: [
       { id: 'dano-estructural', label: 'Daño estructural' },
-      { id: 'falla-electrica', label: 'Falla electrica' },
+      { id: 'dano-mobiliario', label: 'Daño en mobiliario', description: 'Sillas, mesas, tableros, lockers rotos o en mal estado' },
+      { id: 'falla-electrica', label: 'Falla eléctrica', description: 'Cortos, tomacorrientes dañados, alumbrado apagado' },
       { id: 'falla-plomeria', label: 'Falla en plomeria' },
+      { id: 'dano-vias-internas', label: 'Daño en vías internas', description: 'Andenes, rampas, ciclovías o senderos deteriorados' },
     ],
   },
   {
     id: 'seguridad-convivencia',
     label: 'Seguridad y Convivencia',
+    description: 'Incidentes que afecten la seguridad o convivencia',
     color: '#dc2626',
     subtypes: [
-      { id: 'incidente-seguridad', label: 'Incidente de seguridad' },
+      { id: 'incidente-seguridad', label: 'Incidente de seguridad', description: 'Robo, hurto, agresión o situación que comprometa la integridad' },
+      { id: 'acceso-no-autorizado', label: 'Acceso no autorizado', description: 'Personas sin credenciales en zonas restringidas' },
       { id: 'acoso-discriminacion', label: 'Acoso o discriminacion' },
       { id: 'emergencia-medica', label: 'Emergencia medica' },
     ],
@@ -89,40 +94,86 @@ export const REPORT_CATEGORIES = [
   {
     id: 'medio-ambiente-espacios',
     label: 'Medio Ambiente y Espacios',
+    description: 'Problemas ambientales, plagas y zonas verdes',
     color: '#16a34a',
     subtypes: [
-      { id: 'plaga-fauna-nociva', label: 'Plaga o fauna nociva' },
-      { id: 'arbol-zona-verde-riesgo', label: 'Arbol o zona verde en riesgo' },
-      { id: 'ruido-excesivo', label: 'Ruido excesivo' },
-      { id: 'mal-olor', label: 'Mal olor' },
+      { id: 'plaga-fauna-nociva', label: 'Plaga o fauna nociva', description: 'Presencia de roedores, insectos u otras plagas' },
+      { id: 'arbol-zona-verde-riesgo', label: 'Árbol o zona verde en riesgo', description: 'Árboles caídos, ramas peligrosas, zonas verdes con daño' },
+      { id: 'ruido-excesivo', label: 'Ruido excesivo', description: 'Fuentes de ruido que afectan clases o trabajo académico' },
+      { id: 'mal-olor', label: 'Mal olor', description: 'Focos de malos olores que afecten la salubridad del espacio' },
     ],
   },
   {
     id: 'servicios-ti-conectividad',
     label: 'Servicios TI y Conectividad',
+    description: 'Fallas en tecnología, redes y sistemas institucionales',
     color: '#2563eb',
     subtypes: [
-      { id: 'falla-conectividad', label: 'Falla en conectividad' },
+      { id: 'falla-conectividad', label: 'Falla en conectividad', description: 'Puntos de WiFi caídos o sin señal en zonas del campus' },
       { id: 'dano-equipos-computo', label: 'Daños en equipos de computo' },
-      { id: 'falla-sistemas-institucionales', label: 'Falla en sistemas institucionales' },
+      { id: 'falla-sistemas-institucionales', label: 'Falla en sistemas institucionales', description: 'Plataformas académicas, acceso o pantallas informativas' },
+    ],
+  },
+
+  {
+    id: 'accesibilidad',
+    label: 'Accesibilidad',
+    description: 'Barreras que limiten el acceso a personas con discapacidad',
+    color: '#7c3aed',
+    subtypes: [],
+  },
+
+  {
+    id: 'residuos-aseo',
+    label: 'Residuos y aseo',
+    description: 'Manejo inadecuado de residuos y limpieza',
+    color: '#059669',
+    subtypes: [
+      { id: 'acumulacion-basuras', label: 'Acumulación de basuras', description: 'Residuos acumulados en zonas no designadas' },
+      { id: 'contenedor-danado', label: 'Contenedor dañado', description: 'Canecas o contenedores rotos o desbordados' },
+    ],
+  },
+
+  {
+    id: 'falla-hidrica',
+    label: 'Falla hídrica',
+    description: 'Problemas relacionados con el agua',
+    color: '#0891b2',
+    subtypes: [
+      { id: 'fuga-agua', label: 'Fuga de agua', description: 'Pérdida visible de agua en tuberías o superficies' },
+      { id: 'agua-sin-suministro', label: 'Agua sin suministro', description: 'Ausencia de agua en baños o zonas de uso común' },
+    ],
+  },
+
+  {
+    id: 'contaminacion-ambiental',
+    label: 'Contaminación ambiental',
+    description: 'Contaminación del aire, suelo o agua en el campus',
+    color: '#65a30d',
+    subtypes: [
+      { id: 'contaminacion-aire', label: 'Contaminación del aire', description: 'Humos, gases o partículas que afecten la calidad del aire' },
+      { id: 'contaminacion-suelo', label: 'Contaminación del suelo', description: 'Derrames o residuos peligrosos en el suelo' },
     ],
   },
 
   {
     id: 'otro',
     label: 'Otro',
+    description: 'Categoría abierta para reportes que no encajan en ninguna otra',
     color: '#6b7280',
-    subtypes: [],
+    subtypes: [
+      { id: 'otro', label: 'Otro', description: 'El usuario describe libremente el problema. Requiere contexto adicional.' },
+    ],
   },
 
  
 ];
 
 export const RISK_LEVELS = [
-  { id: 'bajo', label: 'Bajo', color: '#16a34a' },
-  { id: 'medio', label: 'Medio', color: '#d97706' },
-  { id: 'alto', label: 'Alto', color: '#dc2626' },
-  { id: 'critico', label: 'Critico', color: '#991b1b' },
+  { id: 'bajo', label: 'Bajo', color: '#16a34a', priorityScore: 25, responseTimeHours: 120 },
+  { id: 'medio', label: 'Medio', color: '#d97706', priorityScore: 50, responseTimeHours: 48 },
+  { id: 'alto', label: 'Alto', color: '#dc2626', priorityScore: 75, responseTimeHours: 12 },
+  { id: 'critico', label: 'Critico', color: '#991b1b', priorityScore: 100, responseTimeHours: 2 },
 ];
 
 export const REPORT_STATUSES = [
@@ -139,6 +190,14 @@ export const RESOLUTION_STATUSES = [
   { id: 'enviada', label: 'Enviada', color: '#2563eb' },
   { id: 'aprobada', label: 'Aprobada', color: '#16a34a' },
   { id: 'descartada', label: 'Descartada', color: '#dc2626' },
+];
+
+export const RESOLUTION_QUALITIES = [
+  { id: 'muy-baja', label: 'Muy baja', score: 1, color: '#dc2626' },
+  { id: 'baja', label: 'Baja', score: 2, color: '#ea580c' },
+  { id: 'aceptable', label: 'Aceptable', score: 3, color: '#d97706' },
+  { id: 'buena', label: 'Buena', score: 4, color: '#16a34a' },
+  { id: 'excelente', label: 'Excelente', score: 5, color: '#0f766e' },
 ];
 
 export const CAMPUS_LOCATIONS = [
@@ -208,9 +267,12 @@ export const INITIAL_REPORTS = [
       id: 'res-demo-001',
       description: 'Se instalo una cubierta nueva y se verifico que la toma quedara segura.',
       evidences: [],
-      statusId: 'enviada',
+      reviewStatusId: 'aprobada',
+      qualityId: 'buena',
+      resolutionMethod: 'Reposicion de cubierta y verificacion electrica',
       sentAt: '2026-05-21T11:10:00.000Z',
-      feedback: '',
+      reviewedAt: '2026-05-22T10:00:00.000Z',
+      feedback: 'La solucion es adecuada y la evidencia es suficiente.',
     },
     history: [
       {
@@ -262,8 +324,9 @@ export const CLEANVALLE_SCHEMA_DUMP = {
     statuses: REPORT_STATUSES.map((status) => status.id),
   },
   resolutions: {
-    fields: ['id', 'description', 'evidences', 'statusId', 'sentAt', 'feedback'],
+    fields: ['id', 'description', 'evidences', 'reviewStatusId', 'qualityId', 'resolutionMethod', 'sentAt', 'reviewedAt', 'feedback'],
     statuses: RESOLUTION_STATUSES.map((status) => status.id),
+    qualities: RESOLUTION_QUALITIES.map((quality) => quality.id),
   },
   operatorNotifications: {
     fields: ['id', 'title', 'detail', 'at', 'reportId'],

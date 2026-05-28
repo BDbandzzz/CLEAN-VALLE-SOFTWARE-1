@@ -22,8 +22,12 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
   const categoryOptions = getReportCategoryOptions();
   const subtypeOptions = getSubTypeOptions(form.categoryId);
   const riskLevelOptions = getRiskLevelOptions();
-  const shouldShowReasonOptions = form.categoryId && form.categoryId !== 'otro';
-  const shouldShowCustomContext = form.categoryId === 'otro' || form.subtypeId === 'otro';
+  const hasSubtypeOptions = subtypeOptions.length > 0;
+  const shouldShowReasonOptions = form.categoryId && form.categoryId !== 'otro' && hasSubtypeOptions;
+  const shouldShowCustomContext =
+    form.categoryId === 'otro' ||
+    form.subtypeId === 'otro' ||
+    (form.categoryId && !hasSubtypeOptions);
 
   const handleReset = () => {
     reset();
@@ -97,7 +101,6 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
           selected={form.subtypeId}
           onSelect={(id) => set('subtypeId', id)}
           error={touched.subtypeId ? errors.subtypeId : ''}
-          hideLabel={false}
         />
       )}
 
