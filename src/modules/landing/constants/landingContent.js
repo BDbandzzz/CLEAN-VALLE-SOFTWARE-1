@@ -25,7 +25,7 @@ export const LANDING_HEADER = {
 
 export const LANDING_HERO = {
   eyebrow: 'Plataforma institucional',
-  title: 'Gestion ambiental universitaria desde un solo panel',
+  title: 'Gestion  de problemas universitaros desde un solo panel',
   subtitle:
     'CleanValle conecta reportes, seguimiento operativo y notificaciones para que la comunidad pueda cuidar el campus con informacion clara y trazable.',
   primaryAction: {

@@ -10,7 +10,7 @@ const LEGACY_TOKEN_KEY = 'auth_token';
 function readCurrentUser() {
   try {
     const storedUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
-    const validRoles = ['estudiante', 'profesor', 'operador'];
+    const validRoles = ['estudiante', 'profesor', 'operador', 'gestor'];
 
     if (!storedUser || !validRoles.includes(storedUser.role)) {
       localStorage.removeItem(CURRENT_USER_KEY);

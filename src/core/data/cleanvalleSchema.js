@@ -2,6 +2,7 @@ export const USER_ROLES = {
   estudiante: 'Estudiante',
   profesor: 'Profesor',
   operador: 'Operador',
+  gestor: 'Gestor de reportes',
 };
 
 export const DEMO_USERS = [
@@ -41,6 +42,18 @@ export const DEMO_USERS = [
     typeDniId: 1,
     genderId: 1,
     specializationIds: ['falla-plomeria', 'dano-estructural', 'falla-electrica'],
+  },
+  {
+    id: 'GES001',
+    codeUser: 'GES001',
+    password: 'demo1234',
+    role: 'gestor',
+    firstName: 'Gestor',
+    lastName: 'Reportes',
+    email: 'gestor@correounivalle.edu.co',
+    dniUser: '4000000001',
+    typeDniId: 1,
+    genderId: 3,
   },
 ];
 

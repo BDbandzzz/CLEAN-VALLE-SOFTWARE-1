@@ -7,7 +7,12 @@ import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
 import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
-import { getReportCategoryOptions, getRiskLevelOptions, getSubTypeOptions } from '../constants/reportConstants';
+import {
+  REPORT_TEXTAREA_FIELDS,
+  getReportCategoryOptions,
+  getRiskLevelOptions,
+  getSubTypeOptions,
+} from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
 import { useImageUpload, MAX_FILES, MAX_MB } from '../hooks/useImageUpload';
 import { SelectionGroup } from './SelectionGroup';
@@ -25,11 +30,12 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
   const categoryOptions = getReportCategoryOptions();
   const subtypeOptions = getSubTypeOptions(form.categoryId);
   const riskLevelOptions = getRiskLevelOptions();
+  const descriptionTextarea = REPORT_TEXTAREA_FIELDS.description;
+  const customContextTextarea = REPORT_TEXTAREA_FIELDS.customContext;
   const hasSubtypeOptions = subtypeOptions.length > 0;
   const shouldShowReasonOptions = form.categoryId && form.categoryId !== 'otro' && hasSubtypeOptions;
   const shouldShowCustomContext =
     form.categoryId === 'otro' ||
-    form.subtypeId === 'otro' ||
     (form.categoryId && !hasSubtypeOptions);
 
   const handleReset = () => {
@@ -88,33 +94,21 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       )}
 
-      <TextareaField
-        id="report-description"
-        label="Descripcion del reporte"
-        required
-        icon={<FileText className="size-4" />}
-        error={touched.description ? errors.description : ''}
-        value={form.description}
-        onChange={(e) => set('description', e.target.value)}
-        placeholder="Describe que ocurre, desde cuando y a quien afecta..."
-        maxLength={800}
-      />
-
-
-      {shouldShowCustomContext && (
+            {shouldShowCustomContext && (
         <TextareaField
-          id="report-custom-context"
-          label="Especifica aqui el problema"
+          id={customContextTextarea.id}
+          label={customContextTextarea.label}
           required
           icon={<FileText className="size-4" />}
           error={touched.customContext ? errors.customContext : ''}
-          rows={3}
+          rows={customContextTextarea.rows}
           value={form.customContext}
           onChange={(e) => set('customContext', e.target.value)}
-          placeholder="Explica que tipo de incidente es y por que no encaja en las opciones anteriores."
-          maxLength={500}
+          placeholder={customContextTextarea.placeholder}
+          maxLength={customContextTextarea.maxLength}
         />
       )}
+
 
       <SelectionGroup
         label="Nivel de riesgo"
@@ -126,6 +120,26 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         onSelect={(id) => set('riskLevelId', id)}
         error={touched.riskLevelId ? errors.riskLevelId : ''}
       />
+      
+
+
+
+      <TextareaField
+        id={descriptionTextarea.id}
+        label={descriptionTextarea.label}
+        required
+        icon={<FileText className="size-4" />}
+        error={touched.description ? errors.description : ''}
+        rows={descriptionTextarea.rows}
+        value={form.description}
+        onChange={(e) => set('description', e.target.value)}
+        placeholder={descriptionTextarea.placeholder}
+        maxLength={descriptionTextarea.maxLength}
+      />
+
+
+
+
 
       <FormField
         id="report-location"

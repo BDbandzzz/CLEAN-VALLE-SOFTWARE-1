@@ -2,6 +2,7 @@ export const TOKEN_ROLES = {
   ROLE_STUDENT: 'estudiante',
   ROLE_PROFESSOR: 'profesor',
   ROLE_OPERATOR: 'operador',
+  ROLE_MANAGER: 'gestor',
 };
 
 export function normalizeRole(rawRole) {

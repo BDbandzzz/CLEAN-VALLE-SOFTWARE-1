@@ -1,6 +1,7 @@
 import { Shield } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardBox} from '@/core/components/ui/card';
+import { USER_ROLES } from '@/core/data/cleanvalleSchema';
 
 /**
  * ProfileSummaryCard.jsx – Columna lateral de resumen del perfil.
@@ -35,7 +36,7 @@ export function ProfileSummaryCard({ dniUser, emailPreview, role }) {
       
       <CardBox
       title="Rol"
-      value={role === 'operador' ? 'Operador' : role === 'profesor' ? 'Profesor' : 'Estudiante'}
+      value={USER_ROLES[role] ?? 'Estudiante'}
       />
 
       </CardContent>

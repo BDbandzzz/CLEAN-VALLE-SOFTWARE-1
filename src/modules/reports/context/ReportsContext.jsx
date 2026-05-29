@@ -94,11 +94,53 @@ function buildOperatorNotifications(reports, operatorId) {
     .sort((a, b) => new Date(b.at) - new Date(a.at));
 }
 
+function buildManagerNotifications(reports) {
+  return reports
+    .flatMap((report) => {
+      const notifications = [
+        {
+          id: `${report.id}-manager-created`,
+          title: 'Nuevo reporte recibido',
+          detail: report.title,
+          at: report.createdAt,
+          reportId: report.id,
+        },
+      ];
+
+      if (report.assignedTo) {
+        notifications.push({
+          id: `${report.id}-manager-assigned`,
+          title: 'Reporte asignado',
+          detail: report.title,
+          at: report.assignedAt ?? report.createdAt,
+          reportId: report.id,
+        });
+      }
+
+      if (report.resolution?.reviewStatusId === 'enviada') {
+        notifications.push({
+          id: `${report.id}-manager-resolution`,
+          title: 'Resolucion pendiente de revision',
+          detail: report.resolution.description,
+          at: report.resolution.sentAt,
+          reportId: report.id,
+        });
+      }
+
+      return notifications;
+    })
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
 function buildUserNotifications(reports, user) {
   if (!user?.id) return [];
 
   if (user.role === 'operador') {
     return buildOperatorNotifications(reports, user.id);
+  }
+
+  if (user.role === 'gestor') {
+    return buildManagerNotifications(reports);
   }
 
   return reports

@@ -33,6 +33,11 @@ import {
 } from '@/core/constants/branding';
 import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
 
+const ROLE_HOME_PATHS = {
+  operador: '/operator',
+  gestor: '/profile',
+};
+
 const LoginPage = () => {
   const navigate = useNavigate();
 
@@ -52,7 +57,7 @@ const LoginPage = () => {
 
     try {
       const role = await login(code, password);
-      navigate(role === 'operador' ? '/operator' : '/reports/view');
+      navigate(ROLE_HOME_PATHS[role] ?? '/reports/view');
     } catch {
       setErrorMsg("Credenciales incorrectas. Por favor, intenta de nuevo.");
     }

@@ -1,4 +1,4 @@
-import { Bell, Eye, GraduationCap, Lock, LogOut, ClipboardPlus, User, Wrench } from 'lucide-react';
+import { Bell, Eye, GraduationCap, Lock, LogOut, ClipboardPlus, User, UserCog, Wrench } from 'lucide-react';
 
 const reportItems = [
   {
@@ -64,6 +64,15 @@ export const sidebarConfig = {
       title: 'Panel operador',
       url: '/operator',
       icon: Wrench,
+    },
+    ...securityItems,
+  ],
+
+  gestor: [
+    {
+      title: 'Perfil',
+      url: '/profile',
+      icon: UserCog,
     },
     ...securityItems,
   ],
