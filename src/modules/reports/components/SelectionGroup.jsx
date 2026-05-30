@@ -1,4 +1,5 @@
 import { SelectionOptionButton } from '@/modules/reports/components/SelectionOptionButton';
+import {label} from '@/core/components/ui/label';
 
 function smColsClass(count) {
   const map = {
@@ -12,6 +13,7 @@ function smColsClass(count) {
 
   return map[count] ?? 'sm:grid-cols-2 lg:grid-cols-3';
 }
+
 
 export function SelectionGroup({
   label,
@@ -28,7 +30,7 @@ export function SelectionGroup({
   return (
     <div className="space-y-1.5">
       {!hideLabel && (
-        <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+        <label className="flex items-center gap-3.5 text-sm font-medium text-foreground">
           {icon}
           {label}
           {required && <span className="text-destructive">*</span>}
@@ -37,6 +39,7 @@ export function SelectionGroup({
 
       <div className={`grid grid-cols-1 ${smColsClass(items.length)} gap-2 pt-1`}>
         {items.map((item) => (
+        <div key={item.id} className="min-w-0">
           <SelectionOptionButton
             key={item.id}
             id={`${idPrefix}-${item.id}`}
@@ -47,6 +50,7 @@ export function SelectionGroup({
             disabled={disabled}
             onClick={() => onSelect(item.id)}
           />
+          </div>
         ))}
       </div>
 
