@@ -2,6 +2,7 @@ import { Search, X, Tag, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { getReportCategoryOptions, getRiskLevelOptions } from '../constants/reportConstants';
+import { ReportDateField } from './ReportDateField';
 import { SelectionGroup } from './SelectionGroup';
 
 export function ReportFilters({ filters, onChange, onClear }) {
@@ -48,13 +49,13 @@ export function ReportFilters({ filters, onChange, onClear }) {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <DateField
+        <ReportDateField
           id="filter-date-from"
           label="Desde"
           value={filters.dateFrom}
           onChange={(dateFrom) => onChange({ dateFrom })}
         />
-        <DateField
+        <ReportDateField
           id="filter-date-to"
           label="Hasta"
           value={filters.dateTo}
@@ -74,23 +75,6 @@ export function ReportFilters({ filters, onChange, onClear }) {
           Limpiar filtros
         </Button>
       )}
-    </div>
-  );
-}
-
-function DateField({ id, label, value, onChange }) {
-  return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </label>
-      <input
-        id={id}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-      />
     </div>
   );
 }

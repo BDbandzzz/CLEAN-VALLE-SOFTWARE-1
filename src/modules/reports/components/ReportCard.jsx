@@ -2,40 +2,18 @@ import { useState } from 'react';
 import {
   AlertCircle,
   Calendar,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Clock,
   MapPin,
 } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { ReportInfoBlock } from './ReportInfoBlock';
+import { ReportInfoItem } from './ReportInfoItem';
 import { ReportBadge } from './ReportBadge';
+import { ReportStatusPill } from './ReportStatusPill';
 import { ResolutionSummary } from './ResolutionSummary';
 import { getStatusMeta, getSubtypeLabel } from '../constants/reportConstants';
-
-const STATUS_ICONS = {
-  pendiente: Clock,
-  'en-revision': Clock,
-  asignado: Clock,
-  'en-proceso': Clock,
-  resuelto: CheckCircle2,
-  cerrado: CheckCircle2,
-  rechazado: AlertCircle,
-};
-
-function StatusPill({ meta }) {
-  const Icon = STATUS_ICONS[meta.id] ?? Clock;
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-      style={{ backgroundColor: `${meta.color}18`, color: meta.color, border: `1.5px solid ${meta.color}44` }}
-    >
-      <Icon className="size-3" />
-      {meta.label}
-    </span>
-  );
-}
 
 export function ReportCard({ report, onDelete, showResolutionSummary = false }) {
   const [expanded, setExpanded] = useState(false);
@@ -67,7 +45,7 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
           <div className="flex flex-wrap items-center gap-2">
             <ReportBadge type="category" value={report.categoryId} />
             <ReportBadge type="risk" value={report.riskLevelId} />
-            <StatusPill meta={statusMeta} />
+            <ReportStatusPill meta={statusMeta} />
           </div>
           <h3 className="line-clamp-1 text-base font-semibold text-foreground">{report.title}</h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -103,18 +81,18 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
 
       {expanded && (
         <div className="space-y-4 border-t border-border bg-muted/30 px-5 pb-5 pt-4">
-          <InfoBlock label="Descripcion" value={report.description || 'Sin descripcion.'} />
+          <ReportInfoBlock label="Descripcion" value={report.description || 'Sin descripcion.'} />
 
           {report.customContext && (
-            <InfoBlock label="Contexto adicional" value={report.customContext} />
+            <ReportInfoBlock label="Contexto adicional" value={report.customContext} />
           )}
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <InfoItem label="Subtipo" value={subtypeLabel} />
-            <InfoItem label="Ubicacion" value={report.locationName} />
-            <InfoItem label="Fecha del incidente" value={formattedDate} />
-            <InfoItem label="Reportado el" value={formattedCreatedAt} />
-            <InfoItem label="Coordenadas" value={formatCoordinates(report.coordinates)} />
+            <ReportInfoItem label="Subtipo" value={subtypeLabel} />
+            <ReportInfoItem label="Ubicacion" value={report.locationName} />
+            <ReportInfoItem label="Fecha del incidente" value={formattedDate} />
+            <ReportInfoItem label="Reportado el" value={formattedCreatedAt} />
+            <ReportInfoItem label="Coordenadas" value={formatCoordinates(report.coordinates)} />
           </div>
 
           {report.evidences?.length > 0 ? (
@@ -154,24 +132,6 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
         </div>
       )}
     </article>
-  );
-}
-
-function InfoBlock({ label, value }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground">{value}</p>
-    </div>
-  );
-}
-
-function InfoItem({ label, value }) {
-  return (
-    <div className="space-y-0.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground">{value || '-'}</p>
-    </div>
   );
 }
 
