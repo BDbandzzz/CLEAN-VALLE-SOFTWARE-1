@@ -1,6 +1,6 @@
-export function OperatorDashboardKpi({ title, value, icon }) {
+export function MetricCard({ title, value, icon, className = '' }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className={`rounded-xl border border-border bg-card p-4 shadow-sm ${className}`}>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {icon}
         {title}

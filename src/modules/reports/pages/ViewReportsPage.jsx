@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, FileSearch } from 'lucide-react';
 
+import { EmptyState } from '@/core/components/ui/empty-state';
+import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { ReportCard } from '../components/ReportCard';
-import { ReportsEmptyState } from '../components/ReportsEmptyState';
 import { ReportFilters } from '../components/ReportFilters';
-import { ReportsTabButton } from '../components/ReportsTabButton';
 import { useReports } from '../context/ReportsContext';
 
 const EMPTY_FILTERS = {
@@ -93,13 +93,13 @@ const ViewReportsPage = () => {
       />
 
       <div className="flex rounded-xl border border-border bg-muted/40 p-1">
-        <ReportsTabButton
+        <SegmentedTabButton
           label="Mis reportes"
           count={reports.length}
           active={activeTab === TABS.mine}
           onClick={() => setActiveTab(TABS.mine)}
         />
-        <ReportsTabButton
+        <SegmentedTabButton
           label="Resueltos por operadores"
           count={resolvedByOperators.length}
           active={activeTab === TABS.resolved}
@@ -118,7 +118,12 @@ const ViewReportsPage = () => {
             />
           ))
         ) : (
-          <ReportsEmptyState />
+          <EmptyState
+            icon={<FileSearch className="mx-auto size-12 text-muted-foreground/50" />}
+            title="No se encontraron reportes"
+            description="Crea un reporte o ajusta los filtros activos."
+            containerClassName="py-16"
+          />
         )}
       </div>
     </div>

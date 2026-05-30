@@ -1,9 +1,9 @@
+import { EmptyState } from '@/core/components/ui/empty-state';
 import { OperatorReportCard } from '@/modules/operator/components/OperatorReportCard';
-import { OperatorDashboardEmptyState } from '@/modules/operator/components/OperatorDashboardEmptyState';
 
 export function OperatorReportList({ reports, emptyText, showResolution = false }) {
   if (!reports.length) {
-    return <OperatorDashboardEmptyState text={emptyText} />;
+    return <EmptyState title={emptyText} />;
   }
 
   return (
@@ -14,4 +14,3 @@ export function OperatorReportList({ reports, emptyText, showResolution = false 
     </div>
   );
 }
-

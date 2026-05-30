@@ -6,9 +6,7 @@ import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { useAuth } from '@/core/context/AuthContext';
 import { Button } from '@/core/components/ui/button';
-import { ImagePreviewGrid } from '@/modules/reports/components/ImagePreviewGrid';
-import { ImageUploadZone } from '@/modules/reports/components/ImageUploadZone';
-import { useImageUpload, MAX_FILES, MAX_MB } from '@/modules/reports/hooks/useImageUpload';
+import { ImageFileUpload } from '@/core/components/ui/image-file-upload';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 export default function OperatorResolutionPage() {
@@ -23,17 +21,13 @@ export default function OperatorResolutionPage() {
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const {
-    images, imgError, isDragging, slotsLeft,
-    getRootProps, getInputProps,
-    removeImage, clearImages,
-  } = useImageUpload();
+  const [images, setImages] = useState([]);
 
   const handleReset = () => {
     setDescription('');
     setError('');
     setSuccess('');
-    clearImages();
+    setImages([]);
   };
 
   const handleSubmit = (event) => {
@@ -48,7 +42,7 @@ export default function OperatorResolutionPage() {
 
     const updatedReport = submitResolution(report.id, {
       description,
-      evidences: images.map((image) => image.previewUrl),
+      evidences: images.map((image) => URL.createObjectURL(image)),
     }, user.id);
 
     if (!updatedReport) {
@@ -121,29 +115,7 @@ export default function OperatorResolutionPage() {
           showCounter={false}
         />
 
-        <div className="space-y-2">
-          <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-            Evidencia fotografica
-            <span className="ml-1 text-xs font-normal text-muted-foreground">(opcional)</span>
-          </label>
-          {slotsLeft > 0 && (
-            <ImageUploadZone
-              getRootProps={getRootProps}
-              getInputProps={getInputProps}
-              isDragging={isDragging}
-              slotsLeft={slotsLeft}
-              maxFiles={MAX_FILES}
-              maxMb={MAX_MB}
-            />
-          )}
-          {imgError && <p className="text-xs text-destructive">{imgError}</p>}
-          <ImagePreviewGrid
-            images={images}
-            slotsLeft={slotsLeft}
-            onRemove={removeImage}
-            onAddMore={() => getRootProps().onClick?.()}
-          />
-        </div>
+        <ImageFileUpload files={images} onChange={setImages} />
 
         <div className="flex flex-wrap gap-3 pt-2">
           <Button

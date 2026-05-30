@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { Bell, ClipboardList, CheckCircle2, Wrench } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { MetricCard } from '@/core/components/ui/metric-card';
+import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { useAuth } from '@/core/context/AuthContext';
 import { OPERATOR_SPECIALIZATIONS } from '@/core/data/cleanvalleSchema';
-import { OperatorDashboardKpi } from '@/modules/operator/components/OperatorDashboardKpi';
-import { OperatorDashboardTabButton } from '@/modules/operator/components/OperatorDashboardTabButton';
 import { OperatorReportList } from '@/modules/operator/components/OperatorReportList';
 import { getResolutionReviewStatusOptions } from '@/modules/reports/constants/reportConstants';
 import { useReports } from '@/modules/reports/context/ReportsContext';
@@ -60,14 +60,14 @@ export default function OperatorDashboardPage() {
       </section>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <OperatorDashboardKpi title="Asignados" value={operatorAssignedReports.length} icon={<ClipboardList className="size-4" />} />
-        <OperatorDashboardKpi title="Resoluciones" value={operatorResolvedReports.length} icon={<CheckCircle2 className="size-4" />} />
-        <OperatorDashboardKpi title="Notificaciones" value={notifications.length} icon={<Bell className="size-4" />} />
+        <MetricCard title="Asignados" value={operatorAssignedReports.length} icon={<ClipboardList className="size-4" />} />
+        <MetricCard title="Resoluciones" value={operatorResolvedReports.length} icon={<CheckCircle2 className="size-4" />} />
+        <MetricCard title="Notificaciones" value={notifications.length} icon={<Bell className="size-4" />} />
       </div>
 
       <div className="flex rounded-xl border border-border bg-muted/40 p-1">
-        <OperatorDashboardTabButton label="Asignados" active={activeTab === TABS.assigned} onClick={() => setActiveTab(TABS.assigned)} />
-        <OperatorDashboardTabButton label="Resoluciones" active={activeTab === TABS.resolved} onClick={() => setActiveTab(TABS.resolved)} />
+        <SegmentedTabButton label="Asignados" active={activeTab === TABS.assigned} onClick={() => setActiveTab(TABS.assigned)} />
+        <SegmentedTabButton label="Resoluciones" active={activeTab === TABS.resolved} onClick={() => setActiveTab(TABS.resolved)} />
       </div>
 
       {activeTab === TABS.assigned && (

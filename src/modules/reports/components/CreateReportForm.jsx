@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import {
   Send, RotateCcw, MapPin, Calendar,
-  FileText, AlertTriangle, Tag, ImagePlus, AlertCircle, Layers,
+  FileText, AlertTriangle, Tag, Layers,
 } from 'lucide-react';
 
+import { ImageFileUpload } from '@/core/components/ui/image-file-upload';
 import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
@@ -15,18 +17,11 @@ import {
   getSubTypeOptions,
 } from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
-import { useImageUpload, MAX_FILES, MAX_MB } from '../hooks/useImageUpload';
 import { SelectionGroup } from './SelectionGroup';
-import { ImageUploadZone } from './ImageUploadZone';
-import { ImagePreviewGrid } from './ImagePreviewGrid';
 
 export function CreateReportForm({ onSubmit, isSubmitting }) {
   const { form, errors, touched, set, reset, handleSubmit } = useReportForm();
-  const {
-    images, imgError, isDragging, slotsLeft,
-    getRootProps, getInputProps,
-    removeImage, clearImages,
-  } = useImageUpload();
+  const [images, setImages] = useState([]);
 
   const categoryOptions = getReportCategoryOptions();
   const subtypeOptions = getSubTypeOptions(form.categoryId);
@@ -41,12 +36,12 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
 
   const handleReset = () => {
     reset();
-    clearImages();
+    setImages([]);
   };
 
   return (
     <form
-      onSubmit={(e) => handleSubmit(e, images.map((image) => image.previewUrl), onSubmit)}
+      onSubmit={(e) => handleSubmit(e, images.map((image) => URL.createObjectURL(image)), onSubmit)}
       noValidate
       className="space-y-6"
       id="create-report-form"
@@ -181,41 +176,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         />
       </FormField>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-            <ImagePlus className="size-4" />
-            Evidencia fotografica
-            <span className="ml-1 text-xs font-normal text-muted-foreground">(opcional)</span>
-          </label>
-          <span className="text-xs text-muted-foreground">{images.length}/{MAX_FILES} fotos</span>
-        </div>
-
-        {slotsLeft > 0 && (
-          <ImageUploadZone
-            getRootProps={getRootProps}
-            getInputProps={getInputProps}
-            isDragging={isDragging}
-            slotsLeft={slotsLeft}
-            maxFiles={MAX_FILES}
-            maxMb={MAX_MB}
-          />
-        )}
-
-        {imgError && (
-          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
-            <AlertCircle className="mt-0.5 size-3.5 shrink-0 text-destructive" />
-            <p className="text-xs text-destructive">{imgError}</p>
-          </div>
-        )}
-
-        <ImagePreviewGrid
-          images={images}
-          slotsLeft={slotsLeft}
-          onRemove={removeImage}
-          onAddMore={() => getRootProps().onClick?.()}
-        />
-      </div>
+      <ImageFileUpload files={images} onChange={setImages} disabled={isSubmitting} />
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <Button
