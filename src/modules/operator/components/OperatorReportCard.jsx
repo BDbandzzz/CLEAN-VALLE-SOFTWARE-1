@@ -1,6 +1,7 @@
 import { Calendar, MapPin, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+import { Button } from '@/core/components/ui/button';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ResolutionSummary } from '@/modules/reports/components/ResolutionSummary';
 import { getStatusMeta, getSubtypeLabel } from '@/modules/reports/constants/reportConstants';
@@ -42,14 +43,14 @@ export function OperatorReportCard({ report, showResolution = false }) {
         </div>
 
         {!showResolution && (
-          <button
+          <Button
             type="button"
             onClick={() => navigate(`/operator/reports/${report.id}/resolution`)}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            className="shrink-0 px-4 py-2 text-sm"
           >
             <Send className="size-4" />
             Enviar resolucion
-          </button>
+          </Button>
         )}
       </div>
     </article>

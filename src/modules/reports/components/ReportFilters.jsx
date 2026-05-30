@@ -1,5 +1,6 @@
 import { Search, X, Tag, AlertTriangle } from 'lucide-react';
 
+import { Button } from '@/core/components/ui/button';
 import { getReportCategoryOptions, getRiskLevelOptions } from '../constants/reportConstants';
 import { SelectionGroup } from './SelectionGroup';
 
@@ -62,14 +63,16 @@ export function ReportFilters({ filters, onChange, onClear }) {
       </div>
 
       {hasActiveFilters && (
-        <button
+        <Button
           type="button"
           onClick={onClear}
-          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+          variant="ghost"
+          size="sm"
+          className="h-auto justify-start px-0 text-xs font-medium text-muted-foreground hover:text-foreground"
         >
           <X className="size-3.5" />
           Limpiar filtros
-        </button>
+        </Button>
       )}
     </div>
   );

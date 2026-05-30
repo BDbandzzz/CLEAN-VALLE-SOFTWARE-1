@@ -3,6 +3,7 @@ export const USER_ROLES = {
   profesor: 'Profesor',
   operador: 'Operador',
   gestor: 'Gestor de reportes',
+  admin: 'Administrador',
 };
 
 export const DEMO_USERS = [
@@ -54,6 +55,18 @@ export const DEMO_USERS = [
     dniUser: '4000000001',
     typeDniId: 1,
     genderId: 3,
+  },
+  {
+    id: 'ADM001',
+    codeUser: 'ADM001',
+    password: 'demo1234',
+    role: 'admin',
+    firstName: 'Administrador',
+    lastName: 'CleanValle',
+    email: 'admin@correounivalle.edu.co',
+    dniUser: '5000000001',
+    typeDniId: 1,
+    genderId: 4,
   },
 ];
 

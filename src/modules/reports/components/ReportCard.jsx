@@ -9,6 +9,7 @@ import {
   MapPin,
 } from 'lucide-react';
 
+import { Button } from '@/core/components/ui/button';
 import { ReportBadge } from './ReportBadge';
 import { ResolutionSummary } from './ResolutionSummary';
 import { getStatusMeta, getSubtypeLabel } from '../constants/reportConstants';
@@ -75,12 +76,12 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
           </div>
         </div>
 
-        <button
+        <Button
           type="button"
           onClick={() => setExpanded((value) => !value)}
+          variant="outline"
           className="
-            mt-1 flex shrink-0 items-center gap-1 self-start rounded-lg border border-border
-            bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground
+            mt-1 shrink-0 self-start bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground
             transition hover:bg-muted hover:text-foreground
           "
           aria-expanded={expanded}
@@ -91,7 +92,7 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
           ) : (
             <><span>Ver mas</span><ChevronDown className="size-3.5" /></>
           )}
-        </button>
+        </Button>
       </div>
 
       {showResolutionSummary && report.resolution && (
@@ -140,13 +141,15 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
           {!showResolutionSummary && <ResolutionSummary report={report} />}
 
           {report.statusId === 'pendiente' && onDelete && (
-            <button
+            <Button
               type="button"
               onClick={() => onDelete(report.id)}
-              className="rounded-lg border border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
+              variant="destructive"
+              size="sm"
+              className="h-auto border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
             >
               Eliminar reporte
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Eye, FileSearch } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 import { ReportCard } from '../components/ReportCard';
+import { ReportsEmptyState } from '../components/ReportsEmptyState';
 import { ReportFilters } from '../components/ReportFilters';
+import { ReportsTabButton } from '../components/ReportsTabButton';
 import { useReports } from '../context/ReportsContext';
 
 const EMPTY_FILTERS = {
@@ -91,13 +93,13 @@ const ViewReportsPage = () => {
       />
 
       <div className="flex rounded-xl border border-border bg-muted/40 p-1">
-        <TabButton
+        <ReportsTabButton
           label="Mis reportes"
           count={reports.length}
           active={activeTab === TABS.mine}
           onClick={() => setActiveTab(TABS.mine)}
         />
-        <TabButton
+        <ReportsTabButton
           label="Resueltos por operadores"
           count={resolvedByOperators.length}
           active={activeTab === TABS.resolved}
@@ -116,41 +118,11 @@ const ViewReportsPage = () => {
             />
           ))
         ) : (
-          <EmptyState />
+          <ReportsEmptyState />
         )}
       </div>
     </div>
   );
 };
-
-function TabButton({ label, count, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition',
-        active ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-      ].join(' ')}
-    >
-      {label}
-      <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{count}</span>
-    </button>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-      <FileSearch className="size-12 text-muted-foreground/50" />
-      <p className="mt-4 text-base font-medium text-muted-foreground">
-        No se encontraron reportes
-      </p>
-      <p className="mt-1 text-sm text-muted-foreground/70">
-        Crea un reporte o ajusta los filtros activos.
-      </p>
-    </div>
-  );
-}
 
 export default ViewReportsPage;

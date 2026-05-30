@@ -6,6 +6,7 @@ import {
 import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
+import { Button } from '@/core/components/ui/button';
 import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
 import {
   REPORT_TEXTAREA_FIELDS,
@@ -217,34 +218,26 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
-        <button
+        <Button
           type="submit"
           id="submit-report-btn"
           disabled={isSubmitting}
-          className="
-            inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm
-            font-semibold text-primary-foreground shadow-sm transition
-            hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-60
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-          "
+          className="px-6 py-2.5 text-sm"
         >
           <Send className="size-4" />
           {isSubmitting ? 'Enviando...' : 'Enviar reporte'}
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
           onClick={handleReset}
           disabled={isSubmitting}
-          className="
-            inline-flex items-center gap-2 rounded-lg border border-border bg-background
-            px-5 py-2.5 text-sm font-medium text-muted-foreground transition
-            hover:bg-muted hover:text-foreground disabled:opacity-50
-          "
+          variant="outline"
+          className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
         >
           <RotateCcw className="size-4" />
           Limpiar
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -36,6 +36,7 @@ import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
 const ROLE_HOME_PATHS = {
   operador: '/operator',
   gestor: '/profile',
+  admin: '/profile',
 };
 
 const LoginPage = () => {

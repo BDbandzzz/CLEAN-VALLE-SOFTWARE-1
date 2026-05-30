@@ -139,7 +139,7 @@ function buildUserNotifications(reports, user) {
     return buildOperatorNotifications(reports, user.id);
   }
 
-  if (user.role === 'gestor') {
+  if (user.role === 'gestor' || user.role === 'admin') {
     return buildManagerNotifications(reports);
   }
 

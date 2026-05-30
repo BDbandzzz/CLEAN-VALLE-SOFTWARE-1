@@ -146,21 +146,22 @@ export default function OperatorResolutionPage() {
         </div>
 
         <div className="flex flex-wrap gap-3 pt-2">
-          <button
+          <Button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            className="px-6 py-2.5 text-sm"
           >
             <Send className="size-4" />
             Enviar resolucion
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleReset}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            variant="outline"
+            className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             <RotateCcw className="size-4" />
             Limpiar
-          </button>
+          </Button>
         </div>
       </form>
     </div>

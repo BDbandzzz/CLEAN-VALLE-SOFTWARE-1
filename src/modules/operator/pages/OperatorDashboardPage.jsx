@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Bell, ClipboardList, CheckCircle2, Wrench } from 'lucide-react';
 
+import { Button } from '@/core/components/ui/button';
 import { useAuth } from '@/core/context/AuthContext';
 import { OPERATOR_SPECIALIZATIONS } from '@/core/data/cleanvalleSchema';
-import { OperatorReportCard } from '@/modules/operator/components/OperatorReportCard';
+import { OperatorDashboardKpi } from '@/modules/operator/components/OperatorDashboardKpi';
+import { OperatorDashboardTabButton } from '@/modules/operator/components/OperatorDashboardTabButton';
+import { OperatorReportList } from '@/modules/operator/components/OperatorReportList';
 import { getResolutionReviewStatusOptions } from '@/modules/reports/constants/reportConstants';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
@@ -57,18 +60,18 @@ export default function OperatorDashboardPage() {
       </section>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Kpi title="Asignados" value={operatorAssignedReports.length} icon={<ClipboardList className="size-4" />} />
-        <Kpi title="Resoluciones" value={operatorResolvedReports.length} icon={<CheckCircle2 className="size-4" />} />
-        <Kpi title="Notificaciones" value={notifications.length} icon={<Bell className="size-4" />} />
+        <OperatorDashboardKpi title="Asignados" value={operatorAssignedReports.length} icon={<ClipboardList className="size-4" />} />
+        <OperatorDashboardKpi title="Resoluciones" value={operatorResolvedReports.length} icon={<CheckCircle2 className="size-4" />} />
+        <OperatorDashboardKpi title="Notificaciones" value={notifications.length} icon={<Bell className="size-4" />} />
       </div>
 
       <div className="flex rounded-xl border border-border bg-muted/40 p-1">
-        <TabButton label="Asignados" active={activeTab === TABS.assigned} onClick={() => setActiveTab(TABS.assigned)} />
-        <TabButton label="Resoluciones" active={activeTab === TABS.resolved} onClick={() => setActiveTab(TABS.resolved)} />
+        <OperatorDashboardTabButton label="Asignados" active={activeTab === TABS.assigned} onClick={() => setActiveTab(TABS.assigned)} />
+        <OperatorDashboardTabButton label="Resoluciones" active={activeTab === TABS.resolved} onClick={() => setActiveTab(TABS.resolved)} />
       </div>
 
       {activeTab === TABS.assigned && (
-        <ReportList
+        <OperatorReportList
           emptyText="No tienes reportes asignados."
           reports={operatorAssignedReports}
         />
@@ -78,10 +81,11 @@ export default function OperatorDashboardPage() {
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {resolutionStatusOptions.map((status) => (
-              <button
+              <Button
                 key={status.id}
                 type="button"
                 onClick={() => setResolutionStatus(status.id)}
+                variant={resolutionStatus === status.id ? 'default' : 'outline'}
                 className={[
                   'rounded-lg border px-4 py-2 text-sm font-semibold transition',
                   resolutionStatus === status.id
@@ -90,63 +94,16 @@ export default function OperatorDashboardPage() {
                 ].join(' ')}
               >
                 {status.label}
-              </button>
+              </Button>
             ))}
           </div>
-          <ReportList
+          <OperatorReportList
             emptyText="No hay resoluciones en esta clasificacion."
             reports={filteredResolvedReports}
             showResolution
           />
         </div>
       )}
-    </div>
-  );
-}
-
-function ReportList({ reports, emptyText, showResolution = false }) {
-  if (!reports.length) return <EmptyState text={emptyText} />;
-
-  return (
-    <div className="space-y-4">
-      {reports.map((report) => (
-        <OperatorReportCard key={report.id} report={report} showResolution={showResolution} />
-      ))}
-    </div>
-  );
-}
-
-function Kpi({ title, value, icon }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {icon}
-        {title}
-      </div>
-      <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
-    </div>
-  );
-}
-
-function TabButton({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'flex-1 rounded-lg px-4 py-2 text-sm font-medium transition',
-        active ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-      ].join(' ')}
-    >
-      {label}
-    </button>
-  );
-}
-
-function EmptyState({ text }) {
-  return (
-    <div className="rounded-xl border border-dashed border-border py-14 text-center text-sm text-muted-foreground">
-      {text}
     </div>
   );
 }

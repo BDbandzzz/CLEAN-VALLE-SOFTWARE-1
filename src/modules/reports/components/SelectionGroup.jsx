@@ -1,4 +1,5 @@
 import { CheckCircle2 } from 'lucide-react';
+import { Button } from '@/core/components/ui/button';
 
 function smColsClass(count) {
   const map = {
@@ -57,19 +58,20 @@ export function SelectionGroup({
 
 function SelectionButton({ id, label, description, color, isSelected, disabled, onClick }) {
   return (
-    <button
+    <Button
       type="button"
       id={id}
       disabled={disabled}
       onClick={onClick}
       aria-pressed={isSelected}
+      variant="ghost"
       style={{
         borderColor: isSelected ? color : `${color}44`,
         backgroundColor: isSelected ? `${color}12` : 'hsl(var(--card))',
         boxShadow: isSelected ? `0 0 0 3px ${color}22` : 'none',
       }}
       className="
-        flex min-h-[4.75rem] w-full cursor-pointer items-start gap-3 rounded-xl border
+        h-auto min-h-[4.75rem] w-full items-start gap-3 rounded-xl border
         px-3.5 py-3 text-left transition-all duration-200 hover:-translate-y-0.5
         hover:border-primary/50 hover:bg-emerald-50/70 disabled:pointer-events-none
         disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
@@ -98,6 +100,6 @@ function SelectionButton({ id, label, description, color, isSelected, disabled, 
           aria-hidden="true"
         />
       )}
-    </button>
+    </Button>
   );
 }
