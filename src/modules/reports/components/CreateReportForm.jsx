@@ -10,12 +10,7 @@ import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
 import { Button } from '@/core/components/ui/button';
 import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
-import {
-  REPORT_TEXTAREA_FIELDS,
-  getReportCategoryOptions,
-  getRiskLevelOptions,
-  getSubTypeOptions,
-} from '../constants/reportConstants';
+import {REPORT_TEXTAREA_FIELDS,getReportCategoryOptions,getRiskLevelOptions,getSubTypeOptions,} from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
 import { SelectionGroup } from './SelectionGroup';
 

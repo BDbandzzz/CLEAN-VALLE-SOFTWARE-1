@@ -1,5 +1,4 @@
 import { SelectionOptionButton } from '@/modules/reports/components/SelectionOptionButton';
-import {label} from '@/core/components/ui/label';
 
 function smColsClass(count) {
   const map = {
@@ -39,17 +38,16 @@ export function SelectionGroup({
 
       <div className={`grid grid-cols-1 ${smColsClass(items.length)} gap-2 pt-1`}>
         {items.map((item) => (
-        <div key={item.id} className="min-w-0">
-          <SelectionOptionButton
-            key={item.id}
-            id={`${idPrefix}-${item.id}`}
-            label={item.label}
-            description={item.description}
-            color={item.color}
-            isSelected={selected === item.id}
-            disabled={disabled}
-            onClick={() => onSelect(item.id)}
-          />
+          <div key={item.id} className="min-w-0">
+            <SelectionOptionButton
+              id={`${idPrefix}-${item.id}`}
+              label={item.label}
+              description={item.description}
+              color={item.color}
+              isSelected={selected === item.id}
+              disabled={disabled}
+              onClick={() => onSelect(item.id)}
+            />
           </div>
         ))}
       </div>
