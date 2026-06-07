@@ -29,7 +29,9 @@ export function readManagedUsers() {
 }
 
 export function persistManagedUsers(users) {
-  const localUsers = users.filter((user) => user.source !== 'demo');
+  const localUsers = users.filter(
+    (user) => user.source !== 'demo' || Boolean(user.updatedAt)
+  );
   localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(localUsers));
 }
 

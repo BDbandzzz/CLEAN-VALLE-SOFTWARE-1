@@ -24,13 +24,30 @@ export function UserManagementProvider({ children }) {
     return user;
   }, []);
 
+  const setUserActive = useCallback((userId, active) => {
+    setUsers((currentUsers) => {
+      const nextUsers = currentUsers.map((user) =>
+        String(user.id) === String(userId)
+          ? {
+              ...user,
+              active,
+              updatedAt: new Date().toISOString(),
+            }
+          : user
+      );
+      persistManagedUsers(nextUsers);
+      return nextUsers;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       users,
       activeUsers: users.filter((user) => user.active !== false),
       createUser,
+      setUserActive,
     }),
-    [users, createUser]
+    [users, createUser, setUserActive]
   );
 
   return (

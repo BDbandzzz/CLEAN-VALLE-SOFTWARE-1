@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 
 import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
+import { readManagedUsers } from '@/modules/admin/users/data/userRepository';
 
 const AuthContext = createContext();
 const CURRENT_USER_KEY = 'cleanvalle_current_user';
@@ -45,11 +46,19 @@ function findDemoUser(code, password) {
   const normalizedCode = String(code ?? '').trim().toLowerCase();
   const normalizedPassword = String(password ?? '').trim();
 
-  return DEMO_USERS.find(
+  const demoUser = DEMO_USERS.find(
     (user) =>
       user.codeUser.toLowerCase() === normalizedCode &&
       (user.password === normalizedPassword || normalizedPassword === '123456')
   );
+
+  if (!demoUser) return null;
+
+  const managedUser = readManagedUsers().find(
+    (user) => String(user.id) === String(demoUser.id)
+  );
+
+  return managedUser?.active === false ? null : demoUser;
 }
 
 export const AuthProvider = ({ children }) => {

@@ -5,7 +5,13 @@ import { useCatalogs } from '@/core/context/CatalogContext';
 import { useUserManagement } from '@/modules/admin/users/context/UserManagementContext';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
-const ACTIVE_REPORT_STATUSES = new Set(['pendiente', 'en-revision', 'asignado', 'en-proceso']);
+const ROLE_COLORS = {
+  estudiante: '#2563eb',
+  profesor: '#7c3aed',
+  operador: '#0f766e',
+  gestor: '#d97706',
+  admin: '#991b1b',
+};
 
 function percent(value, total) {
   if (!total) return 0;
@@ -31,37 +37,18 @@ export function useAdminDashboard() {
 
   return useMemo(() => {
     const users = activeUsers.filter(isActiveUser);
-    const reportStatuses = getOptions('reportStatuses');
     const reportCategories = getOptions('reportCategories');
-    const riskLevels = getOptions('riskLevels');
-    const activeReports = allReports.filter((report) => ACTIVE_REPORT_STATUSES.has(report.statusId));
-    const reportsByStatus = countBy(allReports, (report) => report.statusId);
     const reportsByCategory = countBy(allReports, (report) => report.categoryId);
-    const reportsByRisk = countBy(allReports, (report) => report.riskLevelId);
     const totalSubtypes = reportCategories.reduce((total, category) => total + (category.subtypes?.length ?? 0), 0);
-    const pendingReviewReports = allReports.filter((report) => report.resolution?.reviewStatusId === 'enviada');
-    const unassignedReports = activeReports.filter((report) => !report.assignedTo);
-    const highRiskReports = allReports.filter((report) => report.riskLevelId === 'alto' || report.riskLevelId === 'critico');
-    const operators = users.filter((user) => user.role === 'operador');
 
     const roleDistribution = Object.entries(USER_ROLES).map(([role, label]) => {
       const value = users.filter((user) => user.role === role).length;
       return {
         id: role,
         label,
+        color: ROLE_COLORS[role],
         value,
         percentage: percent(value, users.length),
-      };
-    });
-
-    const statusDistribution = reportStatuses.map((status) => {
-      const value = reportsByStatus[status.id] ?? 0;
-      return {
-        id: status.id,
-        label: status.label,
-        color: status.color,
-        value,
-        percentage: percent(value, allReports.length),
       };
     });
 
@@ -77,52 +64,19 @@ export function useAdminDashboard() {
       };
     });
 
-    const riskDistribution = riskLevels.map((risk) => {
-      const value = reportsByRisk[risk.id] ?? 0;
-      return {
-        id: risk.id,
-        label: risk.label,
-        color: risk.color,
-        value,
-        percentage: percent(value, allReports.length),
-      };
-    });
-
-    const operatorWorkload = operators.map((operator) => {
-      const assignedReports = allReports.filter((report) => String(report.assignedTo) === String(operator.id));
-      const activeAssigned = assignedReports.filter((report) => ACTIVE_REPORT_STATUSES.has(report.statusId));
-      const resolvedReports = assignedReports.filter((report) => Boolean(report.resolution));
-
-      return {
-        id: operator.id,
-        name: `${operator.firstName} ${operator.lastName}`,
-        activeAssigned: activeAssigned.length,
-        resolved: resolvedReports.length,
-        specializations: operator.specializationIds?.length ?? 0,
-      };
-    });
-
     const recentReports = [...allReports]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
 
     return {
       metrics: {
-        activeReports: activeReports.length,
         totalReports: allReports.length,
         activeUsers: users.length,
-        operators: operators.length,
         reportTypes: reportCategories.length,
         reportSubtypes: totalSubtypes,
-        pendingReviews: pendingReviewReports.length,
-        highRiskReports: highRiskReports.length,
-        unassignedReports: unassignedReports.length,
       },
       roleDistribution,
-      statusDistribution,
       categoryDistribution,
-      riskDistribution,
-      operatorWorkload,
       recentReports,
     };
   }, [activeUsers, allReports, getOptions]);
