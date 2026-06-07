@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 
-import { DEMO_USERS, USER_ROLES } from '@/core/data/cleanvalleSchema';
+import { USER_ROLES } from '@/core/data/cleanvalleSchema';
 import { useCatalogs } from '@/core/context/CatalogContext';
+import { useUserManagement } from '@/modules/admin/users/context/UserManagementContext';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 const ACTIVE_REPORT_STATUSES = new Set(['pendiente', 'en-revision', 'asignado', 'en-proceso']);
@@ -25,10 +26,11 @@ function isActiveUser(user) {
 
 export function useAdminDashboard() {
   const { allReports } = useReports();
+  const { activeUsers } = useUserManagement();
   const { getOptions } = useCatalogs();
 
   return useMemo(() => {
-    const users = DEMO_USERS.filter(isActiveUser);
+    const users = activeUsers.filter(isActiveUser);
     const reportStatuses = getOptions('reportStatuses');
     const reportCategories = getOptions('reportCategories');
     const riskLevels = getOptions('riskLevels');
@@ -123,5 +125,5 @@ export function useAdminDashboard() {
       operatorWorkload,
       recentReports,
     };
-  }, [allReports, getOptions]);
+  }, [activeUsers, allReports, getOptions]);
 }

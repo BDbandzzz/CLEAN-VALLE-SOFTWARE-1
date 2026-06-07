@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 
-const PrivateRoute = ({ element }) => {
+const PrivateRoute = ({ element, allowedRoles }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -15,6 +15,10 @@ const PrivateRoute = ({ element }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/profile" replace />;
   }
 
   return <MainLayout>{element}</MainLayout>;

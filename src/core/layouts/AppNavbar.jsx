@@ -26,7 +26,7 @@ export function AppNavbar({ role }) {
             <NavLink
               key={item.url}
               to={item.url}
-              end={item.url === '/profile'}
+              end={item.end ?? item.url === '/profile'}
               title={item.title}
               className={({ isActive }) =>
                 cn(

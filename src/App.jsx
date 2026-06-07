@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './core/context/AuthContext';
 import { CatalogProvider } from './core/context/CatalogContext';
 import { ReportsProvider } from './modules/reports/context/ReportsContext';
+import { UserManagementProvider } from './modules/admin/users/context/UserManagementContext';
 import AppRouter from './core/router/AppRouter';
 
 function App() {
@@ -9,9 +10,11 @@ function App() {
     <BrowserRouter>
       <CatalogProvider>
         <AuthProvider>
-          <ReportsProvider>
-            <AppRouter />
-          </ReportsProvider>
+          <UserManagementProvider>
+            <ReportsProvider>
+              <AppRouter />
+            </ReportsProvider>
+          </UserManagementProvider>
         </AuthProvider>
       </CatalogProvider>
     </BrowserRouter>

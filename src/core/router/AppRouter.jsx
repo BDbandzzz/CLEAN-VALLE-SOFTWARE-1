@@ -11,6 +11,7 @@ import NotificationsPage from '@/modules/notifications/pages/NotificationsPage';
 import OperatorDashboardPage from '@/modules/operator/pages/OperatorDashboardPage';
 import OperatorResolutionPage from '@/modules/operator/pages/OperatorResolutionPage';
 import AdminDashboardPage from '@/modules/admin/pages/AdminDashboardPage';
+import UserManagementPage from '@/modules/admin/users/pages/UserManagementPage';
 import PrivateRoute from '@/core/router/PrivateRoute';
 
 const AppRouter = () => {
@@ -27,7 +28,11 @@ const AppRouter = () => {
       <Route path="/notifications" element={<PrivateRoute element={<NotificationsPage />} />} />
       <Route path="/operator" element={<PrivateRoute element={<OperatorDashboardPage />} />} />
       <Route path="/operator/reports/:reportId/resolution" element={<PrivateRoute element={<OperatorResolutionPage />} />} />
-      <Route path="/admin" element={<PrivateRoute element={<AdminDashboardPage />} />} />
+      <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} element={<AdminDashboardPage />} />} />
+      <Route
+        path="/admin/users"
+        element={<PrivateRoute allowedRoles={['admin']} element={<UserManagementPage />} />}
+      />
 
       <Route path="/home" element={<Navigate to="/reports/view" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
