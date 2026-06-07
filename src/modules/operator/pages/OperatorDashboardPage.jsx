@@ -3,6 +3,7 @@ import { Bell, ClipboardList, CheckCircle2, Wrench } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { MetricCard } from '@/core/components/ui/metric-card';
+import { ModuleHero } from '@/core/components/ui/module-hero';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { useAuth } from '@/core/context/AuthContext';
 import { OPERATOR_SPECIALIZATIONS } from '@/core/data/cleanvalleSchema';
@@ -40,24 +41,16 @@ export default function OperatorDashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 pb-12">
-      <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl">
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/15">
-              <Wrench className="size-7" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Panel de operador</h1>
-              <p className="mt-1 text-sm text-primary-foreground/80">
-                Gestiona tus reportes asignados y resoluciones enviadas.
-              </p>
-            </div>
-          </div>
+      <ModuleHero
+        icon={<Wrench />}
+        title="Panel de operador"
+        description="Gestiona tus reportes asignados y resoluciones enviadas."
+        aside={
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm">
             {specializations.length ? specializations.join(' · ') : 'Sin especialidad asignada'}
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard title="Asignados" value={operatorAssignedReports.length} icon={<ClipboardList className="size-4" />} />

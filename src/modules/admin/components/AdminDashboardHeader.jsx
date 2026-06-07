@@ -1,21 +1,25 @@
 import { ShieldCheck } from 'lucide-react';
 
+import { ModuleHero } from '@/core/components/ui/module-hero';
+
 export function AdminDashboardHeader({ activeReports, pendingReviews }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-emerald-700 via-primary to-teal-700 p-8 text-primary-foreground shadow-xl">
-      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/15">
-            <ShieldCheck className="size-7" />
+    <ModuleHero
+      icon={<ShieldCheck />}
+      title="Panel administrador"
+      description="Vista general de usuarios, reportes y catalogos operativos."
+      aside={
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3">
+            <p className="text-xs text-primary-foreground/70">Reportes activos</p>
+            <p className="text-xl font-bold">{activeReports}</p>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Panel administrador</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">
-              Vista general de usuarios, reportes y catalogos operativos.
-            </p>
+          <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3">
+            <p className="text-xs text-primary-foreground/70">Por revisar</p>
+            <p className="text-xl font-bold">{pendingReviews}</p>
           </div>
         </div>
-      </div>
-    </section>
+      }
+    />
   );
 }

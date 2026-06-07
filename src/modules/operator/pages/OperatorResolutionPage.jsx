@@ -7,6 +7,7 @@ import { TextareaField } from '@/core/components/forms/TextareaField';
 import { useAuth } from '@/core/context/AuthContext';
 import { Button } from '@/core/components/ui/button';
 import { ImageFileUpload } from '@/core/components/ui/image-file-upload';
+import { ModuleHero } from '@/core/components/ui/module-hero';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 export default function OperatorResolutionPage() {
@@ -75,12 +76,11 @@ export default function OperatorResolutionPage() {
         Volver al panel
       </Button>
 
-      <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Enviar resolucion</h1>
-        <p className="mt-1 text-sm text-primary-foreground/80">
-          Registra las acciones realizadas para resolver el reporte asignado.
-        </p>
-      </section>
+      <ModuleHero
+        icon={<Send />}
+        title="Enviar resolucion"
+        description="Registra las acciones realizadas para resolver el reporte asignado."
+      />
 
       {success && (
         <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">

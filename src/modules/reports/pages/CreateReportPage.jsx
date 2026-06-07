@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, ClipboardPlus } from 'lucide-react';
 
+import { ModuleHero } from '@/core/components/ui/module-hero';
 import { useAuth } from '@/core/context/AuthContext';
 import { useReports } from '../context/ReportsContext';
 import { CreateReportForm } from '../components/CreateReportForm';
@@ -27,21 +28,11 @@ const CreateReportPage = () => {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 pb-12">
-      <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-1/3 size-72 rounded-full bg-black/10 blur-3xl" />
-        <div className="relative flex items-center gap-4">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/15 backdrop-blur-sm">
-            <ClipboardPlus className="size-7" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Crear Reporte</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">
-              Documenta un incidente ambiental o de seguridad en el campus.
-            </p>
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        icon={<ClipboardPlus />}
+        title="Crear Reporte"
+        description="Documenta un incidente ambiental o de seguridad en el campus."
+      />
 
       {successMessage && (
         <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">

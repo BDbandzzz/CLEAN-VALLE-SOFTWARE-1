@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
 
 import { EmptyState } from '@/core/components/ui/empty-state';
+import { ModuleHero } from '@/core/components/ui/module-hero';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { ReportCard } from '../components/ReportCard';
 import { ReportFilters } from '../components/ReportFilters';
@@ -70,21 +71,11 @@ const ViewReportsPage = () => {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-12">
-      <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-emerald-600 to-teal-700 p-8 text-primary-foreground shadow-xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-1/3 size-72 rounded-full bg-black/10 blur-3xl" />
-        <div className="relative flex items-center gap-4">
-          <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border-2 border-white/30 bg-white/15 backdrop-blur-sm">
-            <Eye className="size-7" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Mis Reportes</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">
-              Consulta el estado y el historial de reportes creados por tu cuenta.
-            </p>
-          </div>
-        </div>
-      </section>
+      <ModuleHero
+        icon={<Eye />}
+        title="Mis Reportes"
+        description="Consulta el estado y el historial de reportes creados por tu cuenta."
+      />
 
       <ReportFilters
         filters={filters}
