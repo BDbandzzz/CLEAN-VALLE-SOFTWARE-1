@@ -8,9 +8,6 @@
  *   export const UNIVALLE_LOGO_SRC = 'https://ejemplo.edu/logo.svg';
  */
 import fallbackLogo from '@/core/imgs/univallelogo.png';
-
 export const UNIVALLE_LOGO_SRC = fallbackLogo;
-
-
 export const APP_NAME = 'CleanValle';
 export const INSTITUTION_NAME = 'Universidad del Valle';
