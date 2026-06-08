@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '@/core/context/AuthContext';
-import { useCatalogs } from '@/core/context/CatalogContext';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
 import { ProfileSummaryCard } from '@/modules/profile/components/ProfileSummaryCard';
@@ -17,11 +16,11 @@ const EMPTY_FORM = {
   dniUser: '',
   typeDni: '',
   gender: '',
+  state: '',
 };
 
 const ProfilePage = () => {
   const { user, logout, updateUser } = useAuth();
-  const { catalogs } = useCatalogs();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -37,10 +36,11 @@ const ProfilePage = () => {
     if (!user) return;
     setFormData((prev) => ({
       ...prev,
-      typeDni: getTypeDniLabel(user, catalogs),
-      gender: getGenderLabel(user, catalogs),
+      typeDni: getTypeDniLabel(user),
+      gender: getGenderLabel(user),
+      state: user.state ?? '',
     }));
-  }, [user, catalogs]);
+  }, [user]);
 
   const initials = useMemo(
     () => getProfileInitials(`${formData.firstName} ${formData.lastName}`.trim(), user?.name),
@@ -58,7 +58,7 @@ const ProfilePage = () => {
   };
 
   const handleReset = () => {
-    setFormData(mapUserToProfileForm(user, catalogs));
+    setFormData(mapUserToProfileForm(user));
     setMessage({ type: '', text: '' });
   };
 
@@ -103,7 +103,12 @@ const ProfilePage = () => {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <ProfileSummaryCard dniUser={user.dniUser} emailPreview={formData.email} role={user.role} />
+        <ProfileSummaryCard
+          dniUser={user.dniUser}
+          emailPreview={formData.email}
+          role={user.role}
+          state={formData.state}
+        />
 
         <div className="space-y-6 lg:col-span-2">
           <ProfilePersonalDataCard

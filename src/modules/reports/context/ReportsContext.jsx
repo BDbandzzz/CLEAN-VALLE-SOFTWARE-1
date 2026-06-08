@@ -2,19 +2,13 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 import { useAuth } from '@/core/context/AuthContext';
-import { CAMPUS_LOCATIONS, INITIAL_REPORTS } from '@/core/data/cleanvalleSchema';
 
 const ReportsContext = createContext();
-const REPORTS_STORAGE_KEY = 'cleanvalle_reports_v2';
+const REPORTS_STORAGE_KEY = 'cleanvalle_reports_backend_ready_v1';
 
 function readReports() {
   try {
-    const storedReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY));
-    if (!storedReports?.length) return INITIAL_REPORTS;
-
-    const storedIds = new Set(storedReports.map((report) => report.id));
-    const missingInitialReports = INITIAL_REPORTS.filter((report) => !storedIds.has(report.id));
-    return [...storedReports, ...missingInitialReports];
+    return JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY)) ?? [];
   } catch {
     return [];
   }
@@ -25,19 +19,24 @@ function saveReports(reports) {
 }
 
 function buildReport(formData, userId) {
-  const location = CAMPUS_LOCATIONS.find((item) => item.id === formData.locationId);
-
   return {
     id: `rep-${Date.now()}`,
     title: formData.title.trim(),
     description: formData.description.trim(),
     categoryId: formData.categoryId,
     subtypeId: formData.subtypeId,
+    categoryName: formData.categoryName ?? '',
+    categoryColor: formData.categoryColor ?? '#6b7280',
+    subtypeName: formData.subtypeName ?? '',
+    subtypeColor: formData.subtypeColor ?? formData.categoryColor ?? '#6b7280',
     customContext: formData.customContext?.trim() ?? '',
     riskLevelId: formData.riskLevelId,
-    locationId: formData.locationId,
-    locationName: location?.label ?? formData.locationName?.trim() ?? '',
-    coordinates: location?.coordinates ?? null,
+    riskLevelName: formData.riskLevelName ?? '',
+    riskLevelColor: formData.riskLevelColor ?? '#6b7280',
+    localizationId: formData.localizationId,
+    subareaId: formData.subareaId,
+    localizationName: formData.localizationName?.trim() ?? '',
+    subareaName: formData.subareaName?.trim() ?? '',
     incidentDate: formData.incidentDate,
     evidences: formData.images ?? [],
     statusId: 'pendiente',

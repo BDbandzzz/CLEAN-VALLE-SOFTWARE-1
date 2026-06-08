@@ -9,18 +9,30 @@ import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
 import { Button } from '@/core/components/ui/button';
-import { CAMPUS_LOCATIONS } from '@/core/data/cleanvalleSchema';
-import {REPORT_TEXTAREA_FIELDS,getReportCategoryOptions,getRiskLevelOptions,getSubTypeOptions,} from '../constants/reportConstants';
+import { REPORT_TEXTAREA_FIELDS } from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
 import { SelectionGroup } from './SelectionGroup';
 
-export function CreateReportForm({ onSubmit, isSubmitting }) {
+export function CreateReportForm({
+  categories = [],
+  riskLevels = [],
+  localizations = [],
+  subtypesByCategory = {},
+  subareasByLocalization = {},
+  isLoadingCatalogs = false,
+  loadingSubtypes = false,
+  loadingSubareas = false,
+  catalogError = '',
+  onCategorySelect,
+  onLocalizationSelect,
+  onSubmit,
+  isSubmitting,
+}) {
   const { form, errors, touched, set, reset, handleSubmit } = useReportForm();
   const [images, setImages] = useState([]);
 
-  const categoryOptions = getReportCategoryOptions();
-  const subtypeOptions = getSubTypeOptions(form.categoryId);
-  const riskLevelOptions = getRiskLevelOptions();
+  const subtypeOptions = subtypesByCategory[form.categoryId] ?? [];
+  const subareaOptions = subareasByLocalization[form.localizationId] ?? [];
   const descriptionTextarea = REPORT_TEXTAREA_FIELDS.description;
   const customContextTextarea = REPORT_TEXTAREA_FIELDS.customContext;
   const hasSubtypeOptions = subtypeOptions.length > 0;
@@ -34,13 +46,55 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
     setImages([]);
   };
 
+  const handleCategorySelect = (id) => {
+    set('categoryId', id);
+    onCategorySelect?.(id);
+  };
+
+  const handleLocalizationChange = (event) => {
+    const id = event.target.value;
+    set('localizationId', id);
+    onLocalizationSelect?.(id);
+  };
+
+  const submitReport = (formData) => {
+    const category = categories.find((item) => item.id === formData.categoryId);
+    const subtype = subtypeOptions.find((item) => item.id === formData.subtypeId);
+    const riskLevel = riskLevels.find((item) => item.id === formData.riskLevelId);
+    const localization = localizations.find((item) => item.id === formData.localizationId);
+    const subarea = subareaOptions.find((item) => item.id === formData.subareaId);
+
+    onSubmit({
+      ...formData,
+      categoryName: category?.label ?? '',
+      categoryColor: category?.color ?? '#6b7280',
+      subtypeName: subtype?.label ?? '',
+      subtypeColor: subtype?.color ?? category?.color ?? '#6b7280',
+      riskLevelName: riskLevel?.label ?? '',
+      riskLevelColor: riskLevel?.color ?? '#6b7280',
+      localizationName: localization?.label ?? '',
+      subareaName: subarea?.label ?? '',
+    });
+  };
+
   return (
     <form
-      onSubmit={(e) => handleSubmit(e, images.map((image) => URL.createObjectURL(image)), onSubmit)}
+      onSubmit={(e) =>
+        handleSubmit(e, images.map((image) => URL.createObjectURL(image)), submitReport, {
+          subtypeOptions,
+          subareaOptions,
+        })
+      }
       noValidate
       className="space-y-6"
       id="create-report-form"
     >
+      {catalogError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm font-medium text-destructive">
+          {catalogError}
+        </div>
+      )}
+
       <FormField
         id="report-title"
         label="Titulo del reporte"
@@ -65,12 +119,14 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         label="Tipo de reporte"
         icon={<Tag className="size-4" />}
         required
-        items={categoryOptions}
+        items={categories}
         idPrefix="category"
         selected={form.categoryId}
-        onSelect={(id) => set('categoryId', id)}
+        onSelect={handleCategorySelect}
         error={touched.categoryId ? errors.categoryId : ''}
       />
+
+      {loadingSubtypes && <p className="text-sm text-muted-foreground">Cargando razones...</p>}
 
       {shouldShowReasonOptions && (
         <SelectionGroup
@@ -105,7 +161,7 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
         label="Nivel de riesgo"
         icon={<AlertTriangle className="size-4" />}
         required
-        items={riskLevelOptions}
+        items={riskLevels}
         idPrefix="risk"
         selected={form.riskLevelId}
         onSelect={(id) => set('riskLevelId', id)}
@@ -133,26 +189,53 @@ export function CreateReportForm({ onSubmit, isSubmitting }) {
 
 
       <FormField
-        id="report-location"
-        label="Ubicacion"
+        id="report-localization"
+        label="Lugar"
         required
         icon={<MapPin className="size-4" />}
-        error={touched.locationId ? errors.locationId : ''}
+        error={touched.localizationId ? errors.localizationId : ''}
       >
         <select
-          id="report-location"
-          value={form.locationId}
-          onChange={(e) => set('locationId', e.target.value)}
-          className={formControlClass(touched.locationId && errors.locationId)}
+          id="report-localization"
+          value={form.localizationId}
+          onChange={handleLocalizationChange}
+          className={formControlClass(touched.localizationId && errors.localizationId)}
+          disabled={isLoadingCatalogs}
         >
-          <option value="">Selecciona un lugar del campus</option>
-          {CAMPUS_LOCATIONS.map((location) => (
-            <option key={location.id} value={location.id}>
-              {location.label}
+          <option value="">{isLoadingCatalogs ? 'Cargando lugares...' : 'Selecciona un lugar'}</option>
+          {localizations.map((localization) => (
+            <option key={localization.id} value={localization.id}>
+              {localization.label}
             </option>
           ))}
         </select>
       </FormField>
+
+      {loadingSubareas && <p className="text-sm text-muted-foreground">Cargando ubicaciones especificas...</p>}
+
+      {form.localizationId && subareaOptions.length > 0 && (
+        <FormField
+          id="report-subarea"
+          label="Ubicacion especifica"
+          required
+          icon={<MapPin className="size-4" />}
+          error={touched.subareaId ? errors.subareaId : ''}
+        >
+          <select
+            id="report-subarea"
+            value={form.subareaId}
+            onChange={(event) => set('subareaId', event.target.value)}
+            className={formControlClass(touched.subareaId && errors.subareaId)}
+          >
+            <option value="">Selecciona una ubicacion especifica</option>
+            {subareaOptions.map((subarea) => (
+              <option key={subarea.id} value={subarea.id}>
+                {subarea.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+      )}
 
       <FormField
         id="report-incident-date"

@@ -6,7 +6,7 @@ import { MetricCard } from '@/core/components/ui/metric-card';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { useAuth } from '@/core/context/AuthContext';
-import { OPERATOR_SPECIALIZATIONS } from '@/core/data/cleanvalleSchema';
+import { OPERATOR_SPECIALIZATIONS } from '@/core/data/catalogs';
 import { OperatorReportList } from '@/modules/operator/components/OperatorReportList';
 import { getResolutionReviewStatusOptions } from '@/modules/reports/constants/reportConstants';
 import { useReports } from '@/modules/reports/context/ReportsContext';

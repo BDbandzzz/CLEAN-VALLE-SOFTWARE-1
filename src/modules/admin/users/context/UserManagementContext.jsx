@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 
 import {
   buildManagedUser,
+  buildUpdatedUser,
   persistManagedUsers,
   readManagedUsers,
 } from '@/modules/admin/users/data/userRepository';
@@ -40,14 +41,32 @@ export function UserManagementProvider({ children }) {
     });
   }, []);
 
+  const updateUser = useCallback((userId, formData) => {
+    let updatedUser = null;
+
+    setUsers((currentUsers) => {
+      const nextUsers = currentUsers.map((user) => {
+        if (String(user.id) !== String(userId)) return user;
+        updatedUser = buildUpdatedUser(user, formData);
+        return updatedUser;
+      });
+
+      persistManagedUsers(nextUsers);
+      return nextUsers;
+    });
+
+    return updatedUser;
+  }, []);
+
   const value = useMemo(
     () => ({
       users,
       activeUsers: users.filter((user) => user.active !== false),
       createUser,
+      updateUser,
       setUserActive,
     }),
-    [users, createUser, setUserActive]
+    [users, createUser, setUserActive, updateUser]
   );
 
   return (

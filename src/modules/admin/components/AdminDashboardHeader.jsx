@@ -11,9 +11,14 @@ export function AdminDashboardHeader() {
       title="Panel administrador"
       description="Vista general de usuarios, reportes y catalogos operativos."
       actions={
-        <Button asChild variant="secondary" className="bg-white/20 text-primary-foreground hover:bg-white/30">
-          <Link to="/admin/users">Gestión de Usuarios</Link>
-        </Button>
+        <>
+          <Button asChild variant="secondary" className="bg-white/20 text-primary-foreground hover:bg-white/30">
+            <Link to="/admin/users">Gestión de Usuarios</Link>
+          </Button>
+          <Button asChild variant="secondary" className="bg-white/20 text-primary-foreground hover:bg-white/30">
+            <Link to="/admin/report-types">Tipos de reportes</Link>
+          </Button>
+        </>
       }
     />
   );

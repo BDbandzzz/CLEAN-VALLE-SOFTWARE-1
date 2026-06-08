@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 
-import { USER_ROLES } from '@/core/data/cleanvalleSchema';
-import { useCatalogs } from '@/core/context/CatalogContext';
+import { USER_ROLES, getCatalogOptions } from '@/core/data/catalogs';
 import { useUserManagement } from '@/modules/admin/users/context/UserManagementContext';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
@@ -33,11 +32,10 @@ function isActiveUser(user) {
 export function useAdminDashboard() {
   const { allReports } = useReports();
   const { activeUsers } = useUserManagement();
-  const { getOptions } = useCatalogs();
 
   return useMemo(() => {
     const users = activeUsers.filter(isActiveUser);
-    const reportCategories = getOptions('reportCategories');
+    const reportCategories = getCatalogOptions('reportCategories');
     const reportsByCategory = countBy(allReports, (report) => report.categoryId);
     const totalSubtypes = reportCategories.reduce((total, category) => total + (category.subtypes?.length ?? 0), 0);
 
@@ -79,5 +77,5 @@ export function useAdminDashboard() {
       categoryDistribution,
       recentReports,
     };
-  }, [activeUsers, allReports, getOptions]);
+  }, [activeUsers, allReports]);
 }

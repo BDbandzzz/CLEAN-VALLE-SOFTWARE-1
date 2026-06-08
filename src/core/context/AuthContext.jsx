@@ -1,86 +1,80 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
-import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
-import { readManagedUsers } from '@/modules/admin/users/data/userRepository';
+import {
+  getCurrentUser,
+  signIn,
+  signOut,
+  updateAuthPassword,
+  updateUserEmail,
+} from '@/modules/auth/services/authService';
 
 const AuthContext = createContext();
 const CURRENT_USER_KEY = 'cleanvalle_current_user';
-const LEGACY_TOKEN_KEY = 'auth_token';
 
-function readCurrentUser() {
+function readCachedUser() {
   try {
-    const storedUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
-    const validRoles = ['estudiante', 'profesor', 'operador', 'gestor', 'admin'];
-
-    if (!storedUser || !validRoles.includes(storedUser.role)) {
-      localStorage.removeItem(CURRENT_USER_KEY);
-      localStorage.removeItem(LEGACY_TOKEN_KEY);
-      return null;
-    }
-
-    return storedUser;
+    return JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
   } catch {
     localStorage.removeItem(CURRENT_USER_KEY);
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
     return null;
   }
 }
 
-function publicUser(user) {
-  return {
-    id: user.id,
-    codeUser: user.codeUser,
-    role: user.role,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    dniUser: user.dniUser,
-    typeDniId: user.typeDniId,
-    genderId: user.genderId,
-    specializationIds: user.specializationIds ?? [],
-  };
-}
+function cacheUser(user) {
+  if (user) {
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+    return;
+  }
 
-function findDemoUser(code, password) {
-  const normalizedCode = String(code ?? '').trim().toLowerCase();
-  const normalizedPassword = String(password ?? '').trim();
-
-  const demoUser = DEMO_USERS.find(
-    (user) =>
-      user.codeUser.toLowerCase() === normalizedCode &&
-      (user.password === normalizedPassword || normalizedPassword === '123456')
-  );
-
-  if (!demoUser) return null;
-
-  const managedUser = readManagedUsers().find(
-    (user) => String(user.id) === String(demoUser.id)
-  );
-
-  return managedUser?.active === false ? null : demoUser;
+  localStorage.removeItem(CURRENT_USER_KEY);
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(readCurrentUser);
-  const [isLoading] = useState(false);
+  const [user, setUser] = useState(readCachedUser);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const login = async (code, password) => {
-    const demoUser = findDemoUser(code, password);
-    if (!demoUser) {
-      throw new Error('Credenciales invalidas');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSession() {
+      try {
+        const currentUser = await getCurrentUser();
+        if (!isMounted) return;
+        setUser(currentUser);
+        cacheUser(currentUser);
+      } catch {
+        if (!isMounted) return;
+        setUser(null);
+        cacheUser(null);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     }
 
-    const nextUser = publicUser(demoUser);
+    loadSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const login = async (email, password) => {
+    const nextUser = await signIn(email, password);
     setUser(nextUser);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(nextUser));
+    cacheUser(nextUser);
     return nextUser.role;
   };
 
-  const clearSession = useCallback(() => {
+  const clearSession = useCallback(async () => {
     setUser(null);
-    localStorage.removeItem(CURRENT_USER_KEY);
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    cacheUser(null);
+
+    try {
+      await signOut();
+    } catch {
+      // La UI debe cerrar sesion localmente aunque Supabase ya no tenga sesion activa.
+    }
   }, []);
 
   const logout = clearSession;
@@ -88,13 +82,19 @@ export const AuthProvider = ({ children }) => {
   const updateUser = async (updatedData) => {
     if (!user) return false;
 
+    await updateUserEmail(user.authId, updatedData.email);
+
     const nextUser = { ...user, email: updatedData.email };
     setUser(nextUser);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(nextUser));
+    cacheUser(nextUser);
     return true;
   };
 
-  const changePassword = async () => true;
+  const changePassword = async (...args) => {
+    const payload = typeof args[1] === 'object' ? args[1] : args[0];
+    const nextPassword = payload?.newPassword ?? payload;
+    return updateAuthPassword(nextPassword);
+  };
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout, clearSession, updateUser, changePassword }}>

@@ -1,14 +1,13 @@
 import { useState } from 'react';
 
-import { getSubTypeOptions } from '../constants/reportConstants';
-
 const INITIAL_FORM = {
   title: '',
   description: '',
   categoryId: '',
   subtypeId: '',
   customContext: '',
-  locationId: '',
+  localizationId: '',
+  subareaId: '',
   riskLevelId: '',
   incidentDate: '',
 };
@@ -19,15 +18,16 @@ const INITIAL_ERRORS = {
   categoryId: '',
   subtypeId: '',
   customContext: '',
-  locationId: '',
+  localizationId: '',
+  subareaId: '',
   riskLevelId: '',
   incidentDate: '',
 };
 
-function validateReport(data) {
+function validateReport(data, options = {}) {
+  const { subtypeOptions = [], subareaOptions = [] } = options;
   const errors = { ...INITIAL_ERRORS };
   let ok = true;
-  const subtypeOptions = getSubTypeOptions(data.categoryId);
   const needsSubtype = Boolean(data.categoryId && data.categoryId !== 'otro' && subtypeOptions.length);
   const needsContext = Boolean(
     data.categoryId === 'otro' ||
@@ -66,8 +66,13 @@ function validateReport(data) {
     ok = false;
   }
 
-  if (!data.locationId) {
-    errors.locationId = 'Selecciona la ubicacion.';
+  if (!data.localizationId) {
+    errors.localizationId = 'Selecciona el lugar.';
+    ok = false;
+  }
+
+  if (data.localizationId && subareaOptions.length > 0 && !data.subareaId) {
+    errors.subareaId = 'Selecciona la ubicacion especifica.';
     ok = false;
   }
 
@@ -96,6 +101,9 @@ export function useReportForm() {
         next.subtypeId = '';
         next.customContext = '';
       }
+      if (field === 'localizationId') {
+        next.subareaId = '';
+      }
       if (field === 'subtypeId' && value !== 'otro' && next.categoryId !== 'otro') {
         next.customContext = '';
       }
@@ -111,10 +119,10 @@ export function useReportForm() {
     setTouched({});
   };
 
-  const handleSubmit = (e, images, onSubmit) => {
+  const handleSubmit = (e, images, onSubmit, validationOptions) => {
     e.preventDefault();
     setTouched(Object.fromEntries(Object.keys(INITIAL_FORM).map((key) => [key, true])));
-    const validation = validateReport(form);
+    const validation = validateReport(form, validationOptions);
     setErrors(validation.errors);
     if (!validation.ok) return;
     onSubmit({ ...form, images });

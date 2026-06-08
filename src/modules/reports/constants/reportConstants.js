@@ -4,7 +4,11 @@ import {
   RESOLUTION_QUALITIES,
   RESOLUTION_STATUSES,
   RISK_LEVELS,
-} from '@/core/data/cleanvalleSchema';
+} from '@/core/data/catalogs';
+
+const DEFAULT_STATUS_META = { id: 'sin-estado', label: 'Sin estado', color: '#6b7280' };
+const DEFAULT_RISK_META = { id: 'sin-riesgo', label: 'Sin riesgo', color: '#6b7280' };
+const DEFAULT_RESOLUTION_STATUS_META = { id: 'sin-revision', label: 'Sin revision', color: '#6b7280' };
 
 export const REPORT_TEXTAREA_FIELDS = {
   description: {
@@ -45,7 +49,7 @@ export function getRiskLevelOptions() {
 }
 
 export function getStatusMeta(statusId) {
-  return REPORT_STATUSES.find((status) => status.id === statusId) ?? REPORT_STATUSES[0];
+  return REPORT_STATUSES.find((status) => status.id === statusId) ?? DEFAULT_STATUS_META;
 }
 
 export function getCategoryMeta(categoryId) {
@@ -61,11 +65,11 @@ export function getSubtypeLabel(categoryId, subtypeId) {
 }
 
 export function getRiskMeta(riskLevelId) {
-  return RISK_LEVELS.find((risk) => risk.id === riskLevelId) ?? RISK_LEVELS[0];
+  return RISK_LEVELS.find((risk) => risk.id === riskLevelId) ?? DEFAULT_RISK_META;
 }
 
 export function getResolutionReviewStatusMeta(statusId) {
-  return RESOLUTION_STATUSES.find((status) => status.id === statusId) ?? RESOLUTION_STATUSES[0];
+  return RESOLUTION_STATUSES.find((status) => status.id === statusId) ?? DEFAULT_RESOLUTION_STATUS_META;
 }
 
 export function getResolutionReviewStatusOptions() {

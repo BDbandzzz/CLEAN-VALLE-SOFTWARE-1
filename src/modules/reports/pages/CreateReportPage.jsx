@@ -5,10 +5,12 @@ import { ModuleHero } from '@/core/components/ui/module-hero';
 import { useAuth } from '@/core/context/AuthContext';
 import { useReports } from '../context/ReportsContext';
 import { CreateReportForm } from '../components/CreateReportForm';
+import { useReportCatalogs } from '../hooks/useReportCatalogs';
 
 const CreateReportPage = () => {
   const { addReport } = useReports();
   const { user } = useAuth();
+  const catalogs = useReportCatalogs();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -43,7 +45,21 @@ const CreateReportPage = () => {
 
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <h2 className="mb-6 text-lg font-semibold text-foreground">Informacion del reporte</h2>
-        <CreateReportForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+        <CreateReportForm
+          categories={catalogs.categories}
+          riskLevels={catalogs.riskLevels}
+          localizations={catalogs.localizations}
+          subtypesByCategory={catalogs.subtypesByCategory}
+          subareasByLocalization={catalogs.subareasByLocalization}
+          isLoadingCatalogs={catalogs.isLoading}
+          loadingSubtypes={catalogs.loadingSubtypes}
+          loadingSubareas={catalogs.loadingSubareas}
+          catalogError={catalogs.error}
+          onCategorySelect={catalogs.loadSubtypes}
+          onLocalizationSelect={catalogs.loadSubareas}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
       </div>
     </div>
   );

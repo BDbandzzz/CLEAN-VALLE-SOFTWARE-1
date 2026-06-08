@@ -12,6 +12,7 @@ import OperatorDashboardPage from '@/modules/operator/pages/OperatorDashboardPag
 import OperatorResolutionPage from '@/modules/operator/pages/OperatorResolutionPage';
 import AdminDashboardPage from '@/modules/admin/pages/AdminDashboardPage';
 import UserManagementPage from '@/modules/admin/users/pages/UserManagementPage';
+import ReportTypeManagementPage from '@/modules/admin/report-types/pages/ReportTypeManagementPage';
 import PrivateRoute from '@/core/router/PrivateRoute';
 
 const AppRouter = () => {
@@ -32,6 +33,10 @@ const AppRouter = () => {
       <Route
         path="/admin/users"
         element={<PrivateRoute allowedRoles={['admin']} element={<UserManagementPage />} />}
+      />
+      <Route
+        path="/admin/report-types"
+        element={<PrivateRoute allowedRoles={['admin']} element={<ReportTypeManagementPage />} />}
       />
 
       <Route path="/home" element={<Navigate to="/reports/view" replace />} />

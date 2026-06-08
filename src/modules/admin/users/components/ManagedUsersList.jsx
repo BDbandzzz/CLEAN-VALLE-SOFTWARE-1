@@ -1,4 +1,4 @@
-import { Power, RotateCcw, Search, Users } from 'lucide-react';
+import { Pencil, Power, RotateCcw, Search, Users } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import {
@@ -15,7 +15,7 @@ import { Label } from '@/core/components/ui/label';
 import { SelectField } from '@/core/components/ui/select-field';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { useAuth } from '@/core/context/AuthContext';
-import { OPERATOR_SPECIALIZATIONS, USER_ROLES } from '@/core/data/cleanvalleSchema';
+import { OPERATOR_SPECIALIZATIONS, USER_ROLES } from '@/core/data/catalogs';
 import { useUserManagement } from '@/modules/admin/users/context/UserManagementContext';
 import { useManagedUserFilters } from '@/modules/admin/users/hooks/useManagedUserFilters';
 
@@ -38,7 +38,7 @@ function getSpecializationLabels(ids = []) {
     .filter(Boolean);
 }
 
-export function ManagedUsersList() {
+export function ManagedUsersList({ onEditUser }) {
   const { user: currentUser } = useAuth();
   const { users, setUserActive } = useUserManagement();
   const {
@@ -176,27 +176,34 @@ export function ManagedUsersList() {
                   )}
                 </div>
 
-                {isActive ? (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => setUserActive(user.id, false)}
-                    disabled={isCurrentUser}
-                    title={isCurrentUser ? 'No puedes desactivar tu propia cuenta' : 'Desactivar usuario'}
-                  >
-                    <Power className="size-4" />
-                    Desactivar
+                <div className="flex flex-wrap gap-2 lg:justify-end">
+                  <Button type="button" variant="outline" onClick={() => onEditUser?.(user)}>
+                    <Pencil className="size-4" />
+                    Modificar
                   </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setUserActive(user.id, true)}
-                  >
-                    <RotateCcw className="size-4" />
-                    Reactivar
-                  </Button>
-                )}
+
+                  {isActive ? (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => setUserActive(user.id, false)}
+                      disabled={isCurrentUser}
+                      title={isCurrentUser ? 'No puedes desactivar tu propia cuenta' : 'Desactivar usuario'}
+                    >
+                      <Power className="size-4" />
+                      Desactivar
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setUserActive(user.id, true)}
+                    >
+                      <RotateCcw className="size-4" />
+                      Reactivar
+                    </Button>
+                  )}
+                </div>
               </article>
             );
           })}

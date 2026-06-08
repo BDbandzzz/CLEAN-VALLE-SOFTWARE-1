@@ -15,4 +15,6 @@ export const INITIAL_USER_FORM = {
   genderId: '',
   role: '',
   specializationIds: [],
+  password: '',
+  confirmPassword: '',
 };

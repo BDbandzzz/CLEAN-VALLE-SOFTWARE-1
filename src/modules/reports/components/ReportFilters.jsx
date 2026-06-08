@@ -1,14 +1,16 @@
 import { Search, X, Tag, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
-import { getReportCategoryOptions, getRiskLevelOptions } from '../constants/reportConstants';
 import { ReportDateField } from './ReportDateField';
 import { SelectionGroup } from './SelectionGroup';
 
-export function ReportFilters({ filters, onChange, onClear }) {
-  const categoryOptions = getReportCategoryOptions();
-  const riskLevelOptions = getRiskLevelOptions();
-
+export function ReportFilters({
+  filters,
+  onChange,
+  onClear,
+  categories = [],
+  riskLevels = [],
+}) {
   const hasActiveFilters =
     filters.search || filters.categoryId || filters.riskLevelId ||
     filters.dateFrom || filters.dateTo;
@@ -33,7 +35,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
       <SelectionGroup
         label="Tipo de reporte"
         icon={<Tag className="size-4" />}
-        items={categoryOptions}
+        items={categories}
         idPrefix="filter-category"
         selected={filters.categoryId}
         onSelect={(id) => onChange({ categoryId: filters.categoryId === id ? '' : id })}
@@ -42,7 +44,7 @@ export function ReportFilters({ filters, onChange, onClear }) {
       <SelectionGroup
         label="Nivel de riesgo"
         icon={<AlertTriangle className="size-4" />}
-        items={riskLevelOptions}
+        items={riskLevels}
         idPrefix="filter-risk"
         selected={filters.riskLevelId}
         onSelect={(id) => onChange({ riskLevelId: filters.riskLevelId === id ? '' : id })}

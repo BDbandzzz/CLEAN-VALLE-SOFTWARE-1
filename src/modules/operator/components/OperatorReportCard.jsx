@@ -9,15 +9,25 @@ import { getStatusMeta, getSubtypeLabel } from '@/modules/reports/constants/repo
 export function OperatorReportCard({ report, showResolution = false }) {
   const navigate = useNavigate();
   const status = getStatusMeta(report.statusId);
-  const subtypeLabel = getSubtypeLabel(report.categoryId, report.subtypeId);
+  const subtypeLabel = report.subtypeName || getSubtypeLabel(report.categoryId, report.subtypeId);
 
   return (
     <article className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap gap-2">
-            <ReportBadge type="category" value={report.categoryId} />
-            <ReportBadge type="risk" value={report.riskLevelId} />
+            <ReportBadge
+              type="category"
+              value={report.categoryId}
+              label={report.categoryName}
+              color={report.categoryColor}
+            />
+            <ReportBadge
+              type="risk"
+              value={report.riskLevelId}
+              label={report.riskLevelName}
+              color={report.riskLevelColor}
+            />
             <span
               className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold"
               style={{ backgroundColor: `${status.color}22`, color: status.color, border: `1.5px solid ${status.color}55` }}
@@ -32,7 +42,7 @@ export function OperatorReportCard({ report, showResolution = false }) {
           </div>
 
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><MapPin className="size-3" />{report.locationName}</span>
+            <span className="flex items-center gap-1"><MapPin className="size-3" />{formatLocation(report)}</span>
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formatDate(report.incidentDate)}</span>
             <span>Razon: {subtypeLabel}</span>
           </div>
@@ -64,4 +74,8 @@ function formatDate(value) {
     month: 'short',
     day: 'numeric',
   });
+}
+
+function formatLocation(report) {
+  return [report.localizationName, report.subareaName].filter(Boolean).join(' - ') || 'Sin ubicacion';
 }

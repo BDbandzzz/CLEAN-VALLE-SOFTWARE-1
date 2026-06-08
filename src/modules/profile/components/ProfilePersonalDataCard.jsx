@@ -74,9 +74,8 @@ export function ProfilePersonalDataCard({
             label="Tipo de documento"
             value={formData.typeDni}
           />
-
           <ReadOnlyField id="gender" label="Género" value={formData.gender} />
-
+          
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>
             <div className="relative">

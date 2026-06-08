@@ -1,0 +1,170 @@
+import { KeyRound, RotateCcw, Save, Wrench } from 'lucide-react';
+
+import { Button } from '@/core/components/ui/button';
+import { MultiSelectField } from '@/core/components/ui/multi-select-field';
+import { SelectField } from '@/core/components/ui/select-field';
+import { OPERATOR_SPECIALIZATIONS, getCatalogOptions } from '@/core/data/catalogs';
+import { UserTextField } from '@/modules/admin/users/components/UserTextField';
+import { ADMIN_CREATABLE_ROLES } from '@/modules/admin/users/constants/userFormOptions';
+
+export function UserForm({
+  mode,
+  formData,
+  errors,
+  message,
+  onFieldChange,
+  onSubmit,
+  onReset,
+  submitLabel,
+}) {
+  const isCreateMode = mode === 'create';
+  const documentTypes = getCatalogOptions('documentTypes');
+  const genders = getCatalogOptions('genders');
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-7">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <UserTextField
+          id={`${mode}-codeUser`}
+          label="Código institucional"
+          value={formData.codeUser}
+          onChange={(value) => onFieldChange('codeUser', value)}
+          placeholder="Ej. DOC002"
+          required
+          error={errors.codeUser}
+        />
+        <SelectField
+          id={`${mode}-role`}
+          label="Rol"
+          value={formData.role}
+          options={ADMIN_CREATABLE_ROLES}
+          onChange={(event) => onFieldChange('role', event.target.value)}
+          required
+          error={errors.role}
+        />
+        <UserTextField
+          id={`${mode}-firstName`}
+          label="Nombres"
+          value={formData.firstName}
+          onChange={(value) => onFieldChange('firstName', value)}
+          required
+          error={errors.firstName}
+        />
+        <UserTextField
+          id={`${mode}-lastName`}
+          label="Apellidos"
+          value={formData.lastName}
+          onChange={(value) => onFieldChange('lastName', value)}
+          required
+          error={errors.lastName}
+        />
+        <UserTextField
+          id={`${mode}-email`}
+          label="Correo electrónico"
+          type="email"
+          value={formData.email}
+          onChange={(value) => onFieldChange('email', value)}
+          placeholder="usuario@correounivalle.edu.co"
+          required
+          error={errors.email}
+        />
+        <UserTextField
+          id={`${mode}-dniUser`}
+          label="Documento"
+          value={formData.dniUser}
+          onChange={(value) => onFieldChange('dniUser', value)}
+          required
+          error={errors.dniUser}
+        />
+        <SelectField
+          id={`${mode}-typeDniId`}
+          label="Tipo de documento"
+          value={formData.typeDniId}
+          options={documentTypes}
+          onChange={(event) => onFieldChange('typeDniId', event.target.value)}
+          required
+          error={errors.typeDniId}
+        />
+        <SelectField
+          id={`${mode}-genderId`}
+          label="Género"
+          value={formData.genderId}
+          options={genders}
+          onChange={(event) => onFieldChange('genderId', event.target.value)}
+          required
+          error={errors.genderId}
+        />
+      </div>
+
+      
+      {formData.role === 'operador' && (
+        <section className="space-y-4 border-t border-border pt-6">
+          <div className="flex items-center gap-2">
+            <Wrench className="size-5 text-primary" />
+            <h3 className="text-base font-semibold text-foreground">
+              Especialidades del operador
+            </h3>
+          </div>
+          <MultiSelectField
+            id={`${mode}-specializationIds`}
+            label="Especialidades"
+            options={OPERATOR_SPECIALIZATIONS}
+            value={formData.specializationIds}
+            onChange={(value) => onFieldChange('specializationIds', value)}
+            required
+            description="Selecciona una o varias capacidades operativas."
+            error={errors.specializationIds}
+          />
+        </section>
+      )}
+
+
+
+      <section className="space-y-4 border-t border-border pt-6">
+        <div className="flex items-center gap-2">
+          <KeyRound className="size-5 text-primary" />
+          <h3 className="text-base font-semibold text-foreground">
+            {isCreateMode ? 'Contraseña inicial' : 'Cambio de contraseña'}
+          </h3>
+        </div>
+        <UserTextField
+          id={`${mode}-password`}
+          label={isCreateMode ? 'Contraseña' : 'Nueva contraseña'}
+          type="password"
+          value={formData.password}
+          onChange={(value) => onFieldChange('password', value)}
+          placeholder={isCreateMode ? 'Contraseña temporal del usuario' : 'Dejar vacío para conservar la actual'}
+          required={isCreateMode}
+          error={errors.password}
+        />
+        <UserTextField
+          id={`${mode}-confirmPassword`}
+          label={isCreateMode ? 'Confirmar contraseña' : 'Confirmar nueva contraseña'}
+          type="password"
+          value={formData.confirmPassword}
+          onChange={(value) => onFieldChange('confirmPassword', value)}
+          placeholder={isCreateMode ? 'Repite la contraseña' : 'Repite la nueva contraseña'}
+          required={isCreateMode || Boolean(formData.password)}
+          error={errors.confirmPassword}
+        />
+      </section>
+
+      {message && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-900">
+          {message}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" size="lg">
+          <Save className="size-4" />
+          {submitLabel}
+        </Button>
+        <Button type="button" variant="outline" size="lg" onClick={onReset}>
+          <RotateCcw className="size-4" />
+          Limpiar formulario
+        </Button>
+      </div>
+    </form>
+  );
+}

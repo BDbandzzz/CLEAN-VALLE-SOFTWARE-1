@@ -1,38 +1,15 @@
-import { DEMO_USERS } from '@/core/data/cleanvalleSchema';
-
-const USERS_STORAGE_KEY = 'cleanvalle_admin_users_v1';
-
-function publicDemoUser(user) {
-  const { password: _password, ...publicUser } = user;
-  return {
-    ...publicUser,
-    active: user.active !== false,
-    source: 'demo',
-  };
-}
+const USERS_STORAGE_KEY = 'cleanvalle_admin_users_backend_ready_v1';
 
 export function readManagedUsers() {
   try {
-    const storedUsers = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) ?? [];
-    const usersById = new Map(
-      DEMO_USERS.map((user) => [String(user.id), publicDemoUser(user)])
-    );
-
-    storedUsers.forEach((user) => {
-      usersById.set(String(user.id), user);
-    });
-
-    return Array.from(usersById.values());
+    return JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)) ?? [];
   } catch {
-    return DEMO_USERS.map(publicDemoUser);
+    return [];
   }
 }
 
 export function persistManagedUsers(users) {
-  const localUsers = users.filter(
-    (user) => user.source !== 'demo' || Boolean(user.updatedAt)
-  );
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(localUsers));
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
 }
 
 export function buildManagedUser(formData) {
@@ -42,6 +19,7 @@ export function buildManagedUser(formData) {
     id: `usr-${Date.now()}`,
     codeUser: formData.codeUser.trim(),
     role: formData.role,
+    password: formData.password,
     firstName: formData.firstName.trim(),
     lastName: formData.lastName.trim(),
     email: formData.email.trim().toLowerCase(),
@@ -53,5 +31,38 @@ export function buildManagedUser(formData) {
     source: 'admin',
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+export function mapUserToForm(user) {
+  return {
+    codeUser: user?.codeUser ?? '',
+    firstName: user?.firstName ?? '',
+    lastName: user?.lastName ?? '',
+    email: user?.email ?? '',
+    dniUser: user?.dniUser ?? '',
+    typeDniId: user?.typeDniId ? String(user.typeDniId) : '',
+    genderId: user?.genderId ? String(user.genderId) : '',
+    role: user?.role ?? '',
+    specializationIds: user?.specializationIds ?? [],
+    password: '',
+    confirmPassword: '',
+  };
+}
+
+export function buildUpdatedUser(user, formData) {
+  return {
+    ...user,
+    codeUser: formData.codeUser.trim(),
+    role: formData.role,
+    firstName: formData.firstName.trim(),
+    lastName: formData.lastName.trim(),
+    email: formData.email.trim().toLowerCase(),
+    dniUser: formData.dniUser.trim(),
+    typeDniId: Number(formData.typeDniId),
+    genderId: Number(formData.genderId),
+    specializationIds: formData.role === 'operador' ? formData.specializationIds : [],
+    ...(formData.password.trim() ? { password: formData.password } : {}),
+    updatedAt: new Date().toISOString(),
   };
 }

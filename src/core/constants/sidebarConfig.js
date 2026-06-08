@@ -1,4 +1,4 @@
-import { Bell, Eye, GraduationCap, LayoutDashboard, Lock, LogOut, ClipboardPlus, ShieldCheck, User, UserCog, Users, Wrench } from 'lucide-react';
+import { Bell, Eye, GraduationCap, LayoutDashboard, Lock, LogOut, ClipboardPlus, ShieldCheck, Tags, User, UserCog, Users, Wrench } from 'lucide-react';
 
 const reportItems = [
   {
@@ -88,6 +88,12 @@ export const sidebarConfig = {
       title: 'Gestión de Usuarios',
       url: '/admin/users',
       icon: Users,
+      end: true,
+    },
+    {
+      title: 'Tipos de reportes',
+      url: '/admin/report-types',
+      icon: Tags,
       end: true,
     },
     {

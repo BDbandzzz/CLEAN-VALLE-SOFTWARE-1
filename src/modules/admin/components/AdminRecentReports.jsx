@@ -35,7 +35,7 @@ export function AdminRecentReports({ reports }) {
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">{report.title}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {report.locationName || 'Sin ubicacion'} · {formatDate(report.createdAt)}
+                {formatLocation(report)} · {formatDate(report.createdAt)}
               </p>
             </div>
             <ReportStatusPill meta={getStatusMeta(report.statusId)} />
@@ -44,4 +44,8 @@ export function AdminRecentReports({ reports }) {
       </CardContent>
     </Card>
   );
+}
+
+function formatLocation(report) {
+  return [report.localizationName, report.subareaName].filter(Boolean).join(' - ') || 'Sin ubicacion';
 }
