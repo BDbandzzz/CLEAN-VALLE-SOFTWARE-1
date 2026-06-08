@@ -322,39 +322,3 @@ export const INITIAL_REPORTS = [
     ],
   },
 ];
-
-export const CLEANVALLE_SCHEMA_DUMP = {
-  users: {
-    fields: ['codeUser', 'firstName', 'lastName', 'email', 'dniUser', 'typeDniId', 'genderId', 'role', 'specializationIds'],
-    roles: Object.keys(USER_ROLES),
-  },
-  reports: {
-    fields: [
-      'id',
-      'title',
-      'description',
-      'categoryId',
-      'subtypeId',
-      'customContext',
-      'riskLevelId',
-      'locationId',
-      'locationName',
-      'coordinates',
-      'incidentDate',
-      'evidences',
-      'statusId',
-      'createdBy',
-      'createdAt',
-      'history',
-    ],
-    statuses: REPORT_STATUSES.map((status) => status.id),
-  },
-  resolutions: {
-    fields: ['id', 'description', 'evidences', 'reviewStatusId', 'qualityId', 'resolutionMethod', 'sentAt', 'reviewedAt', 'feedback'],
-    statuses: RESOLUTION_STATUSES.map((status) => status.id),
-    qualities: RESOLUTION_QUALITIES.map((quality) => quality.id),
-  },
-  operatorNotifications: {
-    fields: ['id', 'title', 'detail', 'at', 'reportId'],
-  },
-};
