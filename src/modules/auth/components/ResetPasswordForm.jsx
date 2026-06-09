@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { CheckCircle2, Eye, EyeOff, LockKeyhole } from 'lucide-react';
+import { CheckCircle2, LockKeyhole } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
-import { Input } from '@/core/components/ui/input';
-import { Label } from '@/core/components/ui/label';
+import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
 import {
   PASSWORD_REQUIREMENTS,
   validateNewPassword,
@@ -55,8 +54,8 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
   };
 
   return (
-    <form className="mt-7 space-y-5" onSubmit={handleSubmit} noValidate>
-      <PasswordField
+    <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+      <PasswordInputField
         id="new-password"
         label="Nueva contrasena"
         value={values.password}
@@ -66,7 +65,7 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
         autoComplete="new-password"
       />
 
-      <PasswordField
+      <PasswordInputField
         id="confirm-new-password"
         label="Confirmar contrasena"
         value={values.confirmation}
@@ -126,39 +125,5 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
         {isLoading ? 'Actualizando...' : 'Guardar nueva contrasena'}
       </Button>
     </form>
-  );
-}
-
-function PasswordField({
-  id,
-  label,
-  value,
-  visible,
-  onChange,
-  onToggle,
-  autoComplete,
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
-        <Input
-          id={id}
-          type={visible ? 'text' : 'password'}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          autoComplete={autoComplete}
-          className="pr-11"
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
-          aria-label={visible ? `Ocultar ${label}` : `Mostrar ${label}`}
-        >
-          {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-        </button>
-      </div>
-    </div>
   );
 }
