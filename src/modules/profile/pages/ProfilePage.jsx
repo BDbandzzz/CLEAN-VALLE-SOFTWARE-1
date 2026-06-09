@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { useAuth } from '@/core/context/AuthContext';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
@@ -20,11 +21,13 @@ const EMPTY_FORM = {
 };
 
 const ProfilePage = () => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateEmail } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -47,8 +50,8 @@ const ProfilePage = () => {
     [formData.firstName, formData.lastName, user?.name]
   );
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -62,17 +65,21 @@ const ProfilePage = () => {
     setMessage({ type: '', text: '' });
   };
 
-  const handleSave = async () => {
+  const requestEmailUpdate = () => {
     const validation = validateProfileForm(formData);
     if (!validation.ok) {
       setMessage(validation.message);
       return;
     }
 
+    setConfirmEmail(true);
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
     setMessage({ type: '', text: '' });
     try {
-      const success = await updateUser(formData);
+      const success = await updateEmail(formData.email);
       setMessage(
         success
           ? { type: 'success', text: 'Perfil actualizado correctamente' }
@@ -82,6 +89,7 @@ const ProfilePage = () => {
       setMessage({ type: 'error', text: 'Error al guardar los cambios' });
     } finally {
       setIsSaving(false);
+      setConfirmEmail(false);
     }
   };
 
@@ -98,7 +106,7 @@ const ProfilePage = () => {
       <ProfileHero
         initials={initials}
         displayName={`${formData.firstName} ${formData.lastName}`.trim()}
-        onLogout={handleLogout}
+        onLogout={() => setConfirmLogout(true)}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -114,11 +122,33 @@ const ProfilePage = () => {
             message={message}
             isSaving={isSaving}
             onEmailChange={handleEmailChange}
-            onSave={handleSave}
+            onSave={requestEmailUpdate}
             onReset={handleReset}
           />
         </div>
       </div>
+
+      <ConfirmationMessage
+        open={confirmEmail}
+        title="Cambiar correo electrónico"
+        reason={`El correo de acceso se cambiará a ${formData.email}.`}
+        acceptLabel="Cambiar correo"
+        rejectLabel="Cancelar"
+        isLoading={isSaving}
+        onAccept={handleSave}
+        onReject={() => setConfirmEmail(false)}
+      />
+
+      <ConfirmationMessage
+        open={confirmLogout}
+        title="Cerrar sesión"
+        reason="¿Deseas cerrar tu sesión actual?"
+        acceptLabel="Cerrar sesión"
+        rejectLabel="Cancelar"
+        variant="destructive"
+        onAccept={handleLogout}
+        onReject={() => setConfirmLogout(false)}
+      />
     </div>
   );
 };

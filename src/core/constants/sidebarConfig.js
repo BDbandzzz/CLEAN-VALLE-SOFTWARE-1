@@ -1,38 +1,54 @@
-import { Bell, Eye, GraduationCap, LayoutDashboard, Lock, LogOut, ClipboardPlus, ShieldCheck, Tags, User, UserCog, Users, Wrench } from 'lucide-react';
+import {
+  Bell,
+  ClipboardPlus,
+  Eye,
+  GraduationCap,
+  LayoutDashboard,
+  Lock,
+  LogOut,
+  MapPinned,
+  Settings2,
+  ShieldCheck,
+  Tags,
+  User,
+  UserCog,
+  Users,
+  Wrench,
+} from 'lucide-react';
 
 import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 
 const reportItems = [
   {
-    title: 'Crear Reporte',
+    title: 'Crear reporte',
     url: '/reports/create',
     icon: ClipboardPlus,
   },
   {
-    title: 'Mis Reportes',
+    title: 'Mis reportes',
     url: '/reports/view',
     icon: Eye,
   },
 ];
+
+const logoutItem = {
+  title: 'Cerrar sesión',
+  action: 'logout',
+  icon: LogOut,
+};
 
 const securityItems = [
   {
     title: 'Notificaciones',
     url: '/notifications',
     icon: Bell,
-    section: 'seguridad',
   },
   {
-    title: 'Cambiar Contrasena',
+    title: 'Cambiar contraseña',
     url: '/change-password',
     icon: Lock,
-    section: 'seguridad',
   },
-  {
-    title: 'Cerrar sesion',
-    action: 'logout',
-    icon: LogOut,
-  },
+  logoutItem,
 ];
 
 export const sidebarConfig = {
@@ -87,16 +103,30 @@ export const sidebarConfig = {
       end: true,
     },
     {
-      title: 'Gestión de Usuarios',
-      url: '/admin/users',
-      icon: Users,
-      end: true,
-    },
-    {
-      title: 'Tipos de reportes',
-      url: '/admin/report-types',
-      icon: Tags,
-      end: true,
+      title: 'Gestión',
+      icon: Settings2,
+      children: [
+        {
+          title: 'Usuarios',
+          url: '/admin/users',
+          icon: Users,
+        },
+        {
+          title: 'Tipos de reportes',
+          url: '/admin/report-types',
+          icon: Tags,
+        },
+        {
+          title: 'Localizaciones',
+          url: '/admin/locations',
+          icon: MapPinned,
+        },
+        {
+          title: 'Especializaciones',
+          url: '/admin/specializations',
+          icon: Wrench,
+        },
+      ],
     },
     {
       title: 'Perfil',

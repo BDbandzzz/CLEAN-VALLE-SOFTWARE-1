@@ -1,0 +1,118 @@
+/* eslint-disable react-refresh/only-export-components */
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  createManagedReportType,
+  listManagedReportTypes,
+  setManagedReportTypeActive,
+  updateManagedReportType,
+} from '@/services/adminReportTypeService';
+
+const ReportTypeManagementContext = createContext(null);
+
+export function ReportTypeManagementProvider({ children }) {
+  const [reportTypes, setReportTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMutating, setIsMutating] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadReportTypes = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const data = await listManagedReportTypes();
+      setReportTypes(data);
+      return data;
+    } catch (loadError) {
+      setReportTypes([]);
+      setError(loadError.message);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReportTypes();
+  }, [loadReportTypes]);
+
+  const runMutation = useCallback(
+    async (operation) => {
+      setIsMutating(true);
+      setError('');
+      try {
+        const result = await operation();
+        await loadReportTypes();
+        return result;
+      } catch (mutationError) {
+        setError(mutationError.message);
+        throw mutationError;
+      } finally {
+        setIsMutating(false);
+      }
+    },
+    [loadReportTypes]
+  );
+
+  const createReportType = useCallback(
+    (formData) => runMutation(() => createManagedReportType(formData)),
+    [runMutation]
+  );
+
+  const updateReportType = useCallback(
+    (typeId, formData) =>
+      runMutation(() => updateManagedReportType(typeId, formData)),
+    [runMutation]
+  );
+
+  const setReportTypeActive = useCallback(
+    (typeId, active) =>
+      runMutation(() => setManagedReportTypeActive(typeId, active)),
+    [runMutation]
+  );
+
+  const value = useMemo(
+    () => ({
+      reportTypes,
+      activeReportTypes: reportTypes.filter((type) => type.active),
+      isLoading,
+      isMutating,
+      error,
+      loadReportTypes,
+      createReportType,
+      updateReportType,
+      setReportTypeActive,
+    }),
+    [
+      reportTypes,
+      isLoading,
+      isMutating,
+      error,
+      loadReportTypes,
+      createReportType,
+      updateReportType,
+      setReportTypeActive,
+    ]
+  );
+
+  return (
+    <ReportTypeManagementContext.Provider value={value}>
+      {children}
+    </ReportTypeManagementContext.Provider>
+  );
+}
+
+export function useReportTypeManagement() {
+  const context = useContext(ReportTypeManagementContext);
+  if (!context) {
+    throw new Error('useReportTypeManagement debe usarse dentro de ReportTypeManagementProvider');
+  }
+  return context;
+}

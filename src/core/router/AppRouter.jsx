@@ -13,9 +13,14 @@ import ViewReportsPage from '@/modules/reports/pages/ViewReportsPage';
 import NotificationsPage from '@/modules/notifications/pages/NotificationsPage';
 import OperatorDashboardPage from '@/modules/operator/pages/OperatorDashboardPage';
 import OperatorResolutionPage from '@/modules/operator/pages/OperatorResolutionPage';
-import AdminDashboardPage from '@/modules/admin/dashboard/pages/AdminDashboardPage';
-import UserManagementPage from '@/modules/admin/users/pages/UserManagementPage';
-import ReportTypeManagementPage from '@/modules/admin/report-types/pages/ReportTypeManagementPage';
+import AdminDashboardPage from '@/modules/dashboard-admin/pages/AdminDashboardPage';
+import UserManagementPage from '@/modules/users-admin/pages/UserManagementPage';
+import { UserManagementProvider } from '@/modules/users-admin/context/UserManagementContext';
+import ReportTypeManagementPage from '@/modules/report-types-admin/pages/ReportTypeManagementPage';
+import { ReportTypeManagementProvider } from '@/modules/report-types-admin/context/ReportTypeManagementContext';
+import LocationManagementPage from '@/modules/locations-admin/pages/LocationManagementPage';
+import { LocationManagementProvider } from '@/modules/locations-admin/context/LocationManagementContext';
+import SpecializationManagementPage from '@/modules/specializations-admin/pages/SpecializationManagementPage';
 import PrivateRoute from '@/core/router/PrivateRoute';
 
 const AppRouter = () => {
@@ -36,11 +41,51 @@ const AppRouter = () => {
       <Route path="/admin" element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<AdminDashboardPage />} />} />
       <Route
         path="/admin/users"
-        element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<UserManagementPage />} />}
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.ADMIN]}
+            element={
+              <UserManagementProvider>
+                <UserManagementPage />
+              </UserManagementProvider>
+            }
+          />
+        }
       />
       <Route
         path="/admin/report-types"
-        element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<ReportTypeManagementPage />} />}
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.ADMIN]}
+            element={
+              <ReportTypeManagementProvider>
+                <ReportTypeManagementPage />
+              </ReportTypeManagementProvider>
+            }
+          />
+        }
+      />
+      <Route
+        path="/admin/locations"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.ADMIN]}
+            element={
+              <LocationManagementProvider>
+                <LocationManagementPage />
+              </LocationManagementProvider>
+            }
+          />
+        }
+      />
+      <Route
+        path="/admin/specializations"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.ADMIN]}
+            element={<SpecializationManagementPage />}
+          />
+        }
       />
 
       <Route path="/home" element={<Navigate to="/reports/view" replace />} />

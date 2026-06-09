@@ -6,7 +6,7 @@ import {
   getRiskLevels,
   getSubareasByLocalizationId,
   getSubtypesByCategoryId,
-} from '@/modules/reports/services/reportCatalogService';
+} from '@/services/reportCatalogService';
 
 export function useReportCatalogs() {
   const [categories, setCategories] = useState([]);

@@ -13,7 +13,7 @@ import {
   getRecoveryUrlError,
   subscribeToPasswordRecovery,
   updateRecoveredPassword,
-} from '@/modules/auth/services/passwordRecoveryService';
+} from '@/services/passwordRecoveryService';
 
 const RECOVERY_STATUS = {
   validating: 'validating',

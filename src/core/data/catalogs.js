@@ -1,4 +1,3 @@
-export const OPERATOR_SPECIALIZATIONS = [];
 export const DOCUMENT_TYPES = [];
 export const GENDERS = [];
 export const REPORT_CATEGORIES = [];

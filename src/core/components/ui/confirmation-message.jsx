@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 import { Button } from '@/core/components/ui/button';
 import { cn } from '@/core/lib/utils';
@@ -12,13 +13,14 @@ export function ConfirmationMessage({
   onAccept,
   onReject,
   variant = 'default',
+  isLoading = false,
   className = '',
 }) {
   if (!open) return null;
 
   const isDestructive = variant === 'destructive';
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
       role="presentation"
@@ -58,6 +60,7 @@ export function ConfirmationMessage({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onReject}
+                disabled={isLoading}
                 aria-label={rejectLabel}
               >
                 <X className="size-4" />
@@ -73,18 +76,20 @@ export function ConfirmationMessage({
         </div>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button type="button" variant="outline" onClick={onReject}>
+          <Button type="button" variant="outline" onClick={onReject} disabled={isLoading}>
             {rejectLabel}
           </Button>
           <Button
             type="button"
             variant={isDestructive ? 'destructive' : 'default'}
             onClick={onAccept}
+            disabled={isLoading}
           >
-            {acceptLabel}
+            {isLoading ? 'Procesando...' : acceptLabel}
           </Button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

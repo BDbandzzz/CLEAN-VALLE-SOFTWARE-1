@@ -7,7 +7,7 @@ import {
   signOut,
   updateAuthPassword,
   updateUserEmail,
-} from '@/modules/auth/services/authService';
+} from '@/services/authService';
 
 const AuthContext = createContext();
 const CURRENT_USER_KEY = 'cleanvalle_current_user';
@@ -79,25 +79,21 @@ export const AuthProvider = ({ children }) => {
 
   const logout = clearSession;
 
-  const updateUser = async (updatedData) => {
+  const updateEmail = async (email) => {
     if (!user) return false;
 
-    await updateUserEmail(user.authId, updatedData.email);
+    await updateUserEmail(email);
 
-    const nextUser = { ...user, email: updatedData.email };
+    const nextUser = { ...user, email };
     setUser(nextUser);
     cacheUser(nextUser);
     return true;
   };
 
-  const changePassword = async (...args) => {
-    const payload = typeof args[1] === 'object' ? args[1] : args[0];
-    const nextPassword = payload?.newPassword ?? payload;
-    return updateAuthPassword(nextPassword);
-  };
+  const changePassword = (password) => updateAuthPassword(password);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, clearSession, updateUser, changePassword }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, clearSession, updateEmail, changePassword }}>
       {children}
     </AuthContext.Provider>
   );

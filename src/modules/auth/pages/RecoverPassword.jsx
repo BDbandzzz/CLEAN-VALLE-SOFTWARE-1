@@ -8,7 +8,7 @@ import { Label } from '@/core/components/ui/label';
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
 import { AuthPageShell } from '@/modules/auth/components/AuthPageShell';
 import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay';
-import { requestPasswordRecovery } from '@/modules/auth/services/passwordRecoveryService';
+import { requestPasswordRecovery } from '@/services/passwordRecoveryService';
 import { validateRecoverEmail } from '@/modules/auth/utils/recoverUtils';
 
 const RecoverPassword = () => {
