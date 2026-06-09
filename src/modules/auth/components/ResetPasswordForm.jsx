@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { CheckCircle2, LockKeyhole } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
 import {
   PASSWORD_REQUIREMENTS,
@@ -18,6 +20,7 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState('');
+  const [confirmChange, setConfirmChange] = useState(false);
 
   const requirements = useMemo(
     () =>
@@ -33,7 +36,7 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
     if (error) setError('');
   };
 
-  const handleSubmit = async (event) => {
+  const requestSubmit = (event) => {
     event.preventDefault();
 
     const validationError = validateNewPassword(
@@ -46,15 +49,21 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
       return;
     }
 
+    setConfirmChange(true);
+  };
+
+  const confirmSubmit = async () => {
     try {
       await onSubmit(values.password);
+      setConfirmChange(false);
     } catch (submitError) {
       setError(submitError.message);
     }
   };
 
   return (
-    <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+    <>
+    <form className="mt-6 space-y-4" onSubmit={requestSubmit} noValidate>
       <PasswordInputField
         id="new-password"
         label="Nueva contrasena"
@@ -125,5 +134,14 @@ export function ResetPasswordForm({ onSubmit, isLoading }) {
         {isLoading ? 'Actualizando...' : 'Guardar nueva contrasena'}
       </Button>
     </form>
+
+    <ConfirmationMessage
+      open={confirmChange}
+      {...CONFIRMATION_MESSAGES.profile.changePassword}
+      isLoading={isLoading}
+      onAccept={confirmSubmit}
+      onReject={() => setConfirmChange(false)}
+    />
+    </>
   );
 }

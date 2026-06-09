@@ -1,4 +1,5 @@
 import { Pencil } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   Card,
@@ -8,18 +9,37 @@ import {
   CardTitle,
 } from '@/core/components/ui/card';
 import { EmptyState } from '@/core/components/ui/empty-state';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { UserForm } from '@/modules/users-admin/components/UserForm';
+import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
 import { useEditUserForm } from '@/modules/users-admin/hooks/useEditUserForm';
 
 export function EditUserForm({ user }) {
+  const [confirmUpdate, setConfirmUpdate] = useState(false);
+  const { isMutating } = useUserManagement();
   const {
     formData,
     errors,
     message,
     updateField,
     resetForm,
+    validateForm,
     submitForm,
   } = useEditUserForm(user);
+  const confirmation = CONFIRMATION_MESSAGES.users.update(
+    `${formData.firstName} ${formData.lastName}`.trim()
+  );
+
+  const requestUpdate = (event) => {
+    event.preventDefault();
+    if (validateForm()) setConfirmUpdate(true);
+  };
+
+  const confirmUpdateUser = async () => {
+    const updatedUser = await submitForm();
+    if (updatedUser) setConfirmUpdate(false);
+  };
 
   if (!user) {
     return (
@@ -64,11 +84,19 @@ export function EditUserForm({ user }) {
           errors={errors}
           message={message}
           onFieldChange={updateField}
-          onSubmit={submitForm}
+          onSubmit={requestUpdate}
           onReset={resetForm}
           submitLabel="Guardar cambios"
         />
       </CardContent>
+
+      <ConfirmationMessage
+        open={confirmUpdate}
+        {...confirmation}
+        isLoading={isMutating}
+        onAccept={confirmUpdateUser}
+        onReject={() => setConfirmUpdate(false)}
+      />
     </Card>
   );
 }

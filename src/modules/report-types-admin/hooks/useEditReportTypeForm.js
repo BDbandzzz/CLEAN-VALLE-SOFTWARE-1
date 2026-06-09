@@ -10,9 +10,8 @@ export function useEditReportTypeForm(reportType) {
   const initialData = useMemo(() => mapReportTypeToForm(reportType), [reportType]);
   const form = useReportTypeForm(initialData);
 
-  const submitForm = async (event) => {
-    event.preventDefault();
-    if (!reportType) return null;
+  const validateForm = () => {
+    if (!reportType) return false;
 
     const validationErrors = validateReportTypeForm(form.formData, reportTypes, {
       currentTypeId: reportType.id,
@@ -21,9 +20,13 @@ export function useEditReportTypeForm(reportType) {
     if (Object.keys(validationErrors).some((key) => key !== 'subtypeErrors' || Object.keys(validationErrors.subtypeErrors ?? {}).length)) {
       form.setErrors(validationErrors);
       form.setMessage('');
-      return null;
+      return false;
     }
+    return true;
+  };
 
+  const submitForm = async () => {
+    if (!validateForm()) return null;
     try {
       const updatedType = await updateReportType(reportType.id, form.formData);
       form.setErrors({});
@@ -36,5 +39,5 @@ export function useEditReportTypeForm(reportType) {
     }
   };
 
-  return { ...form, submitForm };
+  return { ...form, validateForm, submitForm };
 }

@@ -3,6 +3,7 @@ import { CheckCircle2, Lock } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
 
@@ -155,10 +156,7 @@ export function ChangePasswordForm({ onSuccess }) {
 
       <ConfirmationMessage
         open={confirmChange}
-        title="Cambiar contraseña"
-        reason="La contraseña actual será reemplazada por la nueva."
-        acceptLabel="Cambiar contraseña"
-        rejectLabel="Cancelar"
+        {...CONFIRMATION_MESSAGES.profile.changePassword}
         isLoading={isLoading}
         onAccept={handlePasswordChange}
         onReject={() => setConfirmChange(false)}

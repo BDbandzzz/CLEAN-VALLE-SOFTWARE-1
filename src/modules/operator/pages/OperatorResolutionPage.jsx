@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileText, RotateCcw, Send } from 'lucide-react';
 
@@ -6,8 +6,10 @@ import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { useAuth } from '@/core/context/AuthContext';
 import { Button } from '@/core/components/ui/button';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { ImageFileUpload } from '@/core/components/ui/image-file-upload';
 import { ModuleHero } from '@/core/components/ui/module-hero';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 export default function OperatorResolutionPage() {
@@ -15,14 +17,16 @@ export default function OperatorResolutionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { allReports, submitResolution } = useReports();
-  const report = useMemo(
-    () => allReports.find((item) => item.id === reportId && String(item.assignedTo) === String(user?.id)),
-    [allReports, reportId, user?.id]
+  const report = allReports.find(
+    (item) =>
+      item.id === reportId &&
+      String(item.assignedTo) === String(user?.id)
   );
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [images, setImages] = useState([]);
+  const [confirmResolution, setConfirmResolution] = useState(false);
 
   const handleReset = () => {
     setDescription('');
@@ -31,7 +35,7 @@ export default function OperatorResolutionPage() {
     setImages([]);
   };
 
-  const handleSubmit = (event) => {
+  const requestResolution = (event) => {
     event.preventDefault();
     setError('');
     setSuccess('');
@@ -40,7 +44,10 @@ export default function OperatorResolutionPage() {
       setError('Describe la resolucion con al menos 10 caracteres.');
       return;
     }
+    setConfirmResolution(true);
+  };
 
+  const confirmSubmit = () => {
     const updatedReport = submitResolution(report.id, {
       description,
       evidences: images.map((image) => URL.createObjectURL(image)),
@@ -51,6 +58,7 @@ export default function OperatorResolutionPage() {
       return;
     }
 
+    setConfirmResolution(false);
     handleReset();
     setSuccess('Resolucion enviada correctamente.');
   };
@@ -89,7 +97,7 @@ export default function OperatorResolutionPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+      <form onSubmit={requestResolution} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <FormField id="resolution-report-title" label="Titulo del reporte" icon={<FileText className="size-4" />}>
           <input
             id="resolution-report-title"
@@ -136,6 +144,13 @@ export default function OperatorResolutionPage() {
           </Button>
         </div>
       </form>
+
+      <ConfirmationMessage
+        open={confirmResolution}
+        {...CONFIRMATION_MESSAGES.reports.submitResolution}
+        onAccept={confirmSubmit}
+        onReject={() => setConfirmResolution(false)}
+      />
     </div>
   );
 }

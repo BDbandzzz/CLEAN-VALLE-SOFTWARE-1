@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
@@ -49,6 +50,7 @@ const ProfilePage = () => {
     () => getProfileInitials(`${formData.firstName} ${formData.lastName}`.trim(), user?.name),
     [formData.firstName, formData.lastName, user?.name]
   );
+  const emailConfirmation = CONFIRMATION_MESSAGES.profile.changeEmail(formData.email);
 
   const handleLogout = async () => {
     await logout();
@@ -130,10 +132,7 @@ const ProfilePage = () => {
 
       <ConfirmationMessage
         open={confirmEmail}
-        title="Cambiar correo electrónico"
-        reason={`El correo de acceso se cambiará a ${formData.email}.`}
-        acceptLabel="Cambiar correo"
-        rejectLabel="Cancelar"
+        {...emailConfirmation}
         isLoading={isSaving}
         onAccept={handleSave}
         onReject={() => setConfirmEmail(false)}
@@ -141,11 +140,7 @@ const ProfilePage = () => {
 
       <ConfirmationMessage
         open={confirmLogout}
-        title="Cerrar sesión"
-        reason="¿Deseas cerrar tu sesión actual?"
-        acceptLabel="Cerrar sesión"
-        rejectLabel="Cancelar"
-        variant="destructive"
+        {...CONFIRMATION_MESSAGES.session.logout}
         onAccept={handleLogout}
         onReject={() => setConfirmLogout(false)}
       />

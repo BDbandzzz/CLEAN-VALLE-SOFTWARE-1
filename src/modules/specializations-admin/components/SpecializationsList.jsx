@@ -21,6 +21,7 @@ import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { EmptyState } from '@/core/components/ui/empty-state';
 import { Input } from '@/core/components/ui/input';
 import { SelectField } from '@/core/components/ui/select-field';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { deleteManagedSpecialization } from '@/services/adminSpecializationService';
 
 function normalize(value) {
@@ -209,11 +210,7 @@ export function SpecializationsList({
 
       <ConfirmationMessage
         open={Boolean(specializationToDelete)}
-        title="Eliminar especialización"
-        reason="Solo se eliminará si no está asignada a ningún operador."
-        acceptLabel="Eliminar"
-        rejectLabel="Cancelar"
-        variant="destructive"
+        {...CONFIRMATION_MESSAGES.specializations.delete}
         isLoading={isSaving}
         onAccept={confirmDelete}
         onReject={() => setSpecializationToDelete(null)}

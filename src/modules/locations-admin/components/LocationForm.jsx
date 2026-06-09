@@ -9,8 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/core/components/ui/card';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useLocationManagement } from '@/modules/locations-admin/context/LocationManagementContext';
 
 const EMPTY_FORM = {
@@ -33,7 +35,11 @@ export function LocationForm({ location, onSaved }) {
   const [formData, setFormData] = useState(() => mapLocationToForm(location));
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [confirmSave, setConfirmSave] = useState(false);
   const isEditing = Boolean(location);
+  const confirmation = isEditing
+    ? CONFIRMATION_MESSAGES.locations.update(formData.label)
+    : CONFIRMATION_MESSAGES.locations.create(formData.label);
 
   const updateField = (field, value) => {
     setFormData((current) => ({ ...current, [field]: value }));
@@ -78,8 +84,7 @@ export function LocationForm({ location, onSaved }) {
     setMessage('');
   };
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const validateForm = () => {
     const nextErrors = {};
     if (!formData.label.trim()) nextErrors.label = 'El nombre del lugar es obligatorio.';
     if (formData.subareas.some((subarea) => !subarea.label.trim())) {
@@ -87,9 +92,17 @@ export function LocationForm({ location, onSaved }) {
     }
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
-      return;
+      return false;
     }
+    return true;
+  };
 
+  const requestSave = (event) => {
+    event.preventDefault();
+    if (validateForm()) setConfirmSave(true);
+  };
+
+  const confirmSaveLocation = async () => {
     try {
       if (isEditing) {
         await updateLocation(location.id, formData);
@@ -100,6 +113,7 @@ export function LocationForm({ location, onSaved }) {
         setMessage('La localización fue creada correctamente.');
       }
       setErrors({});
+      setConfirmSave(false);
       onSaved?.();
     } catch (error) {
       setErrors({ form: error.message });
@@ -116,7 +130,7 @@ export function LocationForm({ location, onSaved }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={requestSave} className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="location-name">Nombre</Label>
@@ -231,6 +245,14 @@ export function LocationForm({ location, onSaved }) {
           </div>
         </form>
       </CardContent>
+
+      <ConfirmationMessage
+        open={confirmSave}
+        {...confirmation}
+        isLoading={isMutating}
+        onAccept={confirmSaveLocation}
+        onReject={() => setConfirmSave(false)}
+      />
     </Card>
   );
 }

@@ -10,9 +10,8 @@ export function useEditUserForm(user) {
   const initialData = useMemo(() => mapUserToForm(user), [user]);
   const form = useUserForm(initialData);
 
-  const submitForm = async (event) => {
-    event.preventDefault();
-    if (!user) return null;
+  const validateForm = () => {
+    if (!user) return false;
 
     const validationErrors = validateUserForm(form.formData, users, {
       mode: 'edit',
@@ -22,9 +21,13 @@ export function useEditUserForm(user) {
     if (Object.keys(validationErrors).length > 0) {
       form.setErrors(validationErrors);
       form.setMessage('');
-      return null;
+      return false;
     }
+    return true;
+  };
 
+  const submitForm = async () => {
+    if (!validateForm()) return null;
     try {
       const updatedUser = await updateUser(user.id, form.formData);
       form.setErrors({});
@@ -39,6 +42,7 @@ export function useEditUserForm(user) {
 
   return {
     ...form,
+    validateForm,
     submitForm,
   };
 }

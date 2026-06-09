@@ -21,6 +21,7 @@ import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { EmptyState } from '@/core/components/ui/empty-state';
 import { Input } from '@/core/components/ui/input';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useLocationManagement } from '@/modules/locations-admin/context/LocationManagementContext';
 
 function normalize(value) {
@@ -42,6 +43,9 @@ export function LocationsList({ onEdit }) {
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [locationToToggle, setLocationToToggle] = useState(null);
+  const confirmation = locationToToggle?.active
+    ? CONFIRMATION_MESSAGES.locations.deactivate
+    : CONFIRMATION_MESSAGES.locations.reactivate;
 
   const filteredLocations = useMemo(() => {
     const query = normalize(search);
@@ -233,17 +237,7 @@ export function LocationsList({ onEdit }) {
 
       <ConfirmationMessage
         open={Boolean(locationToToggle)}
-        title={
-          locationToToggle?.active ? 'Desactivar localización' : 'Reactivar localización'
-        }
-        reason={
-          locationToToggle?.active
-            ? 'El lugar dejará de estar disponible al crear reportes.'
-            : 'El lugar volverá a estar disponible al crear reportes.'
-        }
-        acceptLabel={locationToToggle?.active ? 'Desactivar' : 'Reactivar'}
-        rejectLabel="Cancelar"
-        variant={locationToToggle?.active ? 'destructive' : 'default'}
+        {...confirmation}
         isLoading={isMutating}
         onAccept={confirmToggle}
         onReject={() => setLocationToToggle(null)}

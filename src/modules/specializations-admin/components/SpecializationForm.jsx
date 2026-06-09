@@ -9,9 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/core/components/ui/card';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import { SelectField } from '@/core/components/ui/select-field';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import {
   createManagedSpecialization,
   updateManagedSpecialization,
@@ -36,18 +38,29 @@ export function SpecializationForm({
   );
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
+  const [confirmSave, setConfirmSave] = useState(false);
   const isEditing = Boolean(specialization);
+  const confirmation = isEditing
+    ? CONFIRMATION_MESSAGES.specializations.update(formData.label)
+    : CONFIRMATION_MESSAGES.specializations.create(formData.label);
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const validateForm = () => {
     const nextErrors = {};
     if (!formData.categoryId) nextErrors.categoryId = 'Selecciona una categoría.';
     if (!formData.label.trim()) nextErrors.label = 'El nombre es obligatorio.';
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
-      return;
+      return false;
     }
+    return true;
+  };
 
+  const requestSave = (event) => {
+    event.preventDefault();
+    if (validateForm()) setConfirmSave(true);
+  };
+
+  const confirmSaveSpecialization = async () => {
     setIsSaving(true);
     try {
       if (isEditing) {
@@ -59,6 +72,7 @@ export function SpecializationForm({
         setMessage('La especialización fue creada.');
       }
       setErrors({});
+      setConfirmSave(false);
       await onSaved?.();
     } catch (error) {
       setErrors({ form: error.message });
@@ -79,7 +93,7 @@ export function SpecializationForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="space-y-5">
+        <form onSubmit={requestSave} className="space-y-5">
           <SelectField
             id="specialization-category"
             label="Categoría"
@@ -135,6 +149,14 @@ export function SpecializationForm({
           </Button>
         </form>
       </CardContent>
+
+      <ConfirmationMessage
+        open={confirmSave}
+        {...confirmation}
+        isLoading={isSaving}
+        onAccept={confirmSaveSpecialization}
+        onReject={() => setConfirmSave(false)}
+      />
     </Card>
   );
 }

@@ -24,6 +24,7 @@ import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import { SelectField } from '@/core/components/ui/select-field';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
 import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
@@ -48,6 +49,9 @@ export function ManagedUsersList({ onEditUser }) {
   const [page, setPage] = useState(1);
   const [userToToggle, setUserToToggle] = useState(null);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const confirmation = userToToggle?.active === false
+    ? CONFIRMATION_MESSAGES.users.reactivate
+    : CONFIRMATION_MESSAGES.users.deactivate;
 
   const stateId = useMemo(() => {
     if (status === 'active') return ELEMENT_STATE_IDS.ACTIVE;
@@ -298,21 +302,7 @@ export function ManagedUsersList({ onEditUser }) {
 
       <ConfirmationMessage
         open={Boolean(userToToggle)}
-        title={
-          userToToggle?.active === false
-            ? 'Reactivar usuario'
-            : 'Desactivar usuario'
-        }
-        reason={
-          userToToggle?.active === false
-            ? 'La cuenta recuperará el acceso al sistema.'
-            : 'La cuenta perderá el acceso. Sus registros permanecerán almacenados.'
-        }
-        acceptLabel={
-          userToToggle?.active === false ? 'Reactivar' : 'Desactivar'
-        }
-        rejectLabel="Cancelar"
-        variant={userToToggle?.active === false ? 'default' : 'destructive'}
+        {...confirmation}
         isLoading={isMutating}
         onAccept={confirmToggle}
         onReject={() => setUserToToggle(null)}

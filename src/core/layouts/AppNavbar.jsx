@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { APP_NAME, INSTITUTION_NAME, UNIVALLE_LOGO_SRC } from '@/core/constants/branding';
 import { sidebarConfig } from '@/core/constants/sidebarConfig';
@@ -81,11 +82,7 @@ export function AppNavbar({ roleId }) {
 
       <ConfirmationMessage
         open={confirmLogout}
-        title="Cerrar sesión"
-        reason="¿Deseas cerrar tu sesión actual?"
-        acceptLabel="Cerrar sesión"
-        rejectLabel="Cancelar"
-        variant="destructive"
+        {...CONFIRMATION_MESSAGES.session.logout}
         isLoading={isLoggingOut}
         onAccept={handleLogout}
         onReject={() => setConfirmLogout(false)}

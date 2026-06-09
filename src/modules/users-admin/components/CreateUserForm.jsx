@@ -1,4 +1,5 @@
 import { UserRoundPlus } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   Card,
@@ -7,18 +8,37 @@ import {
   CardHeader,
   CardTitle,
 } from '@/core/components/ui/card';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { UserForm } from '@/modules/users-admin/components/UserForm';
+import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
 import { useCreateUserForm } from '@/modules/users-admin/hooks/useCreateUserForm';
 
 export function CreateUserForm() {
+  const [confirmCreate, setConfirmCreate] = useState(false);
+  const { isMutating } = useUserManagement();
   const {
     formData,
     errors,
     message,
     updateField,
     resetForm,
+    validateForm,
     submitForm,
   } = useCreateUserForm();
+  const confirmation = CONFIRMATION_MESSAGES.users.create(
+    `${formData.firstName} ${formData.lastName}`.trim()
+  );
+
+  const requestCreate = (event) => {
+    event.preventDefault();
+    if (validateForm()) setConfirmCreate(true);
+  };
+
+  const confirmCreation = async () => {
+    const createdUser = await submitForm();
+    if (createdUser) setConfirmCreate(false);
+  };
 
   return (
     <Card>
@@ -39,11 +59,19 @@ export function CreateUserForm() {
           errors={errors}
           message={message}
           onFieldChange={updateField}
-          onSubmit={submitForm}
+          onSubmit={requestCreate}
           onReset={resetForm}
           submitLabel="Guardar usuario"
         />
       </CardContent>
+
+      <ConfirmationMessage
+        open={confirmCreate}
+        {...confirmation}
+        isLoading={isMutating}
+        onAccept={confirmCreation}
+        onReject={() => setConfirmCreate(false)}
+      />
     </Card>
   );
 }

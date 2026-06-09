@@ -7,16 +7,19 @@ export function useCreateReportTypeForm() {
   const { reportTypes, createReportType } = useReportTypeManagement();
   const form = useReportTypeForm(INITIAL_REPORT_TYPE_FORM);
 
-  const submitForm = async (event) => {
-    event.preventDefault();
+  const validateForm = () => {
     const validationErrors = validateReportTypeForm(form.formData, reportTypes);
 
     if (Object.keys(validationErrors).some((key) => key !== 'subtypeErrors' || Object.keys(validationErrors.subtypeErrors ?? {}).length)) {
       form.setErrors(validationErrors);
       form.setMessage('');
-      return null;
+      return false;
     }
+    return true;
+  };
 
+  const submitForm = async () => {
+    if (!validateForm()) return null;
     try {
       const createdType = await createReportType(form.formData);
       form.setFormData(INITIAL_REPORT_TYPE_FORM);
@@ -30,5 +33,5 @@ export function useCreateReportTypeForm() {
     }
   };
 
-  return { ...form, submitForm };
+  return { ...form, validateForm, submitForm };
 }

@@ -7,16 +7,19 @@ export function useCreateUserForm() {
   const { users, createUser } = useUserManagement();
   const form = useUserForm(INITIAL_USER_FORM);
 
-  const submitForm = async (event) => {
-    event.preventDefault();
+  const validateForm = () => {
     const validationErrors = validateUserForm(form.formData, users, { mode: 'create' });
 
     if (Object.keys(validationErrors).length > 0) {
       form.setErrors(validationErrors);
       form.setMessage('');
-      return null;
+      return false;
     }
+    return true;
+  };
 
+  const submitForm = async () => {
+    if (!validateForm()) return null;
     try {
       const createdUser = await createUser(form.formData);
       form.setFormData(INITIAL_USER_FORM);
@@ -32,6 +35,7 @@ export function useCreateUserForm() {
 
   return {
     ...form,
+    validateForm,
     submitForm,
   };
 }

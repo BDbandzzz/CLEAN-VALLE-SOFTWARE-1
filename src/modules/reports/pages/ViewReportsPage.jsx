@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
 
 import { EmptyState } from '@/core/components/ui/empty-state';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { ReportCard } from '../components/ReportCard';
 import { ReportFilters } from '../components/ReportFilters';
 import { useReports } from '../context/ReportsContext';
@@ -61,6 +63,7 @@ const ViewReportsPage = () => {
   } = useReportCatalogs();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeTab, setActiveTab] = useState(TABS.mine);
+  const [reportToDelete, setReportToDelete] = useState(null);
 
   useEffect(() => {
     if (categories.length === 0) return;
@@ -93,6 +96,11 @@ const ViewReportsPage = () => {
     setFilters((prev) => ({ ...prev, ...partial }));
 
   const handleClearFilters = () => setFilters(EMPTY_FILTERS);
+  const confirmDelete = () => {
+    if (!reportToDelete) return;
+    deleteReport(reportToDelete);
+    setReportToDelete(null);
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-12">
@@ -131,7 +139,7 @@ const ViewReportsPage = () => {
             <ReportCard
               key={report.id}
               report={report}
-              onDelete={deleteReport}
+              onDelete={setReportToDelete}
               showResolutionSummary={activeTab === TABS.resolved}
             />
           ))
@@ -144,6 +152,13 @@ const ViewReportsPage = () => {
           />
         )}
       </div>
+
+      <ConfirmationMessage
+        open={Boolean(reportToDelete)}
+        {...CONFIRMATION_MESSAGES.reports.delete}
+        onAccept={confirmDelete}
+        onReject={() => setReportToDelete(null)}
+      />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { Tags } from 'lucide-react';
+import { useState } from 'react';
 
 import {
   Card,
@@ -7,11 +8,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/core/components/ui/card';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { ReportTypeForm } from '@/modules/report-types-admin/components/ReportTypeForm';
+import { useReportTypeManagement } from '@/modules/report-types-admin/context/ReportTypeManagementContext';
 import { useCreateReportTypeForm } from '@/modules/report-types-admin/hooks/useCreateReportTypeForm';
 
 export function CreateReportTypeForm() {
+  const [confirmCreate, setConfirmCreate] = useState(false);
+  const { isMutating } = useReportTypeManagement();
   const form = useCreateReportTypeForm();
+  const confirmation = CONFIRMATION_MESSAGES.reportTypes.create(form.formData.label);
+
+  const requestCreate = (event) => {
+    event.preventDefault();
+    if (form.validateForm()) setConfirmCreate(true);
+  };
+
+  const confirmCreation = async () => {
+    const createdType = await form.submitForm();
+    if (createdType) setConfirmCreate(false);
+  };
 
   return (
     <Card>
@@ -34,11 +51,19 @@ export function CreateReportTypeForm() {
           onSubtypeAdd={form.addSubtype}
           onSubtypeChange={form.updateSubtype}
           onSubtypeRemove={form.removeSubtype}
-          onSubmit={form.submitForm}
+          onSubmit={requestCreate}
           onReset={form.resetForm}
           submitLabel="Guardar tipo"
         />
       </CardContent>
+
+      <ConfirmationMessage
+        open={confirmCreate}
+        {...confirmation}
+        isLoading={isMutating}
+        onAccept={confirmCreation}
+        onReject={() => setConfirmCreate(false)}
+      />
     </Card>
   );
 }

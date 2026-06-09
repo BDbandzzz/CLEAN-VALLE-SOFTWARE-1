@@ -9,6 +9,8 @@ import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
 import { formControlClass } from '@/core/components/forms/formStyles';
 import { Button } from '@/core/components/ui/button';
+import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { REPORT_TEXTAREA_FIELDS } from '../constants/reportConstants';
 import { useReportForm } from '../hooks/useReportForm';
 import { SelectionGroup } from './SelectionGroup';
@@ -30,6 +32,7 @@ export function CreateReportForm({
 }) {
   const { form, errors, touched, set, reset, handleSubmit } = useReportForm();
   const [images, setImages] = useState([]);
+  const [pendingReport, setPendingReport] = useState(null);
 
   const subtypeOptions = subtypesByCategory[form.categoryId] ?? [];
   const subareaOptions = subareasByLocalization[form.localizationId] ?? [];
@@ -57,14 +60,14 @@ export function CreateReportForm({
     onLocalizationSelect?.(id);
   };
 
-  const submitReport = (formData) => {
+  const prepareReport = (formData) => {
     const category = categories.find((item) => item.id === formData.categoryId);
     const subtype = subtypeOptions.find((item) => item.id === formData.subtypeId);
     const riskLevel = riskLevels.find((item) => item.id === formData.riskLevelId);
     const localization = localizations.find((item) => item.id === formData.localizationId);
     const subarea = subareaOptions.find((item) => item.id === formData.subareaId);
 
-    onSubmit({
+    setPendingReport({
       ...formData,
       categoryName: category?.label ?? '',
       categoryColor: category?.color ?? '#6b7280',
@@ -77,10 +80,16 @@ export function CreateReportForm({
     });
   };
 
+  const confirmReport = async () => {
+    if (!pendingReport) return;
+    await onSubmit(pendingReport);
+    setPendingReport(null);
+  };
+
   return (
     <form
       onSubmit={(e) =>
-        handleSubmit(e, images.map((image) => URL.createObjectURL(image)), submitReport, {
+        handleSubmit(e, images.map((image) => URL.createObjectURL(image)), prepareReport, {
           subtypeOptions,
           subareaOptions,
         })
@@ -278,6 +287,14 @@ export function CreateReportForm({
           Limpiar
         </Button>
       </div>
+
+      <ConfirmationMessage
+        open={Boolean(pendingReport)}
+        {...CONFIRMATION_MESSAGES.reports.create(pendingReport?.title)}
+        isLoading={isSubmitting}
+        onAccept={confirmReport}
+        onReject={() => setPendingReport(null)}
+      />
     </form>
   );
 }

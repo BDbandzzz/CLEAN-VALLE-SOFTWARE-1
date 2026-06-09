@@ -23,6 +23,7 @@ import { EmptyState } from '@/core/components/ui/empty-state';
 import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useReportTypeManagement } from '@/modules/report-types-admin/context/ReportTypeManagementContext';
 
 function normalize(value) {
@@ -46,6 +47,9 @@ export function ReportTypesList({ onEditType }) {
   const [typeToToggle, setTypeToToggle] = useState(null);
   const [page, setPage] = useState(1);
   const pageSize = 8;
+  const confirmation = typeToToggle?.active === false
+    ? CONFIRMATION_MESSAGES.reportTypes.reactivate
+    : CONFIRMATION_MESSAGES.reportTypes.deactivate;
 
   const counts = useMemo(
     () => ({
@@ -240,15 +244,7 @@ export function ReportTypesList({ onEditType }) {
 
       <ConfirmationMessage
         open={Boolean(typeToToggle)}
-        title={typeToToggle?.active === false ? 'Reactivar tipo de reporte' : 'Deshabilitar tipo de reporte'}
-        reason={
-          typeToToggle?.active === false
-            ? 'El tipo y sus razones volverán a estar disponibles.'
-            : 'El tipo y todas sus razones asociadas quedarán deshabilitadas.'
-        }
-        acceptLabel={typeToToggle?.active === false ? 'Reactivar' : 'Deshabilitar'}
-        rejectLabel="Cancelar"
-        variant={typeToToggle?.active === false ? 'default' : 'destructive'}
+        {...confirmation}
         isLoading={isMutating}
         onAccept={confirmToggle}
         onReject={() => setTypeToToggle(null)}
