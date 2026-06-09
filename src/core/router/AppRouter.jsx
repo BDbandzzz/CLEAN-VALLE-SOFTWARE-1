@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { AUTH_PATHS } from '@/core/constants/authRoutes';
 import LandingPage from '@/modules/landing/pages/LandingPage';
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
+import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage';
 import ProfilePage from '@/modules/profile/pages/ProfilePage';
 import ChangePasswordPage from '@/modules/security/pages/ChangePasswordPage';
 import CreateReportPage from '@/modules/reports/pages/CreateReportPage';
@@ -19,8 +21,9 @@ const AppRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/recover-pass" element={<RecoverPassword />} />
+      <Route path={AUTH_PATHS.login} element={<LoginPage />} />
+      <Route path={AUTH_PATHS.recoverPassword} element={<RecoverPassword />} />
+      <Route path={AUTH_PATHS.resetPassword} element={<ResetPasswordPage />} />
 
       <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
       <Route path="/change-password" element={<PrivateRoute element={<ChangePasswordPage />} />} />

@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { Field } from '@/core/components/ui/fields';
+import { AUTH_PATHS } from '@/core/constants/authRoutes';
 import {
   APP_NAME,
   INSTITUTION_NAME,
@@ -121,7 +122,7 @@ const LoginPage = () => {
             <div className="pt-2 text-center">
               <button
                 type="button"
-                onClick={() => navigate('/recover-pass')}
+                onClick={() => navigate(AUTH_PATHS.recoverPassword)}
                 className="cursor-pointer text-sm text-primary underline-offset-4 transition hover:underline"
               >
                 Olvidaste tu contrasena?

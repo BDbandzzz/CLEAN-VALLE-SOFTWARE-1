@@ -13,7 +13,7 @@ import { USER_ROLES } from '@/core/data/catalogs';
  *   dniUser      {string}  Número de documento del usuario.
  *   emailPreview {string}  Correo actual del usuario (puede estar vacío).
  */
-export function ProfileSummaryCard({ dniUser, emailPreview, role, state }) {
+export function ProfileSummaryCard({ dniUser, emailPreview, role }) {
   return (
     <Card className="h-fit border-primary/15 bg-gradient-to-br from-card to-emerald-50/40 lg:col-span-1">
       <CardHeader>
