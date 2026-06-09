@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
 
 const ReportsContext = createContext();
@@ -134,11 +135,14 @@ function buildManagerNotifications(reports) {
 function buildUserNotifications(reports, user) {
   if (!user?.id) return [];
 
-  if (user.role === 'operador') {
+  if (user.roleId === USER_ROLE_IDS.OPERATOR) {
     return buildOperatorNotifications(reports, user.id);
   }
 
-  if (user.role === 'gestor' || user.role === 'admin') {
+  if (
+    user.roleId === USER_ROLE_IDS.MANAGER ||
+    user.roleId === USER_ROLE_IDS.ADMIN
+  ) {
     return buildManagerNotifications(reports);
   }
 

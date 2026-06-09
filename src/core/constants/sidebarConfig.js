@@ -1,5 +1,7 @@
 import { Bell, Eye, GraduationCap, LayoutDashboard, Lock, LogOut, ClipboardPlus, ShieldCheck, Tags, User, UserCog, Users, Wrench } from 'lucide-react';
 
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
+
 const reportItems = [
   {
     title: 'Crear Reporte',
@@ -34,7 +36,7 @@ const securityItems = [
 ];
 
 export const sidebarConfig = {
-  estudiante: [
+  [USER_ROLE_IDS.STUDENT]: [
     {
       title: 'Perfil',
       url: '/profile',
@@ -44,7 +46,7 @@ export const sidebarConfig = {
     ...securityItems,
   ],
 
-  profesor: [
+  [USER_ROLE_IDS.TEACHER]: [
     {
       title: 'Perfil',
       url: '/profile',
@@ -54,7 +56,7 @@ export const sidebarConfig = {
     ...securityItems,
   ],
 
-  operador: [
+  [USER_ROLE_IDS.OPERATOR]: [
     {
       title: 'Perfil',
       url: '/profile',
@@ -68,7 +70,7 @@ export const sidebarConfig = {
     ...securityItems,
   ],
 
-  gestor: [
+  [USER_ROLE_IDS.MANAGER]: [
     {
       title: 'Perfil',
       url: '/profile',
@@ -77,7 +79,7 @@ export const sidebarConfig = {
     ...securityItems,
   ],
 
-  admin: [
+  [USER_ROLE_IDS.ADMIN]: [
     {
       title: 'Panel admin',
       url: '/admin',

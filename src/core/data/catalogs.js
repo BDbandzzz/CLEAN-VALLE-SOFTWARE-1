@@ -1,11 +1,3 @@
-export const USER_ROLES = {
-  estudiante: 'Estudiante',
-  profesor: 'Profesor',
-  operador: 'Operador',
-  gestor: 'Gestor de reportes',
-  admin: 'Administrador',
-};
-
 export const OPERATOR_SPECIALIZATIONS = [];
 export const DOCUMENT_TYPES = [];
 export const GENDERS = [];

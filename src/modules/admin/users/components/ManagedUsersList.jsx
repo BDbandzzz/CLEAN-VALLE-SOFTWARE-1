@@ -15,22 +15,12 @@ import { Label } from '@/core/components/ui/label';
 import { SelectField } from '@/core/components/ui/select-field';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { useAuth } from '@/core/context/AuthContext';
-import { OPERATOR_SPECIALIZATIONS, USER_ROLES } from '@/core/data/catalogs';
+import { OPERATOR_SPECIALIZATIONS } from '@/core/data/catalogs';
+import { USER_ROLE_OPTIONS } from '@/modules/admin/users/constants/userFormOptions';
 import { useUserManagement } from '@/modules/admin/users/context/UserManagementContext';
 import { useManagedUserFilters } from '@/modules/admin/users/hooks/useManagedUserFilters';
 
-const ROLE_COLORS = {
-  estudiante: '#2563eb',
-  profesor: '#7c3aed',
-  gestor: '#d97706',
-  operador: '#0f766e',
-  admin: '#991b1b',
-};
-
-const ROLE_FILTER_OPTIONS = Object.entries(USER_ROLES).map(([id, label]) => ({
-  id,
-  label,
-}));
+const ROLE_FILTER_OPTIONS = USER_ROLE_OPTIONS;
 
 function getSpecializationLabels(ids = []) {
   return ids
@@ -142,8 +132,8 @@ export function ManagedUsersList({ onEditUser }) {
                       {user.firstName} {user.lastName}
                     </h3>
                     <ColorPill
-                      label={USER_ROLES[user.role] ?? user.role}
-                      color={ROLE_COLORS[user.role] ?? '#6b7280'}
+                      label={user.roleName || 'Rol sin nombre'}
+                      color={user.roleColor || '#6b7280'}
                     />
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${

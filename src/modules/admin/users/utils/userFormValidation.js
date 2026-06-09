@@ -1,3 +1,5 @@
+import { isOperatorRoleId } from '@/core/mappers/domainMappers';
+
 export function validateUserForm(formData, users, options = {}) {
   const { mode = 'create', currentUserId = null } = options;
   const errors = {};
@@ -9,7 +11,7 @@ export function validateUserForm(formData, users, options = {}) {
     ['dniUser', 'El documento es obligatorio.'],
     ['typeDniId', 'Selecciona el tipo de documento.'],
     ['genderId', 'Selecciona el género.'],
-    ['role', 'Selecciona el rol del usuario.'],
+    ['roleId', 'Selecciona el rol del usuario.'],
   ];
 
   requiredFields.forEach(([field, message]) => {
@@ -60,7 +62,7 @@ export function validateUserForm(formData, users, options = {}) {
     errors.confirmPassword = 'Las contraseñas no coinciden.';
   }
 
-  if (formData.role === 'operador' && formData.specializationIds.length === 0) {
+  if (isOperatorRoleId(formData.roleId) && formData.specializationIds.length === 0) {
     errors.specializationIds = 'Selecciona al menos una especialidad para el operador.';
   }
 

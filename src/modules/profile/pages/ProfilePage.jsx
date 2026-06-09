@@ -38,7 +38,7 @@ const ProfilePage = () => {
       ...prev,
       typeDni: getTypeDniLabel(user),
       gender: getGenderLabel(user),
-      state: user.state ?? '',
+      state: user.stateName ?? '',
     }));
   }, [user]);
 
@@ -98,7 +98,6 @@ const ProfilePage = () => {
       <ProfileHero
         initials={initials}
         displayName={`${formData.firstName} ${formData.lastName}`.trim()}
-        userRole={user.role}
         onLogout={handleLogout}
       />
 
@@ -106,8 +105,7 @@ const ProfilePage = () => {
         <ProfileSummaryCard
           dniUser={user.dniUser}
           emailPreview={formData.email}
-          role={user.role}
-          state={formData.state}
+          roleName={user.roleName}
         />
 
         <div className="space-y-6 lg:col-span-2">

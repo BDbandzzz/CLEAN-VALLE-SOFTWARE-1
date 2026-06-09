@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     const nextUser = await signIn(email, password);
     setUser(nextUser);
     cacheUser(nextUser);
-    return nextUser.role;
+    return nextUser.roleId;
   };
 
   const clearSession = useCallback(async () => {

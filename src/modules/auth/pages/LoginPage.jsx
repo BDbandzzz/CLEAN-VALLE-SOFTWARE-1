@@ -5,6 +5,7 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { Field } from '@/core/components/ui/fields';
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import {
   APP_NAME,
   INSTITUTION_NAME,
@@ -13,8 +14,8 @@ import {
 import { useAuth } from '@/core/context/AuthContext';
 
 const ROLE_HOME_PATHS = {
-  operador: '/operator',
-  admin: '/admin',
+  [USER_ROLE_IDS.OPERATOR]: '/operator',
+  [USER_ROLE_IDS.ADMIN]: '/admin',
 };
 
 const LoginPage = () => {
@@ -34,8 +35,8 @@ const LoginPage = () => {
     setErrorMsg('');
 
     try {
-      const role = await login(email, password);
-      navigate(ROLE_HOME_PATHS[role] ?? '/reports/view');
+      const roleId = await login(email, password);
+      navigate(ROLE_HOME_PATHS[roleId] ?? '/reports/view');
     } catch {
       setErrorMsg('Credenciales incorrectas. Por favor, intenta de nuevo.');
     }

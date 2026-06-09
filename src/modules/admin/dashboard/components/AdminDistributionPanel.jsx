@@ -1,6 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/core/components/ui/card';
 
-export function AdminDistributionPanel({ title, description, items, valueLabel = 'registros' }) {
+export function AdminDistributionPanel({
+  title,
+  description,
+  items,
+  valueLabel = 'registros',
+  isLoading = false,
+}) {
   return (
     <Card className="min-h-full">
       <CardHeader>
@@ -9,6 +15,18 @@ export function AdminDistributionPanel({ title, description, items, valueLabel =
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {isLoading && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Cargando distribución...
+          </p>
+        )}
+
+        {!isLoading && items.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No hay datos disponibles.
+          </p>
+        )}
+
         {items.map((item) => (
           <div key={item.id} className="space-y-1.5">
             <div className="flex items-center justify-between gap-3 text-sm">

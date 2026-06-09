@@ -4,6 +4,7 @@ import { Button } from '@/core/components/ui/button';
 import { MultiSelectField } from '@/core/components/ui/multi-select-field';
 import { SelectField } from '@/core/components/ui/select-field';
 import { OPERATOR_SPECIALIZATIONS, getCatalogOptions } from '@/core/data/catalogs';
+import { isOperatorRoleId } from '@/core/mappers/domainMappers';
 import { UserTextField } from '@/modules/admin/users/components/UserTextField';
 import { ADMIN_CREATABLE_ROLES } from '@/modules/admin/users/constants/userFormOptions';
 
@@ -36,11 +37,11 @@ export function UserForm({
         <SelectField
           id={`${mode}-role`}
           label="Rol"
-          value={formData.role}
+          value={formData.roleId}
           options={ADMIN_CREATABLE_ROLES}
-          onChange={(event) => onFieldChange('role', event.target.value)}
+          onChange={(event) => onFieldChange('roleId', event.target.value)}
           required
-          error={errors.role}
+          error={errors.roleId}
         />
         <UserTextField
           id={`${mode}-firstName`}
@@ -97,7 +98,7 @@ export function UserForm({
       </div>
 
       
-      {formData.role === 'operador' && (
+      {isOperatorRoleId(formData.roleId) && (
         <section className="space-y-4 border-t border-border pt-6">
           <div className="flex items-center gap-2">
             <Wrench className="size-5 text-primary" />

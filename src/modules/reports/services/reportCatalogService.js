@@ -1,7 +1,8 @@
 import { supabase } from '@/core/services/supabaseClient';
+import { isActiveState } from '@/core/mappers/domainMappers';
 
 function isActive(row) {
-  return row.state_element?.type_state?.trim().toLowerCase() === 'activo';
+  return isActiveState(row.id_state);
 }
 
 function mapCategory(row) {
@@ -56,8 +57,7 @@ export async function getActiveReportCategories() {
       id_state,
       name,
       color_hex,
-      description,
-      state_element(id_state,type_state)
+      description
     `)
     .order('name', { ascending: true });
 

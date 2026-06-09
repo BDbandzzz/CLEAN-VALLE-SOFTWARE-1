@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import LandingPage from '@/modules/landing/pages/LandingPage';
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
@@ -12,7 +13,7 @@ import ViewReportsPage from '@/modules/reports/pages/ViewReportsPage';
 import NotificationsPage from '@/modules/notifications/pages/NotificationsPage';
 import OperatorDashboardPage from '@/modules/operator/pages/OperatorDashboardPage';
 import OperatorResolutionPage from '@/modules/operator/pages/OperatorResolutionPage';
-import AdminDashboardPage from '@/modules/admin/pages/AdminDashboardPage';
+import AdminDashboardPage from '@/modules/admin/dashboard/pages/AdminDashboardPage';
 import UserManagementPage from '@/modules/admin/users/pages/UserManagementPage';
 import ReportTypeManagementPage from '@/modules/admin/report-types/pages/ReportTypeManagementPage';
 import PrivateRoute from '@/core/router/PrivateRoute';
@@ -32,14 +33,14 @@ const AppRouter = () => {
       <Route path="/notifications" element={<PrivateRoute element={<NotificationsPage />} />} />
       <Route path="/operator" element={<PrivateRoute element={<OperatorDashboardPage />} />} />
       <Route path="/operator/reports/:reportId/resolution" element={<PrivateRoute element={<OperatorResolutionPage />} />} />
-      <Route path="/admin" element={<PrivateRoute allowedRoles={['admin']} element={<AdminDashboardPage />} />} />
+      <Route path="/admin" element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<AdminDashboardPage />} />} />
       <Route
         path="/admin/users"
-        element={<PrivateRoute allowedRoles={['admin']} element={<UserManagementPage />} />}
+        element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<UserManagementPage />} />}
       />
       <Route
         path="/admin/report-types"
-        element={<PrivateRoute allowedRoles={['admin']} element={<ReportTypeManagementPage />} />}
+        element={<PrivateRoute allowedRoleIds={[USER_ROLE_IDS.ADMIN]} element={<ReportTypeManagementPage />} />}
       />
 
       <Route path="/home" element={<Navigate to="/reports/view" replace />} />

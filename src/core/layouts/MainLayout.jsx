@@ -1,3 +1,4 @@
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
 import { AppNavbar } from './AppNavbar';
 
@@ -6,7 +7,7 @@ function MainLayout({ children }) {
 
   return (
     <div className="min-h-screen w-full bg-muted/30">
-      <AppNavbar role={user?.role || 'estudiante'} />
+      <AppNavbar roleId={user?.roleId ?? USER_ROLE_IDS.STUDENT} />
       <main className="min-h-[calc(100vh-4rem)] min-w-0 overflow-x-auto p-5 lg:p-8">{children}</main>
     </div>
   );

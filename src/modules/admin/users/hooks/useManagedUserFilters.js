@@ -25,7 +25,8 @@ export function useManagedUserFilters(users) {
         status === ALL_STATUSES ||
         (status === 'active' && isActive) ||
         (status === 'inactive' && !isActive);
-      const matchesRole = role === ALL_ROLES || user.role === role;
+      const matchesRole =
+        role === ALL_ROLES || Number(user.roleId) === Number(role);
       const searchableText = normalize([
         user.firstName,
         user.lastName,

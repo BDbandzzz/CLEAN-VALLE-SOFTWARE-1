@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { APP_NAME, INSTITUTION_NAME, UNIVALLE_LOGO_SRC } from '@/core/constants/branding';
 import { sidebarConfig } from '@/core/constants/sidebarConfig';
 import { useAuth } from '@/core/context/AuthContext';
 import { cn } from '@/core/lib/utils';
 
-export function AppNavbar({ role }) {
-  const items = sidebarConfig[role] || sidebarConfig.estudiante;
+export function AppNavbar({ roleId }) {
+  const items = sidebarConfig[roleId] || sidebarConfig[USER_ROLE_IDS.STUDENT];
   const navigate = useNavigate();
   const { logout } = useAuth();
 

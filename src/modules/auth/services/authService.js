@@ -1,12 +1,5 @@
+import { isActiveState } from '@/core/mappers/domainMappers';
 import { supabase } from '@/core/services/supabaseClient';
-
-const ROLE_BY_ID = Object.freeze({
-  1: 'estudiante',
-  2: 'profesor',
-  3: 'operador',
-  4: 'gestor',
-  5: 'admin',
-});
 
 async function getUserByAuthId(authId) {
   const { data, error } = await supabase
@@ -15,6 +8,7 @@ async function getUserByAuthId(authId) {
       *,
       type_dni(id_type_dni,dni_type),
       gender(id_gender,gender),
+      roles(role_id,role_name,color_hex),
       state_element(id_state,type_state)
     `)
     .eq('auth_id', authId)
@@ -28,15 +22,11 @@ async function getUserByAuthId(authId) {
 }
 
 function mapUser(authUser, user) {
-  const role = ROLE_BY_ID[user.id_role];
-
-  if (!role) {
+  if (!user.roles?.role_id) {
     throw new Error('Rol no soportado.');
   }
 
-  const state = user.state_element?.type_state ?? '';
-
-  if (user.deleted_at || state.trim().toLowerCase() !== 'activo') {
+  if (user.deleted_at || !isActiveState(user.id_state)) {
     throw new Error('Usuario inactivo.');
   }
 
@@ -45,7 +35,8 @@ function mapUser(authUser, user) {
     authId: user.auth_id,
     codeUser: user.code_user,
     roleId: user.id_role,
-    role,
+    roleName: user.roles.role_name ?? '',
+    roleColor: user.roles.color_hex ?? '',
     firstName: user.first_name ?? '',
     lastName: user.last_name ?? '',
     email: authUser.email ?? '',
@@ -54,6 +45,8 @@ function mapUser(authUser, user) {
     typeDni: user.type_dni?.dni_type ?? '',
     genderId: user.id_gender,
     gender: user.gender?.gender ?? '',
+    stateId: user.id_state,
+    stateName: user.state_element?.type_state ?? '',
     deletedAt: user.deleted_at,
   };
 }

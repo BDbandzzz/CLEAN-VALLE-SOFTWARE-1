@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { isOperatorRoleId } from '@/core/mappers/domainMappers';
 import { INITIAL_USER_FORM } from '@/modules/admin/users/constants/userFormOptions';
 
 export function useUserForm(initialData = INITIAL_USER_FORM) {
@@ -11,7 +12,7 @@ export function useUserForm(initialData = INITIAL_USER_FORM) {
     setFormData((current) => ({
       ...current,
       [field]: value,
-      ...(field === 'role' && value !== 'operador' ? { specializationIds: [] } : {}),
+      ...(field === 'roleId' && !isOperatorRoleId(value) ? { specializationIds: [] } : {}),
     }));
     setErrors((current) => ({ ...current, [field]: '' }));
     setMessage('');

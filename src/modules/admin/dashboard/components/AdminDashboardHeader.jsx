@@ -9,7 +9,7 @@ export function AdminDashboardHeader() {
     <ModuleHero
       icon={<ShieldCheck />}
       title="Panel administrador"
-      description="Vista general de usuarios, reportes y catalogos operativos."
+      description="Vista general de usuarios, reportes y catálogos operativos."
       actions={
         <>
           <Button asChild variant="secondary" className="bg-white/20 text-primary-foreground hover:bg-white/30">

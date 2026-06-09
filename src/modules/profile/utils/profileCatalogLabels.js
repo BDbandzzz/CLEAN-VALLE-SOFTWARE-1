@@ -14,6 +14,6 @@ export function mapUserToProfileForm(user) {
     dniUser: user?.dniUser || '',
     typeDni: getTypeDniLabel(user),
     gender: getGenderLabel(user),
-    state: user?.state || '',
+    state: user?.stateName || '',
   };
 }
