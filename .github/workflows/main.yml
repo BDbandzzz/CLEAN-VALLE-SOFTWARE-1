@@ -48,3 +48,23 @@ jobs:
           target: "/var/www/ds1/cleanvalle"
           strip_components: 1
           rm: false
+
+      - name: Configurar rutas de la SPA
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            printf '%s\n' \
+              'Options -MultiViews' \
+              '<IfModule mod_rewrite.c>' \
+              '  RewriteEngine On' \
+              '  RewriteBase /' \
+              '  RewriteCond %{REQUEST_FILENAME} -f [OR]' \
+              '  RewriteCond %{REQUEST_FILENAME} -d' \
+              '  RewriteRule ^ - [L]' \
+              '  RewriteRule ^ index.html [L]' \
+              '</IfModule>' \
+              > /var/www/ds1/cleanvalle/.htaccess
