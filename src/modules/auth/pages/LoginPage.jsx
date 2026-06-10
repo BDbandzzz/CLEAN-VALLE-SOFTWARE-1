@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertCircle, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,17 +18,13 @@ const ROLE_HOME_PATHS = {
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, clearSession } = useAuth();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  useEffect(() => {
-    clearSession();
-  }, [clearSession]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

@@ -17,8 +17,18 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
     }),
     changePassword: {
       title: 'Cambiar contraseña',
-      reason: 'La contraseña actual será reemplazada por la nueva.',
+      reason:
+        'Se verificará tu contraseña actual antes de reemplazarla por la nueva.',
       acceptLabel: 'Cambiar contraseña',
+      rejectLabel: 'Cancelar',
+    },
+  },
+  authentication: {
+    recoverPassword: {
+      title: 'Restablecer contraseña',
+      reason:
+        'Se reemplazará la contraseña de tu cuenta para recuperar el acceso.',
+      acceptLabel: 'Restablecer contraseña',
       rejectLabel: 'Cancelar',
     },
   },

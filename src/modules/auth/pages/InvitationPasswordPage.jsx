@@ -18,6 +18,7 @@ import {
   createInvitedUserPassword,
   getInvitationSession,
   getInvitationUrlError,
+  hasInvitationToken,
   subscribeToInvitationSession,
 } from '@/services/userInvitationService';
 
@@ -38,12 +39,6 @@ export default function InvitationPasswordPage() {
   useEffect(() => {
     let isMounted = true;
 
-    if (getInvitationUrlError()) {
-      setMessage('La invitación venció o ya fue utilizada.');
-      setStatus(INVITATION_STATUS.invalid);
-      return undefined;
-    }
-
     const unsubscribe = subscribeToInvitationSession((session) => {
       if (isMounted && session) setStatus(INVITATION_STATUS.ready);
     });
@@ -53,12 +48,15 @@ export default function InvitationPasswordPage() {
         const session = await getInvitationSession();
         if (!isMounted) return;
 
-        if (session) {
+        if (session || hasInvitationToken()) {
           setStatus(INVITATION_STATUS.ready);
           return;
         }
 
-        setMessage('La invitación no es válida o ya fue utilizada.');
+        setMessage(
+          getInvitationUrlError() ||
+            'La invitación no es válida o ya fue utilizada.'
+        );
         setStatus(INVITATION_STATUS.invalid);
       } catch {
         if (!isMounted) return;
@@ -82,9 +80,10 @@ export default function InvitationPasswordPage() {
       await createInvitedUserPassword(password);
       await clearSession();
       setStatus(INVITATION_STATUS.success);
-    } catch {
+    } catch (creationError) {
       throw new Error(
-        'No fue posible crear la contraseña. Solicita una nueva invitación.'
+        creationError.message ||
+          'No fue posible crear la contraseña con esta invitación.'
       );
     } finally {
       setIsUpdating(false);
@@ -116,8 +115,9 @@ export default function InvitationPasswordPage() {
               Crea tu contraseña
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Tu invitación fue validada. Define la contraseña con la que
-              ingresarás al sistema.
+              Tu cuenta fue registrada mediante una invitación. El enlace se
+              validará cuando confirmes una contraseña segura y personal para
+              obtener acceso a la plataforma.
             </p>
             <ResetPasswordForm
               onSubmit={handlePasswordCreation}
@@ -127,6 +127,8 @@ export default function InvitationPasswordPage() {
               }
               submitLabel="Crear contraseña"
               loadingLabel="Creando..."
+              passwordLabel="Contraseña de acceso"
+              confirmationLabel="Confirmar contraseña de acceso"
             />
           </>
         )}

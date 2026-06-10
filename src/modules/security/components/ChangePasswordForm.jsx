@@ -6,27 +6,30 @@ import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
+import { validateNewPassword } from '@/modules/auth/utils/passwordValidation';
 
 const INITIAL_DATA = {
+  currentPassword: '',
   newPassword: '',
   confirmPassword: '',
 };
 
 function validate(data) {
-  if (data.newPassword.length < 8) {
-    return 'La nueva contraseña debe tener al menos 8 caracteres.';
+  if (!data.currentPassword) {
+    return 'Ingresa tu contraseña actual.';
   }
 
-  if (data.newPassword !== data.confirmPassword) {
-    return 'Las contraseñas no coinciden.';
+  if (data.currentPassword === data.newPassword) {
+    return 'La nueva contraseña debe ser diferente a la actual.';
   }
 
-  return '';
+  return validateNewPassword(data.newPassword, data.confirmPassword);
 }
 
 export function ChangePasswordForm({ onSuccess }) {
   const { changePassword } = useAuth();
   const [data, setData] = useState(INITIAL_DATA);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState('');
@@ -57,13 +60,13 @@ export function ChangePasswordForm({ onSuccess }) {
     setError('');
 
     try {
-      await changePassword(data.newPassword);
+      await changePassword(data.currentPassword, data.newPassword);
       setDone(true);
       setData(INITIAL_DATA);
       setConfirmChange(false);
       onSuccess?.();
-    } catch {
-      setError('No se pudo actualizar la contraseña.');
+    } catch (changeError) {
+      setError(changeError.message || 'No se pudo actualizar la contraseña.');
       setConfirmChange(false);
     } finally {
       setIsLoading(false);
@@ -74,6 +77,7 @@ export function ChangePasswordForm({ onSuccess }) {
     setData(INITIAL_DATA);
     setError('');
     setDone(false);
+    setShowCurrentPassword(false);
     setShowPassword(false);
     setShowConfirmation(false);
   };
@@ -102,6 +106,18 @@ export function ChangePasswordForm({ onSuccess }) {
         )}
 
         <PasswordInputField
+          id="cp-current"
+          label="Contraseña actual"
+          value={data.currentPassword}
+          visible={showCurrentPassword}
+          onChange={(value) => setField('currentPassword', value)}
+          onToggle={() =>
+            setShowCurrentPassword((current) => !current)
+          }
+          autoComplete="current-password"
+        />
+
+        <PasswordInputField
           id="cp-new"
           label="Nueva contraseña"
           value={data.newPassword}
@@ -126,6 +142,13 @@ export function ChangePasswordForm({ onSuccess }) {
             <Requirement
               met={data.newPassword.length >= 8}
               label="Mínimo 8 caracteres"
+            />
+            <Requirement
+              met={
+                data.currentPassword.length > 0 &&
+                data.currentPassword !== data.newPassword
+              }
+              label="Diferente a la contraseña actual"
             />
             <Requirement
               met={

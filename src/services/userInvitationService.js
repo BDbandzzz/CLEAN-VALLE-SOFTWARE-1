@@ -4,6 +4,19 @@ function isPendingInvitation(session) {
   return session?.user?.user_metadata?.invitation_pending === true;
 }
 
+function getInvitationToken() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type');
+
+  if (!tokenHash || type !== 'invite') return null;
+  return tokenHash;
+}
+
+export function hasInvitationToken() {
+  return Boolean(getInvitationToken());
+}
+
 export async function getInvitationSession() {
   const { data, error } = await supabase.auth.getSession();
 
@@ -22,15 +35,30 @@ export function subscribeToInvitationSession(callback) {
 }
 
 export async function createInvitedUserPassword(password) {
-  const { data: currentUser, error: userError } =
-    await supabase.auth.getUser();
+  let session = await getInvitationSession();
 
-  if (
-    userError ||
-    !currentUser.user ||
-    currentUser.user.user_metadata?.invitation_pending !== true
-  ) {
-    throw new Error('La invitación no es válida o ya fue utilizada.');
+  if (!session) {
+    const tokenHash = getInvitationToken();
+
+    if (!tokenHash) {
+      throw new Error('La invitación no es válida o ya fue utilizada.');
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'invite',
+    });
+
+    if (error || !isPendingInvitation(data.session)) {
+      throw new Error('La invitación venció o ya fue utilizada.');
+    }
+
+    session = data.session;
+    window.history.replaceState(
+      window.history.state,
+      '',
+      window.location.pathname
+    );
   }
 
   const { error } = await supabase.auth.updateUser({

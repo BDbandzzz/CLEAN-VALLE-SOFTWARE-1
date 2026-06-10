@@ -38,7 +38,7 @@ export function AuthPageShell({
             <div className="min-w-0">
               <p className="text-xl font-bold text-foreground">{APP_NAME}</p>
               <p className="text-xs text-muted-foreground">
-                Gestión de reportes ambientales
+                Gestión de reportes universitarios
               </p>
             </div>
           </header>

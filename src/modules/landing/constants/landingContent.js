@@ -25,7 +25,7 @@ export const LANDING_HEADER = {
 
 export const LANDING_HERO = {
   eyebrow: 'Plataforma institucional',
-  title: 'Gestion  de problemas universitaros desde un solo panel',
+  title: 'Gestion de problemas universitarios desde un solo panel',
   subtitle:
     'CleanValle conecta reportes, seguimiento operativo y notificaciones para que la comunidad pueda cuidar el campus con informacion clara y trazable.',
   primaryAction: {
@@ -67,7 +67,7 @@ export const LANDING_FEATURES = [
     label: 'Reportes',
     title: 'Registro guiado',
     description:
-      'Formulario estructurado para documentar incidentes ambientales con categoria, riesgo, ubicacion, contexto e imagenes.',
+      'Formulario estructurado para documentar incidentes universitarios con categoria, riesgo, ubicacion, contexto e imagenes.',
     tone: 'primary',
   },
   {
@@ -104,10 +104,10 @@ export const LANDING_FEATURES = [
   },
   {
     icon: Recycle,
-    label: 'Sostenibilidad',
+    label: 'Comunidad',
     title: 'Impacto institucional',
     description:
-      'Una vista consistente para impulsar acciones ambientales y mantener informada a la comunidad universitaria.',
+      'Una vista consistente para coordinar acciones y mantener informada a la comunidad universitaria.',
     tone: 'success',
   },
 ];

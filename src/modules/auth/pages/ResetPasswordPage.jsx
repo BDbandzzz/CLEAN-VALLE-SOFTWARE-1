@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/core/components/ui/button';
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
+import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { AuthPageShell } from '@/modules/auth/components/AuthPageShell';
 import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay';
@@ -107,15 +108,22 @@ const ResetPasswordPage = () => {
               <KeyRound className="size-6" />
             </div>
             <h1 className="mt-4 text-2xl font-bold text-foreground">
-              Crea una nueva contraseña
+              Recupera el acceso a tu cuenta
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              El enlace fue validado. Define una contraseña segura para
-              recuperar el acceso.
+              Este enlace corresponde a una solicitud de recuperación.
+              Reemplaza tu contraseña anterior por una nueva para volver a
+              ingresar.
             </p>
             <ResetPasswordForm
               onSubmit={handlePasswordUpdate}
               isLoading={isUpdating}
+              confirmation={
+                CONFIRMATION_MESSAGES.authentication.recoverPassword
+              }
+              submitLabel="Restablecer contraseña"
+              passwordLabel="Nueva contraseña de acceso"
+              confirmationLabel="Confirmar nueva contraseña"
             />
           </>
         )}

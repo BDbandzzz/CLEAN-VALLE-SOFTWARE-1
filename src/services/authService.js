@@ -126,11 +126,31 @@ export async function getCurrentUser() {
   return buildCurrentUser(data.user);
 }
 
-export async function updateAuthPassword(password) {
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) {
-    throw new Error(error.message);
+export async function updateAuthPassword(currentPassword, newPassword) {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !userData.user?.email) {
+    throw new Error('No fue posible verificar la sesión actual.');
   }
+
+  const { error: verificationError } =
+    await supabase.auth.signInWithPassword({
+      email: userData.user.email,
+      password: currentPassword,
+    });
+
+  if (verificationError) {
+    throw new Error('La contraseña actual no es correcta.');
+  }
+
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
   return true;
 }
 

@@ -90,7 +90,8 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  const changePassword = (password) => updateAuthPassword(password);
+  const changePassword = (currentPassword, newPassword) =>
+    updateAuthPassword(currentPassword, newPassword);
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout, clearSession, updateEmail, changePassword }}>

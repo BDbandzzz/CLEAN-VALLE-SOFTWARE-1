@@ -33,7 +33,7 @@ const CreateReportPage = () => {
       <ModuleHero
         icon={<ClipboardPlus />}
         title="Crear Reporte"
-        description="Documenta un incidente ambiental o de seguridad en el campus."
+        description="Documenta un incidente o una situación relevante dentro del campus."
       />
 
       {successMessage && (

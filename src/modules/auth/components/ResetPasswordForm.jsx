@@ -21,6 +21,8 @@ export function ResetPasswordForm({
   confirmation = CONFIRMATION_MESSAGES.profile.changePassword,
   submitLabel = 'Guardar nueva contraseña',
   loadingLabel = 'Actualizando...',
+  passwordLabel = 'Nueva contraseña',
+  confirmationLabel = 'Confirmar contraseña',
 }) {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [showPassword, setShowPassword] = useState(false);
@@ -72,7 +74,7 @@ export function ResetPasswordForm({
       <form className="mt-6 space-y-4" onSubmit={requestSubmit} noValidate>
         <PasswordInputField
           id="new-password"
-          label="Nueva contraseña"
+          label={passwordLabel}
           value={values.password}
           visible={showPassword}
           onChange={(value) => setField('password', value)}
@@ -82,7 +84,7 @@ export function ResetPasswordForm({
 
         <PasswordInputField
           id="confirm-new-password"
-          label="Confirmar contraseña"
+          label={confirmationLabel}
           value={values.confirmation}
           visible={showConfirmation}
           onChange={(value) => setField('confirmation', value)}

@@ -15,10 +15,11 @@ const ChangePasswordPage = () => {
       <div className="rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <div className="mb-6 space-y-1">
           <h2 className="text-lg font-semibold text-foreground">
-            Nueva contraseña
+            Verifica y actualiza tu contraseña
           </h2>
           <p className="text-sm text-muted-foreground">
-            La contraseña debe tener al menos 8 caracteres.
+            Confirma tu contraseña actual y define una nueva con al menos 8
+            caracteres.
           </p>
         </div>
         <ChangePasswordForm />
