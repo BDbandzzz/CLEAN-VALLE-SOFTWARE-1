@@ -162,7 +162,8 @@ Deno.serve(async (request) => {
 
     if (requestedRedirectUrl !== invitationRedirectUrl) {
       throw new Error(
-        'La URL de invitacion no coincide con la configuracion de la funcion.'
+        'La URL de invitacion no coincide con la configuracion de la funcion:' + {requestedRedirectUrl} + {invitationRedirectUrl}
+
       );
     }
 
