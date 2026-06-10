@@ -212,7 +212,6 @@ export function ManagedUsersList({ onEditUser }) {
 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                       <span>{user.codeUser}</span>
-                      {user.email && <span>{user.email}</span>}
                       <span>Documento: {user.dniUser}</span>
                     </div>
 

@@ -23,6 +23,9 @@ jobs:
 
       - name: Build del proyecto
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Limpiar carpeta (sin borrar .htaccess)
         uses: appleboy/ssh-action@v1.0.0

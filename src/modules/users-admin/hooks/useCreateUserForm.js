@@ -24,7 +24,9 @@ export function useCreateUserForm() {
       const createdUser = await createUser(form.formData);
       form.setFormData(INITIAL_USER_FORM);
       form.setErrors({});
-      form.setMessage(`${createdUser.firstName} ${createdUser.lastName} fue registrado correctamente.`);
+      form.setMessage(
+        `La invitación para ${createdUser.firstName} ${createdUser.lastName} fue enviada correctamente.`
+      );
       return createdUser;
     } catch (error) {
       form.setErrors({ form: error.message });

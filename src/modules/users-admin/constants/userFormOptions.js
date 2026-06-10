@@ -8,6 +8,4 @@ export const INITIAL_USER_FORM = {
   genderId: '',
   roleId: '',
   specializationIds: [],
-  password: '',
-  confirmPassword: '',
 };

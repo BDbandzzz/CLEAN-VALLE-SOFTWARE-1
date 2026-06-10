@@ -45,11 +45,18 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
   },
   users: {
     create: (name) => ({
-      title: 'Crear usuario',
-      reason: `Se creará la cuenta de ${name || 'este usuario'} y se habilitará su acceso al sistema.`,
-      acceptLabel: 'Crear usuario',
+      title: 'Registrar y enviar invitación',
+      reason: `Se registrará el perfil de ${name || 'este usuario'} y se enviará un enlace para que cree su contraseña.`,
+      acceptLabel: 'Enviar invitación',
       rejectLabel: 'Cancelar',
     }),
+    setInvitationPassword: {
+      title: 'Crear contraseña',
+      reason:
+        'La contraseña quedará asociada únicamente a tu cuenta y completará la activación de tu acceso.',
+      acceptLabel: 'Crear contraseña',
+      rejectLabel: 'Cancelar',
+    },
     update: (name) => ({
       title: 'Modificar usuario',
       reason: `Se guardarán los cambios realizados a ${name || 'este usuario'}.`,

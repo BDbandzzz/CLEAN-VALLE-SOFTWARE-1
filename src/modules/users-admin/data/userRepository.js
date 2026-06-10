@@ -9,7 +9,5 @@ export function mapUserToForm(user) {
     genderId: user?.genderId ? String(user.genderId) : '',
     roleId: user?.roleId ? String(user.roleId) : '',
     specializationIds: user?.specializationIds ?? [],
-    password: '',
-    confirmPassword: '',
   };
 }

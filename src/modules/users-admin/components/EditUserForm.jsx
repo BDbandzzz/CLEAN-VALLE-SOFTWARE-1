@@ -72,7 +72,7 @@ export function EditUserForm({ user }) {
           Modificar usuario
         </CardTitle>
         <CardDescription>
-          Edita datos base, rol, especialidades y contraseña de {user.firstName} {user.lastName}.
+          Edita datos base, rol y especialidades de {user.firstName} {user.lastName}.
         </CardDescription>
       </CardHeader>
 

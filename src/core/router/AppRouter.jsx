@@ -6,6 +6,7 @@ import LandingPage from '@/modules/landing/pages/LandingPage';
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
 import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage';
+import InvitationPasswordPage from '@/modules/auth/pages/InvitationPasswordPage';
 import ProfilePage from '@/modules/profile/pages/ProfilePage';
 import ChangePasswordPage from '@/modules/security/pages/ChangePasswordPage';
 import CreateReportPage from '@/modules/reports/pages/CreateReportPage';
@@ -30,6 +31,10 @@ const AppRouter = () => {
       <Route path={AUTH_PATHS.login} element={<LoginPage />} />
       <Route path={AUTH_PATHS.recoverPassword} element={<RecoverPassword />} />
       <Route path={AUTH_PATHS.resetPassword} element={<ResetPasswordPage />} />
+      <Route
+        path={AUTH_PATHS.createPassword}
+        element={<InvitationPasswordPage />}
+      />
 
       <Route path="/profile" element={<PrivateRoute element={<ProfilePage />} />} />
       <Route path="/change-password" element={<PrivateRoute element={<ChangePasswordPage />} />} />

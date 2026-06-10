@@ -49,6 +49,10 @@ async function getUserByAuthId(authId) {
 }
 
 function mapUser(authUser, user) {
+  if (authUser.user_metadata?.invitation_pending === true) {
+    throw new Error('Debes completar la invitación antes de ingresar.');
+  }
+
   if (!user.roles?.role_id) {
     throw new Error('Rol no soportado.');
   }

@@ -48,7 +48,8 @@ export function CreateUserForm() {
           Registrar usuario
         </CardTitle>
         <CardDescription>
-          Crea una cuenta con la información esencial del perfil institucional.
+          Registra el perfil y envía al usuario un enlace para crear su
+          contraseña.
         </CardDescription>
       </CardHeader>
 
@@ -61,7 +62,7 @@ export function CreateUserForm() {
           onFieldChange={updateField}
           onSubmit={requestCreate}
           onReset={resetForm}
-          submitLabel="Guardar usuario"
+          submitLabel="Enviar invitación"
         />
       </CardContent>
 

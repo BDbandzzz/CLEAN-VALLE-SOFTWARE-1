@@ -1,4 +1,4 @@
-import { KeyRound, RotateCcw, Save, Wrench } from 'lucide-react';
+import { RotateCcw, Save, Wrench } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { MultiSelectField } from '@/core/components/ui/multi-select-field';
@@ -65,16 +65,18 @@ export function UserForm({
           required
           error={errors.lastName}
         />
-        <UserTextField
-          id={`${mode}-email`}
-          label="Correo electrónico"
-          type="email"
-          value={formData.email}
-          onChange={(value) => onFieldChange('email', value)}
-          placeholder="usuario@correounivalle.edu.co"
-          required
-          error={errors.email}
-        />
+        {isCreateMode && (
+          <UserTextField
+            id={`${mode}-email`}
+            label="Correo electrónico"
+            type="email"
+            value={formData.email}
+            onChange={(value) => onFieldChange('email', value)}
+            placeholder="usuario@correounivalle.edu.co"
+            required
+            error={errors.email}
+          />
+        )}
         <UserTextField
           id={`${mode}-dniUser`}
           label="Documento"
@@ -126,38 +128,6 @@ export function UserForm({
           />
         </section>
       )}
-
-
-
-      <section className="space-y-4 border-t border-border pt-6">
-        <div className="flex items-center gap-2">
-          <KeyRound className="size-5 text-primary" />
-          <h3 className="text-base font-semibold text-foreground">
-            {isCreateMode ? 'Contraseña inicial' : 'Cambio de contraseña'}
-          </h3>
-        </div>
-        <UserTextField
-          id={`${mode}-password`}
-          label={isCreateMode ? 'Contraseña' : 'Nueva contraseña'}
-          type="password"
-          value={formData.password}
-          onChange={(value) => onFieldChange('password', value)}
-          placeholder={isCreateMode ? 'Contraseña temporal del usuario' : 'Dejar vacío para conservar la actual'}
-          required={isCreateMode}
-          error={errors.password}
-        />
-        <UserTextField
-          id={`${mode}-confirmPassword`}
-          label={isCreateMode ? 'Confirmar contraseña' : 'Confirmar nueva contraseña'}
-          type="password"
-          value={formData.confirmPassword}
-          onChange={(value) => onFieldChange('confirmPassword', value)}
-          placeholder={isCreateMode ? 'Repite la contraseña' : 'Repite la nueva contraseña'}
-          required={isCreateMode || Boolean(formData.password)}
-          error={errors.confirmPassword}
-        />
-      </section>
-
       {message && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-900">
           {message}
