@@ -20,7 +20,6 @@ import {
   getInvitationUrlError,
   hasInvitationToken,
   subscribeToInvitationSession,
-  wasInvitationAlreadyUsed,
 } from '@/services/userInvitationService';
 
 const INVITATION_STATUS = {
@@ -48,14 +47,6 @@ export default function InvitationPasswordPage() {
       try {
         const session = await getInvitationSession();
         if (!isMounted) return;
-
-        if (!session && (await wasInvitationAlreadyUsed())) {
-          setMessage(
-            'Este enlace de invitación ya fue utilizado para crear una contraseña.'
-          );
-          setStatus(INVITATION_STATUS.invalid);
-          return;
-        }
 
         if (session || hasInvitationToken()) {
           setStatus(INVITATION_STATUS.ready);

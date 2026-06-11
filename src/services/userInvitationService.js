@@ -1,7 +1,5 @@
 import { supabase } from '@/services/supabaseClient';
 
-const USED_INVITATION_PREFIX = 'cleanvalle_used_invitation_';
-
 function isInvitationSession(session) {
   const invitationPending =
     session?.user?.user_metadata?.invitation_pending;
@@ -16,78 +14,49 @@ function isInvitationSession(session) {
   );
 }
 
-function getInvitationUrlType() {
+function getUrlParams() {
   const searchParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  return (searchParams.get('type') || hashParams.get('type') || '').toLowerCase();
+
+  return {
+    token: searchParams.get('token') || hashParams.get('token') || '',
+    email: searchParams.get('email') || hashParams.get('email') || '',
+    type: (
+      searchParams.get('type') ||
+      hashParams.get('type') ||
+      ''
+    ).toLowerCase(),
+  };
 }
 
 function getInvitationLinkData() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const tokenHash =
-    searchParams.get('token_hash') || hashParams.get('token_hash');
-  const type = getInvitationUrlType();
+  const { token, email, type } = getUrlParams();
 
-  if (!tokenHash || type !== 'invite') return null;
-  return { tokenHash, type: 'invite' };
-}
+  if (!token || !email || type !== 'invite') return null;
 
-function getInvitationToken() {
-  return getInvitationLinkData()?.tokenHash ?? null;
-}
-
-async function getInvitationFingerprint(tokenHash) {
-  const bytes = new TextEncoder().encode(tokenHash);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
-async function getUsedInvitationKey(tokenHash) {
-  const fingerprint = await getInvitationFingerprint(tokenHash);
-  return `${USED_INVITATION_PREFIX}${fingerprint}`;
+  return {
+    token,
+    email: email.replace(/ /g, '+').trim().toLowerCase(),
+    type: 'invite',
+  };
 }
 
 export function hasInvitationToken() {
-  return Boolean(getInvitationToken());
-}
-
-export async function wasInvitationAlreadyUsed() {
-  const tokenHash = getInvitationToken();
-  if (!tokenHash) return false;
-
-  const storageKey = await getUsedInvitationKey(tokenHash);
-  return localStorage.getItem(storageKey) === 'true';
+  return Boolean(getInvitationLinkData());
 }
 
 export async function getInvitationSession() {
   const { data, error } = await supabase.auth.getSession();
 
   if (error) throw new Error(error.message);
-
-  if (isInvitationSession(data.session)) return data.session;
-
-  const hasTokenHash = Boolean(getInvitationLinkData());
-  const isSupabaseInviteCallback =
-    !hasTokenHash && getInvitationUrlType() === 'invite';
-
-  return isSupabaseInviteCallback ? data.session : null;
+  return isInvitationSession(data.session) ? data.session : null;
 }
 
 export function subscribeToInvitationSession(callback) {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
-    const hasTokenHash = Boolean(getInvitationLinkData());
-    const isSupabaseInviteCallback =
-      !hasTokenHash && getInvitationUrlType() === 'invite';
-
-    if (isInvitationSession(session) || isSupabaseInviteCallback) {
-      callback(session);
-    }
+    if (isInvitationSession(session)) callback(session);
   });
 
   return () => subscription.unsubscribe();
@@ -95,29 +64,27 @@ export function subscribeToInvitationSession(callback) {
 
 export async function createInvitedUserPassword(password) {
   let session = await getInvitationSession();
-  const invitationLink = getInvitationLinkData();
-  const tokenHash = invitationLink?.tokenHash ?? null;
 
   if (!session) {
-    if (!invitationLink) {
-      throw new Error('La invitación no es válida o ya fue utilizada.');
+    const invitation = getInvitationLinkData();
+
+    if (!invitation) {
+      throw new Error('La invitacion no es valida o ya fue utilizada.');
     }
 
     const { data, error } = await supabase.auth.verifyOtp({
-      token_hash: invitationLink.tokenHash,
-      type: invitationLink.type,
+      email: invitation.email,
+      token: invitation.token,
+      type: invitation.type,
     });
 
     if (error || !data.session?.user) {
-      throw new Error('La invitación venció o ya fue utilizada.');
+      throw new Error(
+        error?.message || 'La invitacion vencio o ya fue utilizada.'
+      );
     }
 
     session = data.session;
-    window.history.replaceState(
-      window.history.state,
-      '',
-      window.location.pathname
-    );
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -128,18 +95,11 @@ export async function createInvitedUserPassword(password) {
   });
 
   if (error) throw new Error(error.message);
-
-  if (tokenHash) {
-    const storageKey = await getUsedInvitationKey(tokenHash);
-    localStorage.setItem(storageKey, 'true');
-  }
 }
 
 export function getInvitationUrlError() {
   const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(
-    window.location.hash.replace(/^#/, '')
-  );
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 
   return (
     searchParams.get('error_description') ||
