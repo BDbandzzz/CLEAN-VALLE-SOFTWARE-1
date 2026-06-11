@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
 
 import { EmptyState } from '@/core/components/ui/empty-state';
@@ -23,10 +23,28 @@ const TABS = {
 };
 
 export default function ViewReportsPage() {
-  const { reports, resolvedReports, isLoading, error } = useReports();
+  const {
+    reports,
+    resolvedReports,
+    isLoadingReports,
+    isLoadingResolvedReports,
+    error,
+    refreshReports,
+    refreshResolvedReports,
+  } = useReports();
   const { categories, riskLevels } = useReportCatalogs();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeTab, setActiveTab] = useState(TABS.mine);
+
+  useEffect(() => {
+    refreshReports().catch(() => {});
+  }, [refreshReports]);
+
+  useEffect(() => {
+    if (activeTab === TABS.resolved) {
+      refreshResolvedReports().catch(() => {});
+    }
+  }, [activeTab, refreshResolvedReports]);
 
   const displayedReports = useMemo(() => {
     const source = activeTab === TABS.resolved ? resolvedReports : reports;
@@ -71,7 +89,9 @@ export default function ViewReportsPage() {
       )}
 
       <div className="space-y-4">
-        {isLoading ? (
+        {(activeTab === TABS.mine
+          ? isLoadingReports
+          : isLoadingResolvedReports) ? (
           <div className="py-16 text-center text-sm text-muted-foreground">Cargando reportes...</div>
         ) : displayedReports.length ? (
           displayedReports.map((report) => (

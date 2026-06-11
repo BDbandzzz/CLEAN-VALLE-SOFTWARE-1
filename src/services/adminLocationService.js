@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabaseClient';
+import { invalidateReportCatalogCache } from '@/services/reportCatalogService';
 
 export async function listManagedLocations() {
   const { data, error } = await supabase.rpc('rpc_admin_list_locations');
@@ -15,6 +16,7 @@ export async function createManagedLocation(formData) {
   });
 
   if (error) throw new Error(error.message);
+  invalidateReportCatalogCache();
   return data;
 }
 
@@ -27,6 +29,7 @@ export async function updateManagedLocation(locationId, formData) {
   });
 
   if (error) throw new Error(error.message);
+  invalidateReportCatalogCache();
   return data;
 }
 
@@ -40,5 +43,6 @@ export async function setManagedLocationActive(locationId, active) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateReportCatalogCache();
   return data;
 }

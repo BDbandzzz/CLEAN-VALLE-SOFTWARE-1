@@ -3,8 +3,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -20,71 +20,119 @@ import {
 const ReportsContext = createContext(null);
 
 export function ReportsProvider({ children }) {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user } = useAuth();
+  const userId = user?.id;
+  const loadedUserId = useRef(null);
+  const reportsRequest = useRef(null);
+  const resolvedRequest = useRef(null);
+  const notificationsRequest = useRef(null);
   const [reports, setReports] = useState([]);
   const [resolvedReports, setResolvedReports] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [isLoadingResolvedReports, setIsLoadingResolvedReports] =
+    useState(false);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [error, setError] = useState('');
 
-  const refreshReports = useCallback(async () => {
-    if (!user?.id) {
-      setReports([]);
-      return [];
-    }
+  const refreshReports = useCallback(
+    async ({ force = false } = {}) => {
+      if (!userId) {
+        setReports([]);
+        return [];
+      }
+      if (loadedUserId.current !== userId) {
+        loadedUserId.current = userId;
+        reportsRequest.current = null;
+        notificationsRequest.current = null;
+        setReports([]);
+        setNotifications([]);
+      }
+      if (!force && reportsRequest.current) return reportsRequest.current;
 
-    const nextReports = await getMyReports();
-    setReports(nextReports);
-    return nextReports;
-  }, [user?.id]);
+      setIsLoadingReports(true);
+      setError('');
+      reportsRequest.current = getMyReports()
+        .then((nextReports) => {
+          setReports(nextReports);
+          return nextReports;
+        })
+        .catch((loadError) => {
+          setError(loadError.message);
+          reportsRequest.current = null;
+          throw loadError;
+        })
+        .finally(() => setIsLoadingReports(false));
 
-  const refreshResolvedReports = useCallback(async () => {
-    const nextReports = await getResolvedReports();
-    setResolvedReports(nextReports);
-    return nextReports;
-  }, []);
-
-  const refreshNotifications = useCallback(async () => {
-    if (!user?.id) {
-      setNotifications([]);
-      return [];
-    }
-
-    const nextNotifications = await getNotifications();
-    setNotifications(nextNotifications);
-    return nextNotifications;
-  }, [user?.id]);
-
-  const refreshAll = useCallback(async () => {
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await Promise.all([
-        refreshReports(),
-        refreshResolvedReports(),
-        refreshNotifications(),
-      ]);
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshNotifications, refreshReports, refreshResolvedReports]);
-
-  useEffect(() => {
-    if (isAuthLoading) return;
-    refreshAll();
-  }, [isAuthLoading, refreshAll]);
-
-  const addReport = useCallback(
-    async (formData) => {
-      const createdReport = await createReport(formData);
-      await refreshReports();
-      return createdReport;
+      return reportsRequest.current;
     },
-    [refreshReports]
+    [userId]
   );
+
+  const refreshResolvedReports = useCallback(
+    async ({ force = false } = {}) => {
+      if (!force && resolvedRequest.current) return resolvedRequest.current;
+
+      setIsLoadingResolvedReports(true);
+      setError('');
+      resolvedRequest.current = getResolvedReports()
+        .then((nextReports) => {
+          setResolvedReports(nextReports);
+          return nextReports;
+        })
+        .catch((loadError) => {
+          setError(loadError.message);
+          resolvedRequest.current = null;
+          throw loadError;
+        })
+        .finally(() => setIsLoadingResolvedReports(false));
+
+      return resolvedRequest.current;
+    },
+    []
+  );
+
+  const refreshNotifications = useCallback(
+    async ({ force = false } = {}) => {
+      if (!userId) {
+        setNotifications([]);
+        return [];
+      }
+      if (loadedUserId.current !== userId) {
+        loadedUserId.current = userId;
+        reportsRequest.current = null;
+        notificationsRequest.current = null;
+        setReports([]);
+        setNotifications([]);
+      }
+      if (!force && notificationsRequest.current) {
+        return notificationsRequest.current;
+      }
+
+      setIsLoadingNotifications(true);
+      setError('');
+      notificationsRequest.current = getNotifications()
+        .then((nextNotifications) => {
+          setNotifications(nextNotifications);
+          return nextNotifications;
+        })
+        .catch((loadError) => {
+          setError(loadError.message);
+          notificationsRequest.current = null;
+          throw loadError;
+        })
+        .finally(() => setIsLoadingNotifications(false));
+
+      return notificationsRequest.current;
+    },
+    [userId]
+  );
+
+  const addReport = useCallback(async (formData) => {
+    const createdReport = await createReport(formData);
+    reportsRequest.current = null;
+    return createdReport;
+  }, []);
 
   const markAsRead = useCallback(async (notificationId) => {
     await markNotificationRead(notificationId);
@@ -108,22 +156,24 @@ export function ReportsProvider({ children }) {
       resolvedReports,
       notifications,
       unreadNotifications,
-      isLoading,
+      isLoadingReports,
+      isLoadingResolvedReports,
+      isLoadingNotifications,
       error,
       addReport,
       markAsRead,
       refreshReports,
       refreshResolvedReports,
       refreshNotifications,
-      refreshAll,
     }),
     [
       addReport,
       error,
-      isLoading,
+      isLoadingNotifications,
+      isLoadingReports,
+      isLoadingResolvedReports,
       markAsRead,
       notifications,
-      refreshAll,
       refreshNotifications,
       refreshReports,
       refreshResolvedReports,

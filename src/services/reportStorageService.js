@@ -3,6 +3,51 @@ import { createId } from '@/core/lib/createId';
 import { supabase } from '@/services/supabaseClient';
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
+const SIGNED_URL_CACHE_TTL = 55 * 60 * 1000;
+const SIGNED_URL_CACHE_KEY = 'cleanvalle_signed_report_urls_v1';
+
+let signedUrlCacheMemory = null;
+
+function readSignedUrlCache() {
+  if (signedUrlCacheMemory) return signedUrlCacheMemory;
+
+  try {
+    signedUrlCacheMemory =
+      JSON.parse(sessionStorage.getItem(SIGNED_URL_CACHE_KEY)) ?? {};
+  } catch {
+    signedUrlCacheMemory = {};
+  }
+
+  return signedUrlCacheMemory;
+}
+
+function persistSignedUrlCache(cache) {
+  signedUrlCacheMemory = cache;
+
+  try {
+    sessionStorage.setItem(SIGNED_URL_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // La cache en memoria sigue disponible durante la sesion actual.
+  }
+}
+
+function getCachedSignedUrls(bucket, paths) {
+  const cache = readSignedUrlCache();
+  const now = Date.now();
+  const urls = new Map();
+  const missingPaths = [];
+
+  for (const path of paths) {
+    const cached = cache[`${bucket}:${path}`];
+    if (cached?.url && cached.expiresAt > now) {
+      urls.set(path, cached.url);
+    } else {
+      missingPaths.push(path);
+    }
+  }
+
+  return { cache, urls, missingPaths };
+}
 
 function getFileExtension(file) {
   const extension = file.name?.split('.').pop()?.toLowerCase();
@@ -41,17 +86,32 @@ async function uploadFiles(bucket, parentId, files) {
 async function createSignedUrlLookup(bucket, paths = []) {
   const uniquePaths = [...new Set(paths.filter(Boolean))];
   if (!uniquePaths.length) return new Map();
+  const { cache, urls, missingPaths } = getCachedSignedUrls(
+    bucket,
+    uniquePaths
+  );
+
+  if (!missingPaths.length) return urls;
 
   const { data, error } = await supabase.storage
     .from(bucket)
-    .createSignedUrls(uniquePaths, SIGNED_URL_TTL_SECONDS);
+    .createSignedUrls(missingPaths, SIGNED_URL_TTL_SECONDS);
 
   if (error) throw new Error(error.message);
-  return new Map(
-    (data ?? [])
-      .map((item, index) => [item.path ?? uniquePaths[index], item.signedUrl])
-      .filter(([, signedUrl]) => Boolean(signedUrl))
-  );
+
+  (data ?? []).forEach((item, index) => {
+    const path = item.path ?? missingPaths[index];
+    if (!item.signedUrl) return;
+
+    urls.set(path, item.signedUrl);
+    cache[`${bucket}:${path}`] = {
+      url: item.signedUrl,
+      expiresAt: Date.now() + SIGNED_URL_CACHE_TTL,
+    };
+  });
+  persistSignedUrlCache(cache);
+
+  return urls;
 }
 
 export function uploadReportPhotos(reportId, files) {

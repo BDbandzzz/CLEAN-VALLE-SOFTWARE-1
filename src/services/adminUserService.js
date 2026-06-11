@@ -2,6 +2,61 @@ import { supabase } from '@/services/supabaseClient';
 import { AUTH_REDIRECT_URLS } from '@/core/constants/authRoutes';
 
 const CREATE_USER_FUNCTION = 'admin-create-user';
+const USER_CATALOG_CACHE_KEY = 'cleanvalle_user_catalogs_v1';
+const USER_CATALOG_CACHE_TTL = 60 * 60 * 1000;
+
+let userCatalogMemory = null;
+let userCatalogPromise = null;
+
+function readUserCatalogCache() {
+  if (userCatalogMemory) return userCatalogMemory;
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(USER_CATALOG_CACHE_KEY));
+    if (
+      cached?.savedAt &&
+      Date.now() - cached.savedAt < USER_CATALOG_CACHE_TTL &&
+      cached.data
+    ) {
+      userCatalogMemory = cached.data;
+      return cached.data;
+    }
+  } catch {
+    try {
+      localStorage.removeItem(USER_CATALOG_CACHE_KEY);
+    } catch {
+      // El almacenamiento puede estar bloqueado; se usara solo memoria.
+    }
+  }
+
+  return null;
+}
+
+function cacheUserCatalogs(data) {
+  userCatalogMemory = data;
+
+  try {
+    localStorage.setItem(
+      USER_CATALOG_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), data })
+    );
+  } catch {
+    // El cache en memoria permanece disponible.
+  }
+
+  return data;
+}
+
+export function invalidateUserManagementCatalogCache() {
+  userCatalogMemory = null;
+  userCatalogPromise = null;
+
+  try {
+    localStorage.removeItem(USER_CATALOG_CACHE_KEY);
+  } catch {
+    // No hay almacenamiento persistente que invalidar.
+  }
+}
 
 async function getFunctionErrorMessage(error) {
   if (!error?.context) return error?.message;
@@ -15,10 +70,21 @@ async function getFunctionErrorMessage(error) {
 }
 
 export async function getUserManagementCatalogs() {
-  const { data, error } = await supabase.rpc('rpc_admin_user_catalogs');
+  const cached = readUserCatalogCache();
+  if (cached) return cached;
+  if (userCatalogPromise) return userCatalogPromise;
 
-  if (error) throw new Error(error.message);
-  return data;
+  userCatalogPromise = supabase
+    .rpc('rpc_admin_user_catalogs')
+    .then(({ data, error }) => {
+      if (error) throw new Error(error.message);
+      return cacheUserCatalogs(data);
+    })
+    .finally(() => {
+      userCatalogPromise = null;
+    });
+
+  return userCatalogPromise;
 }
 
 export async function listManagedUsers(filters = {}) {

@@ -1,4 +1,11 @@
 import { supabase } from '@/services/supabaseClient';
+import { invalidateReportCatalogCache } from '@/services/reportCatalogService';
+import { invalidateUserManagementCatalogCache } from '@/services/adminUserService';
+
+function invalidateCategoryCaches() {
+  invalidateReportCatalogCache();
+  invalidateUserManagementCatalogCache();
+}
 
 export async function listManagedReportTypes() {
   const { data, error } = await supabase.rpc('rpc_admin_list_report_types');
@@ -19,6 +26,7 @@ export async function createManagedReportType(formData) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateCategoryCaches();
   return data;
 }
 
@@ -35,6 +43,7 @@ export async function updateManagedReportType(categoryId, formData) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateCategoryCaches();
   return data;
 }
 
@@ -48,5 +57,6 @@ export async function setManagedReportTypeActive(categoryId, active) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateCategoryCaches();
   return data;
 }
