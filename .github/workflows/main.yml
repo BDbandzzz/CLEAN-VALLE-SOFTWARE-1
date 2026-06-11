@@ -3,7 +3,7 @@ name: Deploy Frontend
 on:
   push:
     branches:
-      - main
+      - testing-gestor/operador
 
 jobs:
   build-and-deploy:
