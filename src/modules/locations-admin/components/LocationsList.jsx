@@ -3,9 +3,8 @@ import {
   ChevronRight,
   MapPin,
   Pencil,
-  Power,
-  RotateCcw,
   Search,
+  Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -37,23 +36,20 @@ export function LocationsList({ onEdit }) {
     isLoading,
     isMutating,
     error,
-    setLocationActive,
+    deleteLocation,
   } = useLocationManagement();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState('active');
   const [page, setPage] = useState(1);
-  const [locationToToggle, setLocationToToggle] = useState(null);
-  const confirmation = locationToToggle?.active
-    ? CONFIRMATION_MESSAGES.locations.deactivate
-    : CONFIRMATION_MESSAGES.locations.reactivate;
+  const [locationToDelete, setLocationToDelete] = useState(null);
+  const confirmation = CONFIRMATION_MESSAGES.locations.delete;
 
   const filteredLocations = useMemo(() => {
     const query = normalize(search);
     return locations.filter((location) => {
       const matchesStatus =
-        status === 'all' ||
         (status === 'active' && location.active) ||
-        (status === 'inactive' && !location.active);
+        (status === 'deleted' && !location.active);
       const matchesSearch = normalize([
         location.label,
         location.description,
@@ -69,14 +65,11 @@ export function LocationsList({ onEdit }) {
     page * pageSize
   );
 
-  const confirmToggle = async () => {
-    if (!locationToToggle) return;
+  const confirmDelete = async () => {
+    if (!locationToDelete) return;
     try {
-      await setLocationActive(
-        locationToToggle.id,
-        locationToToggle.active === false
-      );
-      setLocationToToggle(null);
+      await deleteLocation(locationToDelete.id);
+      setLocationToDelete(null);
     } catch {
       // El contexto muestra el error.
     }
@@ -110,19 +103,14 @@ export function LocationsList({ onEdit }) {
 
         <div className="flex rounded-xl border border-border bg-muted/40 p-1">
           <SegmentedTabButton
-            label="Todos"
-            active={status === 'all'}
-            onClick={() => { setStatus('all'); setPage(1); }}
-          />
-          <SegmentedTabButton
             label="Activos"
             active={status === 'active'}
             onClick={() => { setStatus('active'); setPage(1); }}
           />
           <SegmentedTabButton
-            label="Inactivos"
-            active={status === 'inactive'}
-            onClick={() => { setStatus('inactive'); setPage(1); }}
+            label="Eliminados"
+            active={status === 'deleted'}
+            onClick={() => { setStatus('deleted'); setPage(1); }}
           />
         </div>
 
@@ -162,7 +150,7 @@ export function LocationsList({ onEdit }) {
                         : 'bg-muted text-muted-foreground'
                     }`}
                   >
-                    {location.active ? 'Activo' : 'Inactivo'}
+                    {location.active ? 'Activo' : 'Eliminado'}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -179,25 +167,23 @@ export function LocationsList({ onEdit }) {
                   ))}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="outline" onClick={() => onEdit(location)}>
-                  <Pencil className="size-4" />
-                  Modificar
-                </Button>
-                <Button
-                  type="button"
-                  variant={location.active ? 'destructive' : 'outline'}
-                  onClick={() => setLocationToToggle(location)}
-                  disabled={isMutating}
-                >
-                  {location.active ? (
-                    <Power className="size-4" />
-                  ) : (
-                    <RotateCcw className="size-4" />
-                  )}
-                  {location.active ? 'Desactivar' : 'Reactivar'}
-                </Button>
-              </div>
+              {location.active && (
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="outline" onClick={() => onEdit(location)}>
+                    <Pencil className="size-4" />
+                    Modificar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setLocationToDelete(location)}
+                    disabled={isMutating}
+                  >
+                    <Trash2 className="size-4" />
+                    Eliminar
+                  </Button>
+                </div>
+              )}
             </article>
           ))}
         </div>
@@ -236,11 +222,11 @@ export function LocationsList({ onEdit }) {
       </CardContent>
 
       <ConfirmationMessage
-        open={Boolean(locationToToggle)}
+        open={Boolean(locationToDelete)}
         {...confirmation}
         isLoading={isMutating}
-        onAccept={confirmToggle}
-        onReject={() => setLocationToToggle(null)}
+        onAccept={confirmDelete}
+        onReject={() => setLocationToDelete(null)}
       />
     </Card>
   );

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
+import { getRoleDisplayLabel } from '@/core/mappers/domainMappers';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
 import { ProfileSummaryCard } from '@/modules/profile/components/ProfileSummaryCard';
@@ -115,7 +116,7 @@ const ProfilePage = () => {
         <ProfileSummaryCard
           dniUser={user.dniUser}
           emailPreview={formData.email}
-          roleName={user.roleName}
+          roleName={getRoleDisplayLabel(user.roleId, user.roleName)}
         />
 
         <div className="space-y-6 lg:col-span-2">

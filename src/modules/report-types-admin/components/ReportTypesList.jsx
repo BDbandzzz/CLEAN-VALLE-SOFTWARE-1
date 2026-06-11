@@ -2,10 +2,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Power,
-  RotateCcw,
   Search,
   Tags,
+  Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -40,22 +39,19 @@ export function ReportTypesList({ onEditType }) {
     isLoading,
     isMutating,
     error,
-    setReportTypeActive,
+    deleteReportType,
   } = useReportTypeManagement();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [typeToToggle, setTypeToToggle] = useState(null);
+  const [status, setStatus] = useState('active');
+  const [typeToDelete, setTypeToDelete] = useState(null);
   const [page, setPage] = useState(1);
   const pageSize = 8;
-  const confirmation = typeToToggle?.active === false
-    ? CONFIRMATION_MESSAGES.reportTypes.reactivate
-    : CONFIRMATION_MESSAGES.reportTypes.deactivate;
+  const confirmation = CONFIRMATION_MESSAGES.reportTypes.delete;
 
   const counts = useMemo(
     () => ({
-      all: reportTypes.length,
       active: reportTypes.filter((type) => type.active !== false).length,
-      inactive: reportTypes.filter((type) => type.active === false).length,
+      deleted: reportTypes.filter((type) => type.active === false).length,
     }),
     [reportTypes]
   );
@@ -65,9 +61,8 @@ export function ReportTypesList({ onEditType }) {
     return reportTypes.filter((type) => {
       const isActive = type.active !== false;
       const matchesStatus =
-        status === 'all' ||
         (status === 'active' && isActive) ||
-        (status === 'inactive' && !isActive);
+        (status === 'deleted' && !isActive);
       const searchableText = normalize([
         type.label,
         type.description,
@@ -84,11 +79,11 @@ export function ReportTypesList({ onEditType }) {
     page * pageSize
   );
 
-  const confirmToggle = async () => {
-    if (!typeToToggle) return;
+  const confirmDelete = async () => {
+    if (!typeToDelete) return;
     try {
-      await setReportTypeActive(typeToToggle.id, typeToToggle.active === false);
-      setTypeToToggle(null);
+      await deleteReportType(typeToDelete.id);
+      setTypeToDelete(null);
     } catch {
       // El contexto muestra el error del servicio.
     }
@@ -126,9 +121,8 @@ export function ReportTypesList({ onEditType }) {
         </div>
 
         <div className="flex rounded-xl border border-border bg-muted/40 p-1">
-          <SegmentedTabButton label="Todos" count={counts.all} active={status === 'all'} onClick={() => { setStatus('all'); setPage(1); }} />
           <SegmentedTabButton label="Activos" count={counts.active} active={status === 'active'} onClick={() => { setStatus('active'); setPage(1); }} />
-          <SegmentedTabButton label="Inactivos" count={counts.inactive} active={status === 'inactive'} onClick={() => { setStatus('inactive'); setPage(1); }} />
+          <SegmentedTabButton label="Eliminados" count={counts.deleted} active={status === 'deleted'} onClick={() => { setStatus('deleted'); setPage(1); }} />
         </div>
 
         {error && (
@@ -170,7 +164,7 @@ export function ReportTypesList({ onEditType }) {
                         isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'
                       }`}
                     >
-                      {isActive ? 'Activo' : 'Inactivo'}
+                      {isActive ? 'Activo' : 'Eliminado'}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {type.subtypes.length} {type.subtypes.length === 1 ? 'razón' : 'razones'}
@@ -189,21 +183,23 @@ export function ReportTypesList({ onEditType }) {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 lg:justify-end">
-                  <Button type="button" variant="outline" onClick={() => onEditType?.(type)}>
-                    <Pencil className="size-4" />
-                    Modificar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={isActive ? 'destructive' : 'outline'}
-                    onClick={() => setTypeToToggle(type)}
-                    disabled={isMutating}
-                  >
-                    {isActive ? <Power className="size-4" /> : <RotateCcw className="size-4" />}
-                    {isActive ? 'Deshabilitar' : 'Reactivar'}
-                  </Button>
-                </div>
+                {isActive && (
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <Button type="button" variant="outline" onClick={() => onEditType?.(type)}>
+                      <Pencil className="size-4" />
+                      Modificar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => setTypeToDelete(type)}
+                      disabled={isMutating}
+                    >
+                      <Trash2 className="size-4" />
+                      Eliminar
+                    </Button>
+                  </div>
+                )}
               </article>
             );
           })}
@@ -243,11 +239,11 @@ export function ReportTypesList({ onEditType }) {
       </CardContent>
 
       <ConfirmationMessage
-        open={Boolean(typeToToggle)}
+        open={Boolean(typeToDelete)}
         {...confirmation}
         isLoading={isMutating}
-        onAccept={confirmToggle}
-        onReject={() => setTypeToToggle(null)}
+        onAccept={confirmDelete}
+        onReject={() => setTypeToDelete(null)}
       />
     </Card>
   );

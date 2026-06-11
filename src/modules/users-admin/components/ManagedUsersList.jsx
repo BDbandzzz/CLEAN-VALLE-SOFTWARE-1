@@ -2,9 +2,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
-  Power,
-  RotateCcw,
   Search,
+  Trash2,
   Users,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,8 +24,9 @@ import { Label } from '@/core/components/ui/label';
 import { SelectField } from '@/core/components/ui/select-field';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
-import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
+import { ELEMENT_STATE_IDS, USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
+import { getRoleDisplayLabel, isRoleId } from '@/core/mappers/domainMappers';
 import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
 
 const PAGE_SIZE = 10;
@@ -41,22 +41,20 @@ export function ManagedUsersList({ onEditUser }) {
     isMutating,
     error,
     loadUsers,
-    setUserActive,
+    deleteUser,
   } = useUserManagement();
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState('active');
   const [role, setRole] = useState('');
   const [page, setPage] = useState(1);
-  const [userToToggle, setUserToToggle] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const confirmation = userToToggle?.active === false
-    ? CONFIRMATION_MESSAGES.users.reactivate
-    : CONFIRMATION_MESSAGES.users.deactivate;
+  const confirmation = CONFIRMATION_MESSAGES.users.delete;
 
   const stateId = useMemo(() => {
-    if (status === 'active') return ELEMENT_STATE_IDS.ACTIVE;
-    if (status === 'inactive') return ELEMENT_STATE_IDS.INACTIVE;
-    return null;
+    return status === 'deleted'
+      ? ELEMENT_STATE_IDS.INACTIVE
+      : ELEMENT_STATE_IDS.ACTIVE;
   }, [status]);
 
   useEffect(() => {
@@ -83,12 +81,12 @@ export function ManagedUsersList({ onEditUser }) {
     setPage(1);
   };
 
-  const confirmToggle = async () => {
-    if (!userToToggle) return;
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
 
     try {
-      await setUserActive(userToToggle.id, userToToggle.active === false);
-      setUserToToggle(null);
+      await deleteUser(userToDelete.id);
+      setUserToDelete(null);
     } catch {
       // El contexto muestra el error del servicio.
     }
@@ -137,19 +135,14 @@ export function ManagedUsersList({ onEditUser }) {
 
         <div className="flex rounded-xl border border-border bg-muted/40 p-1">
           <SegmentedTabButton
-            label="Todos"
-            active={status === 'all'}
-            onClick={() => changeStatus('all')}
-          />
-          <SegmentedTabButton
             label="Activos"
             active={status === 'active'}
             onClick={() => changeStatus('active')}
           />
           <SegmentedTabButton
-            label="Inactivos"
-            active={status === 'inactive'}
-            onClick={() => changeStatus('inactive')}
+            label="Eliminados"
+            active={status === 'deleted'}
+            onClick={() => changeStatus('deleted')}
           />
         </div>
 
@@ -182,6 +175,12 @@ export function ManagedUsersList({ onEditUser }) {
             {users.map((user) => {
               const isActive = user.active !== false;
               const isCurrentUser = String(user.id) === String(currentUser?.id);
+              const isAdministrator = isRoleId(
+                user.roleId,
+                USER_ROLE_IDS.ADMIN
+              );
+              const actionsDisabled =
+                !isActive || isAdministrator || isCurrentUser || isMutating;
 
               return (
                 <article
@@ -196,7 +195,7 @@ export function ManagedUsersList({ onEditUser }) {
                         {user.firstName} {user.lastName}
                       </h3>
                       <ColorPill
-                        label={user.roleName || 'Rol sin nombre'}
+                        label={getRoleDisplayLabel(user.roleId, user.roleName)}
                         color={user.roleColor || '#6b7280'}
                       />
                       <span
@@ -206,7 +205,7 @@ export function ManagedUsersList({ onEditUser }) {
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {isActive ? 'Activo' : 'Inactivo'}
+                        {isActive ? 'Activo' : 'Eliminado'}
                       </span>
                     </div>
 
@@ -229,37 +228,41 @@ export function ManagedUsersList({ onEditUser }) {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-2 lg:justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => onEditUser?.(user)}
-                    >
-                      <Pencil className="size-4" />
-                      Modificar
-                    </Button>
+                  {isActive && (
+                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onEditUser?.(user)}
+                        disabled={isAdministrator}
+                        title={
+                          isAdministrator
+                            ? 'Los administradores no pueden modificar otras cuentas administrativas'
+                            : 'Modificar usuario'
+                        }
+                      >
+                        <Pencil className="size-4" />
+                        Modificar
+                      </Button>
 
-                    <Button
-                      type="button"
-                      variant={isActive ? 'destructive' : 'outline'}
-                      onClick={() => setUserToToggle(user)}
-                      disabled={isCurrentUser || isMutating}
-                      title={
-                        isCurrentUser
-                          ? 'No puedes desactivar tu propia cuenta'
-                          : isActive
-                            ? 'Desactivar usuario'
-                            : 'Reactivar usuario'
-                      }
-                    >
-                      {isActive ? (
-                        <Power className="size-4" />
-                      ) : (
-                        <RotateCcw className="size-4" />
-                      )}
-                      {isActive ? 'Desactivar' : 'Reactivar'}
-                    </Button>
-                  </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => setUserToDelete(user)}
+                        disabled={actionsDisabled}
+                        title={
+                          isAdministrator
+                            ? 'Los administradores no pueden eliminar otras cuentas administrativas'
+                            : isCurrentUser
+                              ? 'No puedes eliminar tu propia cuenta'
+                              : 'Eliminar usuario'
+                        }
+                      >
+                        <Trash2 className="size-4" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  )}
                 </article>
               );
             })}
@@ -300,11 +303,11 @@ export function ManagedUsersList({ onEditUser }) {
       </CardContent>
 
       <ConfirmationMessage
-        open={Boolean(userToToggle)}
+        open={Boolean(userToDelete)}
         {...confirmation}
         isLoading={isMutating}
-        onAccept={confirmToggle}
-        onReject={() => setUserToToggle(null)}
+        onAccept={confirmDelete}
+        onReject={() => setUserToDelete(null)}
       />
     </Card>
   );

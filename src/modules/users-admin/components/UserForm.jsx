@@ -1,4 +1,5 @@
 import { RotateCcw, Save, Wrench } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/core/components/ui/button';
 import { MultiSelectField } from '@/core/components/ui/multi-select-field';
@@ -18,6 +19,7 @@ export function UserForm({
   submitLabel,
 }) {
   const isCreateMode = mode === 'create';
+  const [specializationCategoryId, setSpecializationCategoryId] = useState('');
   const {
     creatableRoles,
     documentTypes,
@@ -26,6 +28,38 @@ export function UserForm({
     isLoading,
     isMutating,
   } = useUserManagement();
+  const specializationCategories = useMemo(() => {
+    const categories = new Map();
+
+    specializations.forEach((specialization) => {
+      if (
+        specialization.categoryId != null &&
+        specialization.categoryName &&
+        !categories.has(String(specialization.categoryId))
+      ) {
+        categories.set(String(specialization.categoryId), {
+          id: String(specialization.categoryId),
+          label: specialization.categoryName,
+        });
+      }
+    });
+
+    return Array.from(categories.values());
+  }, [specializations]);
+  const visibleSpecializations = useMemo(
+    () =>
+      specializations.filter(
+        (specialization) =>
+          !specializationCategoryId ||
+          String(specialization.categoryId) === specializationCategoryId ||
+          formData.specializationIds.includes(specialization.id)
+      ),
+    [
+      formData.specializationIds,
+      specializationCategoryId,
+      specializations,
+    ]
+  );
 
   return (
     <form onSubmit={onSubmit} className="space-y-7">
@@ -116,10 +150,23 @@ export function UserForm({
               Especialidades del operador
             </h3>
           </div>
+          {specializationCategories.length > 0 && (
+            <SelectField
+              id={`${mode}-specialization-category`}
+              label="Filtrar especialidades por categoría"
+              value={specializationCategoryId}
+              options={specializationCategories}
+              placeholder="Todas las categorías"
+              onChange={(event) =>
+                setSpecializationCategoryId(event.target.value)
+              }
+              disabled={isLoading || isMutating}
+            />
+          )}
           <MultiSelectField
             id={`${mode}-specializationIds`}
             label="Especialidades"
-            options={specializations}
+            options={visibleSpecializations}
             value={formData.specializationIds}
             onChange={(value) => onFieldChange('specializationIds', value)}
             required
