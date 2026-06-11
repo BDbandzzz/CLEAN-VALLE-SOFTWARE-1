@@ -1,4 +1,5 @@
 import { REPORT_STORAGE_BUCKETS } from '@/core/constants/domainConstants';
+import { createId } from '@/core/lib/createId';
 import { supabase } from '@/services/supabaseClient';
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
@@ -17,7 +18,7 @@ async function uploadFiles(bucket, parentId, files) {
 
   try {
     for (const file of files) {
-      const path = `${parentId}/${crypto.randomUUID()}.${getFileExtension(file)}`;
+      const path = `${parentId}/${createId()}.${getFileExtension(file)}`;
       const { error } = await supabase.storage.from(bucket).upload(path, file, {
         cacheControl: '3600',
         contentType: file.type,
