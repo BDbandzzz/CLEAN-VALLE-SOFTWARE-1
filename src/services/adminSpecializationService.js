@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabaseClient';
+import { invalidateUserManagementCatalogCache } from '@/services/adminUserService';
 
 export async function listManagedSpecializations() {
   const { data, error } = await supabase.rpc(
@@ -28,6 +29,7 @@ export async function createManagedSpecialization(formData) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateUserManagementCatalogCache();
   return data;
 }
 
@@ -45,6 +47,7 @@ export async function updateManagedSpecialization(
   );
 
   if (error) throw new Error(error.message);
+  invalidateUserManagementCatalogCache();
   return data;
 }
 
@@ -57,4 +60,5 @@ export async function deleteManagedSpecialization(specializationId) {
   );
 
   if (error) throw new Error(error.message);
+  invalidateUserManagementCatalogCache();
 }

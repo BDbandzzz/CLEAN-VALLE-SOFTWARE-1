@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { CheckCircle2, FileSearch } from 'lucide-react';
 
 import { EmptyState } from '@/core/components/ui/empty-state';
@@ -6,7 +7,16 @@ import { ReportCard } from '@/modules/reports/components/ReportCard';
 import { useReports } from '@/modules/reports/context/ReportsContext';
 
 export default function ResolvedReportsPage() {
-  const { resolvedReports, isLoading, error } = useReports();
+  const {
+    resolvedReports,
+    isLoadingResolvedReports,
+    error,
+    refreshResolvedReports,
+  } = useReports();
+
+  useEffect(() => {
+    refreshResolvedReports().catch(() => {});
+  }, [refreshResolvedReports]);
 
   return (
     <main className="min-h-screen bg-muted/30 px-5 py-8 lg:px-8">
@@ -24,7 +34,7 @@ export default function ResolvedReportsPage() {
         )}
 
         <div className="space-y-4">
-          {isLoading ? (
+          {isLoadingResolvedReports ? (
             <div className="py-16 text-center text-sm text-muted-foreground">
               Cargando reportes resueltos...
             </div>

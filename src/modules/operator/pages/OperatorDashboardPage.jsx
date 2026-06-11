@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Bell, CheckCircle2, ClipboardList, Wrench } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
@@ -18,7 +18,7 @@ const TABS = {
 
 export default function OperatorDashboardPage() {
   const { user } = useAuth();
-  const { unreadNotifications } = useReports();
+  const { unreadNotifications, refreshNotifications } = useReports();
   const { resolutionReviewStatuses } = useReportCatalogs();
   const {
     assignedReports,
@@ -28,6 +28,10 @@ export default function OperatorDashboardPage() {
   } = useOperatorReports();
   const [activeTab, setActiveTab] = useState(TABS.assigned);
   const [resolutionStatus, setResolutionStatus] = useState('');
+
+  useEffect(() => {
+    refreshNotifications().catch(() => {});
+  }, [refreshNotifications]);
 
   const specializations = useMemo(
     () => (user?.specializations ?? []).map((specialization) => specialization.label),

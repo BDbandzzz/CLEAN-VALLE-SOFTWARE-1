@@ -1,156 +1,70 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
-  getActiveReportCategories,
-  getLocalizations,
-  getReportStatuses,
-  getResolutionQualities,
-  getResolutionReviewStatuses,
-  getRiskLevels,
-  getSubareasByLocalizationId,
-  getSubtypesByCategoryId,
+  getReportCatalogBundle,
+  invalidateReportCatalogCache,
 } from '@/services/reportCatalogService';
 
+const EMPTY_CATALOGS = {
+  categories: [],
+  riskLevels: [],
+  localizations: [],
+  reportStatuses: [],
+  resolutionQualities: [],
+  resolutionReviewStatuses: [],
+  subtypesByCategory: {},
+  subareasByLocalization: {},
+};
+
 export function useReportCatalogs() {
-  const [categories, setCategories] = useState([]);
-  const [riskLevels, setRiskLevels] = useState([]);
-  const [localizations, setLocalizations] = useState([]);
-  const [reportStatuses, setReportStatuses] = useState([]);
-  const [resolutionQualities, setResolutionQualities] = useState([]);
-  const [resolutionReviewStatuses, setResolutionReviewStatuses] = useState([]);
-  const [subtypesByCategory, setSubtypesByCategory] = useState({});
-  const [subareasByLocalization, setSubareasByLocalization] = useState({});
+  const [catalogs, setCatalogs] = useState(EMPTY_CATALOGS);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingSubtypes, setLoadingSubtypes] = useState(false);
-  const [loadingSubareas, setLoadingSubareas] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadCatalogs = useCallback(async ({ force = false } = {}) => {
+    setIsLoading(true);
+    setError('');
 
-    async function loadInitialCatalogs() {
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const [
-          nextCategories,
-          nextRiskLevels,
-          nextLocalizations,
-          nextReportStatuses,
-          nextResolutionQualities,
-          nextResolutionReviewStatuses,
-        ] = await Promise.all([
-          getActiveReportCategories(),
-          getRiskLevels(),
-          getLocalizations(),
-          getReportStatuses(),
-          getResolutionQualities(),
-          getResolutionReviewStatuses(),
-        ]);
-
-        if (!isMounted) return;
-        setCategories(nextCategories);
-        setRiskLevels(nextRiskLevels);
-        setLocalizations(nextLocalizations);
-        setReportStatuses(nextReportStatuses);
-        setResolutionQualities(nextResolutionQualities);
-        setResolutionReviewStatuses(nextResolutionReviewStatuses);
-      } catch (catalogError) {
-        if (!isMounted) return;
-        setError(catalogError.message);
-      } finally {
-        if (isMounted) setIsLoading(false);
-      }
+    try {
+      if (force) invalidateReportCatalogCache();
+      const nextCatalogs = await getReportCatalogBundle({ force });
+      setCatalogs(nextCatalogs);
+      return nextCatalogs;
+    } catch (catalogError) {
+      setError(catalogError.message);
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-
-    loadInitialCatalogs();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
+  useEffect(() => {
+    loadCatalogs();
+  }, [loadCatalogs]);
+
   const loadSubtypes = useCallback(
-    async (categoryId) => {
-      if (!categoryId || subtypesByCategory[categoryId]) return subtypesByCategory[categoryId] ?? [];
-
-      setLoadingSubtypes(true);
-      setError('');
-
-      try {
-        const category = categories.find((item) => item.id === categoryId);
-        const subtypes = (await getSubtypesByCategoryId(categoryId)).map((subtype) => ({
-          ...subtype,
-          color: category?.color ?? '#6b7280',
-        }));
-        setSubtypesByCategory((current) => ({ ...current, [categoryId]: subtypes }));
-        return subtypes;
-      } catch (catalogError) {
-        setError(catalogError.message);
-        return [];
-      } finally {
-        setLoadingSubtypes(false);
-      }
-    },
-    [categories, subtypesByCategory]
+    async (categoryId) =>
+      catalogs.subtypesByCategory[String(categoryId)] ?? [],
+    [catalogs.subtypesByCategory]
   );
 
   const loadSubareas = useCallback(
-    async (localizationId) => {
-      if (!localizationId || subareasByLocalization[localizationId]) {
-        return subareasByLocalization[localizationId] ?? [];
-      }
-
-      setLoadingSubareas(true);
-      setError('');
-
-      try {
-        const subareas = await getSubareasByLocalizationId(localizationId);
-        setSubareasByLocalization((current) => ({ ...current, [localizationId]: subareas }));
-        return subareas;
-      } catch (catalogError) {
-        setError(catalogError.message);
-        return [];
-      } finally {
-        setLoadingSubareas(false);
-      }
-    },
-    [subareasByLocalization]
+    async (localizationId) =>
+      catalogs.subareasByLocalization[String(localizationId)] ?? [],
+    [catalogs.subareasByLocalization]
   );
 
   return useMemo(
     () => ({
-      categories,
-      riskLevels,
-      localizations,
-      reportStatuses,
-      resolutionQualities,
-      resolutionReviewStatuses,
-      subtypesByCategory,
-      subareasByLocalization,
+      ...catalogs,
       isLoading,
-      loadingSubtypes,
-      loadingSubareas,
+      loadingSubtypes: false,
+      loadingSubareas: false,
       error,
       loadSubtypes,
       loadSubareas,
+      refreshCatalogs: () => loadCatalogs({ force: true }),
     }),
-    [
-      categories,
-      error,
-      isLoading,
-      loadSubareas,
-      loadSubtypes,
-      loadingSubareas,
-      loadingSubtypes,
-      localizations,
-      reportStatuses,
-      resolutionQualities,
-      resolutionReviewStatuses,
-      riskLevels,
-      subareasByLocalization,
-      subtypesByCategory,
-    ]
+    [catalogs, error, isLoading, loadCatalogs, loadSubareas, loadSubtypes]
   );
 }
