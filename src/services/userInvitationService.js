@@ -1,5 +1,7 @@
 import { supabase } from '@/services/supabaseClient';
 
+const USED_INVITATION_PREFIX = 'cleanvalle_used_invitation_';
+
 function isPendingInvitation(session) {
   return session?.user?.user_metadata?.invitation_pending === true;
 }
@@ -13,8 +15,30 @@ function getInvitationToken() {
   return tokenHash;
 }
 
+async function getInvitationFingerprint(tokenHash) {
+  const bytes = new TextEncoder().encode(tokenHash);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+async function getUsedInvitationKey(tokenHash) {
+  const fingerprint = await getInvitationFingerprint(tokenHash);
+  return `${USED_INVITATION_PREFIX}${fingerprint}`;
+}
+
 export function hasInvitationToken() {
   return Boolean(getInvitationToken());
+}
+
+export async function wasInvitationAlreadyUsed() {
+  const tokenHash = getInvitationToken();
+  if (!tokenHash) return false;
+
+  const storageKey = await getUsedInvitationKey(tokenHash);
+  return localStorage.getItem(storageKey) === 'true';
 }
 
 export async function getInvitationSession() {
@@ -36,10 +60,9 @@ export function subscribeToInvitationSession(callback) {
 
 export async function createInvitedUserPassword(password) {
   let session = await getInvitationSession();
+  const tokenHash = getInvitationToken();
 
   if (!session) {
-    const tokenHash = getInvitationToken();
-
     if (!tokenHash) {
       throw new Error('La invitación no es válida o ya fue utilizada.');
     }
@@ -69,6 +92,11 @@ export async function createInvitedUserPassword(password) {
   });
 
   if (error) throw new Error(error.message);
+
+  if (tokenHash) {
+    const storageKey = await getUsedInvitationKey(tokenHash);
+    localStorage.setItem(storageKey, 'true');
+  }
 }
 
 export function getInvitationUrlError() {

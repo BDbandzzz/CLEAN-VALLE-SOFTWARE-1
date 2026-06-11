@@ -20,6 +20,7 @@ import {
   getInvitationUrlError,
   hasInvitationToken,
   subscribeToInvitationSession,
+  wasInvitationAlreadyUsed,
 } from '@/services/userInvitationService';
 
 const INVITATION_STATUS = {
@@ -47,6 +48,14 @@ export default function InvitationPasswordPage() {
       try {
         const session = await getInvitationSession();
         if (!isMounted) return;
+
+        if (!session && (await wasInvitationAlreadyUsed())) {
+          setMessage(
+            'Este enlace de invitación ya fue utilizado para crear una contraseña.'
+          );
+          setStatus(INVITATION_STATUS.invalid);
+          return;
+        }
 
         if (session || hasInvitationToken()) {
           setStatus(INVITATION_STATUS.ready);
@@ -169,7 +178,7 @@ function InvalidState({ message, onContinue }) {
         <AlertCircle className="size-7" />
       </div>
       <h1 className="mt-4 text-2xl font-bold text-foreground">
-        Invitación no disponible
+        Enlace de invitación no disponible
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">{message}</p>
       <Button
