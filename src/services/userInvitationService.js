@@ -2,17 +2,39 @@ import { supabase } from '@/services/supabaseClient';
 
 const USED_INVITATION_PREFIX = 'cleanvalle_used_invitation_';
 
-function isPendingInvitation(session) {
-  return session?.user?.user_metadata?.invitation_pending === true;
+function isInvitationSession(session) {
+  const invitationPending =
+    session?.user?.user_metadata?.invitation_pending;
+  const isPending =
+    invitationPending === true || invitationPending === 'true';
+  const isCompleted =
+    invitationPending === false || invitationPending === 'false';
+
+  return (
+    isPending ||
+    (!isCompleted && Boolean(session?.user?.invited_at))
+  );
+}
+
+function getInvitationUrlType() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  return (searchParams.get('type') || hashParams.get('type') || '').toLowerCase();
+}
+
+function getInvitationLinkData() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const tokenHash =
+    searchParams.get('token_hash') || hashParams.get('token_hash');
+  const type = getInvitationUrlType();
+
+  if (!tokenHash || type !== 'invite') return null;
+  return { tokenHash, type: 'invite' };
 }
 
 function getInvitationToken() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const tokenHash = searchParams.get('token_hash');
-  const type = searchParams.get('type');
-
-  if (!tokenHash || type !== 'invite') return null;
-  return tokenHash;
+  return getInvitationLinkData()?.tokenHash ?? null;
 }
 
 async function getInvitationFingerprint(tokenHash) {
@@ -45,14 +67,27 @@ export async function getInvitationSession() {
   const { data, error } = await supabase.auth.getSession();
 
   if (error) throw new Error(error.message);
-  return isPendingInvitation(data.session) ? data.session : null;
+
+  if (isInvitationSession(data.session)) return data.session;
+
+  const hasTokenHash = Boolean(getInvitationLinkData());
+  const isSupabaseInviteCallback =
+    !hasTokenHash && getInvitationUrlType() === 'invite';
+
+  return isSupabaseInviteCallback ? data.session : null;
 }
 
 export function subscribeToInvitationSession(callback) {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (isPendingInvitation(session)) callback(session);
+    const hasTokenHash = Boolean(getInvitationLinkData());
+    const isSupabaseInviteCallback =
+      !hasTokenHash && getInvitationUrlType() === 'invite';
+
+    if (isInvitationSession(session) || isSupabaseInviteCallback) {
+      callback(session);
+    }
   });
 
   return () => subscription.unsubscribe();
@@ -60,19 +95,20 @@ export function subscribeToInvitationSession(callback) {
 
 export async function createInvitedUserPassword(password) {
   let session = await getInvitationSession();
-  const tokenHash = getInvitationToken();
+  const invitationLink = getInvitationLinkData();
+  const tokenHash = invitationLink?.tokenHash ?? null;
 
   if (!session) {
-    if (!tokenHash) {
+    if (!invitationLink) {
       throw new Error('La invitación no es válida o ya fue utilizada.');
     }
 
     const { data, error } = await supabase.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: 'invite',
+      token_hash: invitationLink.tokenHash,
+      type: invitationLink.type,
     });
 
-    if (error || !isPendingInvitation(data.session)) {
+    if (error || !data.session?.user) {
       throw new Error('La invitación venció o ya fue utilizada.');
     }
 

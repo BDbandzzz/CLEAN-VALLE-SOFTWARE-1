@@ -49,7 +49,8 @@ async function getUserByAuthId(authId) {
 }
 
 function mapUser(authUser, user) {
-  if (authUser.user_metadata?.invitation_pending === true) {
+  const invitationPending = authUser.user_metadata?.invitation_pending;
+  if (invitationPending === true || invitationPending === 'true') {
     throw new Error('Debes completar la invitación antes de ingresar.');
   }
 
