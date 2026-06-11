@@ -16,6 +16,7 @@ import {
   setManagedUserActive,
   updateManagedUser,
 } from '@/services/adminUserService';
+import { getRoleDisplayLabel } from '@/core/mappers/domainMappers';
 
 const UserManagementContext = createContext(null);
 const INITIAL_QUERY = {
@@ -63,8 +64,18 @@ export function UserManagementProvider({ children }) {
   const loadCatalogs = useCallback(async () => {
     try {
       const catalogs = await getUserManagementCatalogs();
-      setRoles(catalogs.roles);
-      setCreatableRoles(catalogs.creatableRoles);
+      setRoles(
+        catalogs.roles.map((role) => ({
+          ...role,
+          label: getRoleDisplayLabel(role.id, role.label),
+        }))
+      );
+      setCreatableRoles(
+        catalogs.creatableRoles.map((role) => ({
+          ...role,
+          label: getRoleDisplayLabel(role.id, role.label),
+        }))
+      );
       setDocumentTypes(catalogs.documentTypes);
       setGenders(catalogs.genders);
       setSpecializations(catalogs.specializations);
@@ -106,9 +117,9 @@ export function UserManagementProvider({ children }) {
     [runMutation]
   );
 
-  const setUserActive = useCallback(
-    (userId, active) =>
-      runMutation(() => setManagedUserActive(userId, active)),
+  const deleteUser = useCallback(
+    (userId) =>
+      runMutation(() => setManagedUserActive(userId, false)),
     [runMutation]
   );
 
@@ -129,7 +140,7 @@ export function UserManagementProvider({ children }) {
       loadUsers,
       createUser,
       updateUser,
-      setUserActive,
+      deleteUser,
     }),
     [
       users,
@@ -145,7 +156,7 @@ export function UserManagementProvider({ children }) {
       loadUsers,
       createUser,
       updateUser,
-      setUserActive,
+      deleteUser,
     ]
   );
 

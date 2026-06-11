@@ -11,6 +11,8 @@ import {
 import { EmptyState } from '@/core/components/ui/empty-state';
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
+import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
+import { isRoleId } from '@/core/mappers/domainMappers';
 import { UserForm } from '@/modules/users-admin/components/UserForm';
 import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
 import { useEditUserForm } from '@/modules/users-admin/hooks/useEditUserForm';
@@ -57,6 +59,29 @@ export function EditUserForm({ user }) {
           <EmptyState
             title="Ningún usuario seleccionado"
             description="Ve a Usuarios totales y usa la acción Modificar en una cuenta."
+            icon={<Pencil className="mx-auto size-8 text-muted-foreground" />}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isRoleId(user.roleId, USER_ROLE_IDS.ADMIN)) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Pencil className="size-5 text-primary" />
+            Modificar usuario
+          </CardTitle>
+          <CardDescription>
+            Las cuentas administrativas no se modifican desde Gestión de Usuarios.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EmptyState
+            title="Cuenta administrativa protegida"
+            description="Selecciona una cuenta con un rol diferente para continuar."
             icon={<Pencil className="mx-auto size-8 text-muted-foreground" />}
           />
         </CardContent>

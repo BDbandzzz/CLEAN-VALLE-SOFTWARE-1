@@ -16,6 +16,11 @@ export function isOperatorRoleId(roleId) {
   return isRoleId(roleId, USER_ROLE_IDS.OPERATOR);
 }
 
+export function getRoleDisplayLabel(roleId, roleName = '') {
+  if (isRoleId(roleId, USER_ROLE_IDS.ADMIN)) return 'Administrador';
+  return roleName || 'Rol sin nombre';
+}
+
 export function isActiveState(stateId) {
   return normalizeNumericId(stateId) === ELEMENT_STATE_IDS.ACTIVE;
 }

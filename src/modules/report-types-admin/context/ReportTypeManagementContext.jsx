@@ -72,9 +72,9 @@ export function ReportTypeManagementProvider({ children }) {
     [runMutation]
   );
 
-  const setReportTypeActive = useCallback(
-    (typeId, active) =>
-      runMutation(() => setManagedReportTypeActive(typeId, active)),
+  const deleteReportType = useCallback(
+    (typeId) =>
+      runMutation(() => setManagedReportTypeActive(typeId, false)),
     [runMutation]
   );
 
@@ -88,7 +88,7 @@ export function ReportTypeManagementProvider({ children }) {
       loadReportTypes,
       createReportType,
       updateReportType,
-      setReportTypeActive,
+      deleteReportType,
     }),
     [
       reportTypes,
@@ -98,7 +98,7 @@ export function ReportTypeManagementProvider({ children }) {
       loadReportTypes,
       createReportType,
       updateReportType,
-      setReportTypeActive,
+      deleteReportType,
     ]
   );
 

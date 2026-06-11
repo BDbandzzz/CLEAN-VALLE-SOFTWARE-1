@@ -71,8 +71,8 @@ export function LocationManagementProvider({ children }) {
         runMutation(() => createManagedLocation(formData)),
       updateLocation: (locationId, formData) =>
         runMutation(() => updateManagedLocation(locationId, formData)),
-      setLocationActive: (locationId, active) =>
-        runMutation(() => setManagedLocationActive(locationId, active)),
+      deleteLocation: (locationId) =>
+        runMutation(() => setManagedLocationActive(locationId, false)),
     }),
     [locations, isLoading, isMutating, error, runMutation]
   );

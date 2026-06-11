@@ -105,18 +105,12 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Guardar cambios',
       rejectLabel: 'Cancelar',
     }),
-    deactivate: {
-      title: 'Desactivar usuario',
-      reason: 'La cuenta perderá el acceso. Sus registros permanecerán almacenados.',
-      acceptLabel: 'Desactivar',
+    delete: {
+      title: 'Eliminar usuario',
+      reason: 'La cuenta perderá el acceso de forma permanente. Sus registros se conservarán para auditoría.',
+      acceptLabel: 'Eliminar usuario',
       rejectLabel: 'Cancelar',
       variant: 'destructive',
-    },
-    reactivate: {
-      title: 'Reactivar usuario',
-      reason: 'La cuenta recuperará el acceso al sistema.',
-      acceptLabel: 'Reactivar',
-      rejectLabel: 'Cancelar',
     },
   },
   reportTypes: {
@@ -132,18 +126,12 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Guardar cambios',
       rejectLabel: 'Cancelar',
     }),
-    deactivate: {
-      title: 'Deshabilitar tipo de reporte',
-      reason: 'El tipo dejará de estar disponible para crear reportes.',
-      acceptLabel: 'Deshabilitar',
+    delete: {
+      title: 'Eliminar tipo de reporte',
+      reason: 'El tipo y sus razones dejarán de estar disponibles de forma permanente. Los registros existentes se conservarán.',
+      acceptLabel: 'Eliminar tipo',
       rejectLabel: 'Cancelar',
       variant: 'destructive',
-    },
-    reactivate: {
-      title: 'Reactivar tipo de reporte',
-      reason: 'El tipo volverá a estar disponible para crear reportes.',
-      acceptLabel: 'Reactivar',
-      rejectLabel: 'Cancelar',
     },
   },
   locations: {
@@ -159,18 +147,12 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Guardar cambios',
       rejectLabel: 'Cancelar',
     }),
-    deactivate: {
-      title: 'Desactivar localización',
-      reason: 'El lugar dejará de estar disponible al crear reportes.',
-      acceptLabel: 'Desactivar',
+    delete: {
+      title: 'Eliminar localización',
+      reason: 'El lugar y sus ubicaciones específicas dejarán de estar disponibles de forma permanente.',
+      acceptLabel: 'Eliminar localización',
       rejectLabel: 'Cancelar',
       variant: 'destructive',
-    },
-    reactivate: {
-      title: 'Reactivar localización',
-      reason: 'El lugar volverá a estar disponible al crear reportes.',
-      acceptLabel: 'Reactivar',
-      rejectLabel: 'Cancelar',
     },
   },
   specializations: {
