@@ -64,6 +64,13 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Confirmar asignacion',
       rejectLabel: 'Cancelar',
     }),
+    discard: (title) => ({
+      title: 'Descartar reporte',
+      reason: `${title ? `"${title}"` : 'El reporte'} quedara registrado para auditoria, pero saldra de los listados operativos.`,
+      acceptLabel: 'Descartar reporte',
+      rejectLabel: 'Cancelar',
+      variant: 'destructive',
+    }),
     approveResolution: {
       title: 'Aprobar resolucion',
       reason: 'El reporte quedara resuelto y la asignacion se cerrara.',

@@ -18,7 +18,7 @@ export const REPORT_STATUS_IDS = Object.freeze({
   ASSIGNED: 3,
   IN_PROGRESS: 4,
   RESOLVED: 5,
-  REJECTED: 6,
+  DISCARDED: 6,
 });
 
 export const RESOLUTION_REVIEW_STATUS_IDS = Object.freeze({

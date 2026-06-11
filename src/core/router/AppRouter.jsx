@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
@@ -8,7 +9,6 @@ import InvitationPasswordPage from '@/modules/auth/pages/InvitationPasswordPage'
 import LoginPage from '@/modules/auth/pages/LoginPage';
 import RecoverPassword from '@/modules/auth/pages/RecoverPassword';
 import ResetPasswordPage from '@/modules/auth/pages/ResetPasswordPage';
-import AdminDashboardPage from '@/modules/dashboard-admin/pages/AdminDashboardPage';
 import LandingPage from '@/modules/landing/pages/LandingPage';
 import LocationManagementPage from '@/modules/locations-admin/pages/LocationManagementPage';
 import { LocationManagementProvider } from '@/modules/locations-admin/context/LocationManagementContext';
@@ -30,6 +30,26 @@ import UserManagementPage from '@/modules/users-admin/pages/UserManagementPage';
 import { UserManagementProvider } from '@/modules/users-admin/context/UserManagementContext';
 
 const REPORTER_ROLE_IDS = [USER_ROLE_IDS.STUDENT, USER_ROLE_IDS.TEACHER];
+const AdminDashboardPage = lazy(
+  () => import('@/modules/dashboard-admin/pages/AdminDashboardPage')
+);
+const ManagerDashboardPage = lazy(
+  () => import('@/modules/dashboard-manager/pages/ManagerDashboardPage')
+);
+
+function DashboardLoader({ children }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-16 text-center text-sm text-muted-foreground">
+          Cargando panel...
+        </div>
+      }
+    >
+      {children}
+    </Suspense>
+  );
+}
 
 export default function AppRouter() {
   return (
@@ -84,6 +104,19 @@ export default function AppRouter() {
       />
 
       <Route
+        path="/manager"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.MANAGER]}
+            element={
+              <DashboardLoader>
+                <ManagerDashboardPage />
+              </DashboardLoader>
+            }
+          />
+        }
+      />
+      <Route
         path="/manager/reports"
         element={
           <PrivateRoute
@@ -116,7 +149,11 @@ export default function AppRouter() {
         element={
           <PrivateRoute
             allowedRoleIds={[USER_ROLE_IDS.ADMIN]}
-            element={<AdminDashboardPage />}
+            element={
+              <DashboardLoader>
+                <AdminDashboardPage />
+              </DashboardLoader>
+            }
           />
         }
       />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, XCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/core/components/ui/button';
@@ -13,6 +13,7 @@ import { ReportMetadataForm } from '@/modules/manager-reports/components/ReportM
 import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
 import {
   assignReport,
+  discardReport,
   getAvailableOperators,
   getManagerReportDetail,
   updateReportMetadata,
@@ -45,6 +46,7 @@ export default function ManagerReportDetailPage() {
     [report?.assignments]
   );
   const assignmentDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
+  const discardDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
 
   const loadDetail = useCallback(async () => {
     setIsLoading(true);
@@ -154,6 +156,21 @@ export default function ManagerReportDetailPage() {
     }
   };
 
+  const confirmDiscard = async () => {
+    setIsSaving(true);
+    setError('');
+    try {
+      await discardReport(report.id);
+      await loadDetail();
+      setSuccess('El reporte fue descartado y se conserva para auditoria.');
+      setPendingAction('');
+    } catch (discardError) {
+      setError(discardError.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const selectedOperator = operators.find(
     (operator) => operator.authId === selectedOperatorId
   );
@@ -195,6 +212,24 @@ export default function ManagerReportDetailPage() {
       )}
 
       <ManagerReportOverview report={report} />
+
+      <section className="flex flex-col gap-4 border-b border-border bg-background px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Decision de revision</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Descarta el reporte si no cumple los criterios de gestion.
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={discardDisabled || isSaving}
+          onClick={() => setPendingAction('discard')}
+        >
+          <XCircle className="size-4" />
+          Descartar reporte
+        </Button>
+      </section>
 
       <ReportMetadataForm
         values={form}
@@ -240,6 +275,13 @@ export default function ManagerReportDetailPage() {
         )}
         isLoading={isSaving}
         onAccept={confirmAssignment}
+        onReject={() => setPendingAction('')}
+      />
+      <ConfirmationMessage
+        open={pendingAction === 'discard'}
+        {...CONFIRMATION_MESSAGES.reports.discard(report.title)}
+        isLoading={isSaving}
+        onAccept={confirmDiscard}
         onReject={() => setPendingAction('')}
       />
     </div>

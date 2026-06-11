@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getAdminDashboardData } from '@/services/adminDashboardService';
 import { mapUsersByRole } from '@/modules/dashboard-admin/utils/dashboardMappers';
+import { getAdminDashboardData } from '@/services/adminDashboardService';
 
 const INITIAL_METRICS = {
   activeUsers: 0,
@@ -13,6 +13,7 @@ const INITIAL_METRICS = {
 export function useAdminDashboard() {
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [roleDistribution, setRoleDistribution] = useState([]);
+  const [systemDistribution, setSystemDistribution] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -26,6 +27,32 @@ export function useAdminDashboard() {
       setRoleDistribution(
         mapUsersByRole(data.roleCounts, data.roles, data.metrics.activeUsers)
       );
+      setSystemDistribution([
+        {
+          id: 'users',
+          label: 'Usuarios',
+          value: data.metrics.activeUsers,
+          color: '#0f766e',
+        },
+        {
+          id: 'reports',
+          label: 'Reportes',
+          value: data.metrics.totalReports,
+          color: '#2563eb',
+        },
+        {
+          id: 'categories',
+          label: 'Categorias',
+          value: data.metrics.activeCategories,
+          color: '#ca8a04',
+        },
+        {
+          id: 'subcategories',
+          label: 'Razones',
+          value: data.metrics.totalSubcategories,
+          color: '#7c3aed',
+        },
+      ]);
     } catch (dashboardError) {
       setError(dashboardError.message);
     } finally {
@@ -40,6 +67,7 @@ export function useAdminDashboard() {
   return {
     metrics,
     roleDistribution,
+    systemDistribution,
     isLoading,
     error,
     reload: loadDashboard,

@@ -2,6 +2,7 @@ import { Calendar, MapPin, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/core/components/ui/button';
+import { PhotoGallery } from '@/core/components/ui/photo-gallery';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ResolutionSummary } from '@/modules/reports/components/ResolutionSummary';
 
@@ -45,6 +46,12 @@ export function OperatorReportCard({ report, showResolution = false }) {
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formatDate(report.incidentDate)}</span>
             <span>Razon: {report.subtypeName || 'Sin subtipo'}</span>
           </div>
+
+          <PhotoGallery
+            images={report.evidences}
+            className="max-w-xl grid-cols-3 sm:grid-cols-5"
+            emptyText="Sin evidencias adjuntas"
+          />
 
           {showResolution && report.resolution && (
             <ResolutionSummary report={report} />

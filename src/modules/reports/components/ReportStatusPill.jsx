@@ -6,7 +6,7 @@ export function ReportStatusPill({ meta }) {
   const Icon =
     Number(meta.id) === REPORT_STATUS_IDS.RESOLVED
       ? CheckCircle2
-      : Number(meta.id) === REPORT_STATUS_IDS.REJECTED
+      : Number(meta.id) === REPORT_STATUS_IDS.DISCARDED
         ? AlertCircle
         : Clock;
 

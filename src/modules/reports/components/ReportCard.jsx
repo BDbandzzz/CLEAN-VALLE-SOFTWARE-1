@@ -1,13 +1,8 @@
 import { useState } from 'react';
-import {
-  AlertCircle,
-  Calendar,
-  ChevronDown,
-  ChevronUp,
-  MapPin,
-} from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, MapPin } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { PhotoGallery } from '@/core/components/ui/photo-gallery';
 import { ReportInfoBlock } from './ReportInfoBlock';
 import { ReportInfoItem } from './ReportInfoItem';
 import { ReportBadge } from './ReportBadge';
@@ -104,26 +99,16 @@ export function ReportCard({ report, showResolutionSummary = false }) {
             <ReportInfoItem label="Reportado el" value={formattedCreatedAt} />
           </div>
 
-          {report.evidences?.length > 0 ? (
-            <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Evidencias</p>
-              <div className="flex flex-wrap gap-2">
-                {report.evidences.map((src, index) => (
-                  <img
-                    key={`${report.id}-${index}`}
-                    src={src}
-                    alt={`Evidencia ${index + 1}`}
-                    className="h-20 w-20 rounded-lg border border-border object-cover"
-                  />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <AlertCircle className="size-3.5" />
-              Sin evidencias adjuntas
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Evidencias
             </p>
-          )}
+            <PhotoGallery
+              images={report.evidences}
+              className="max-w-xl grid-cols-3 sm:grid-cols-5"
+              emptyText="Sin evidencias adjuntas"
+            />
+          </div>
 
           {!showResolutionSummary && <ResolutionSummary report={report} />}
 
