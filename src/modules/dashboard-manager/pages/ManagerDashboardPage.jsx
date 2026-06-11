@@ -52,7 +52,7 @@ export default function ManagerDashboardPage() {
   const totalReports = statusData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 pb-12">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-10 sm:space-y-8 sm:pb-12">
       <ModuleHero
         icon={<ClipboardCheck />}
         title="Panel del gestor"
@@ -77,7 +77,7 @@ export default function ManagerDashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4 [&>*]:min-w-0">
         <MetricCard
           title="Reportes totales"
           value={isLoading ? '...' : totalReports}
@@ -106,7 +106,7 @@ export default function ManagerDashboardPage() {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:gap-5 [&>*]:min-w-0">
         <DashboardDonutChart
           title="Flujo de reportes"
           description="Distribucion actual por estado."
