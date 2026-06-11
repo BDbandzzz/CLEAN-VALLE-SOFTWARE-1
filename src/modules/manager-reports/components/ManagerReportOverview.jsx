@@ -1,5 +1,6 @@
 import { Calendar, MapPin, User } from 'lucide-react';
 
+import { PhotoGallery } from '@/core/components/ui/photo-gallery';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ReportStatusPill } from '@/modules/reports/components/ReportStatusPill';
 
@@ -46,21 +47,11 @@ export function ManagerReportOverview({ report }) {
 
       <div>
         <h3 className="text-sm font-semibold text-foreground">Evidencias del reporte</h3>
-        {report.evidences?.length ? (
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {report.evidences.map((src, index) => (
-              <a key={src} href={src} target="_blank" rel="noreferrer">
-                <img
-                  src={src}
-                  alt={`Evidencia ${index + 1}`}
-                  className="aspect-square w-full rounded-lg border border-border object-cover"
-                />
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-sm text-muted-foreground">No hay fotografias adjuntas.</p>
-        )}
+        <PhotoGallery
+          images={report.evidences}
+          className="mt-3 lg:grid-cols-6"
+          emptyText="No hay fotografias adjuntas."
+        />
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 import { Calendar, CheckCircle2, MessageSquare, Star } from 'lucide-react';
 
+import { PhotoGallery } from '@/core/components/ui/photo-gallery';
 import { ResolutionMetaPill } from '@/modules/reports/components/ResolutionMetaPill';
 import { ResolutionMetric } from '@/modules/reports/components/ResolutionMetric';
 
@@ -49,17 +50,12 @@ export function ResolutionSummary({ report }) {
       )}
 
       {report.resolution.evidences?.length > 0 && (
-        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {report.resolution.evidences.map((src, index) => (
-            <a key={src} href={src} target="_blank" rel="noreferrer">
-              <img
-                src={src}
-                alt={`Evidencia de resolucion ${index + 1}`}
-                className="aspect-square w-full rounded-lg border border-emerald-200 object-cover"
-              />
-            </a>
-          ))}
-        </div>
+        <PhotoGallery
+          images={report.resolution.evidences}
+          altPrefix="Evidencia de resolucion"
+          className="mt-4 grid-cols-3 sm:grid-cols-5"
+          imageClassName="border-emerald-200"
+        />
       )}
     </section>
   );

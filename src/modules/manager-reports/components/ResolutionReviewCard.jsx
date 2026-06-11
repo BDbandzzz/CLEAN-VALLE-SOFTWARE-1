@@ -1,6 +1,7 @@
 import { Calendar, CheckCircle2, User, Wrench, XCircle } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { PhotoGallery } from '@/core/components/ui/photo-gallery';
 import { SelectField } from '@/core/components/ui/select-field';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 
@@ -55,21 +56,12 @@ export function ResolutionReviewCard({
 
           <div>
             <h3 className="text-sm font-semibold text-foreground">Evidencias</h3>
-            {resolution.evidences?.length ? (
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {resolution.evidences.map((src, index) => (
-                  <a key={src} href={src} target="_blank" rel="noreferrer">
-                    <img
-                      src={src}
-                      alt={`Evidencia de resolucion ${index + 1}`}
-                      className="aspect-square w-full rounded-lg border border-border object-cover"
-                    />
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-muted-foreground">No se adjuntaron fotografias.</p>
-            )}
+            <PhotoGallery
+              images={resolution.evidences}
+              altPrefix="Evidencia de resolucion"
+              className="mt-3"
+              emptyText="No se adjuntaron fotografias."
+            />
           </div>
         </div>
 

@@ -1,7 +1,8 @@
-import { Save } from 'lucide-react';
+import { AlertTriangle, Layers, Save, Tag } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { SelectField } from '@/core/components/ui/select-field';
+import { SelectionGroup } from '@/modules/reports/components/SelectionGroup';
 
 export function ReportMetadataForm({
   values,
@@ -26,34 +27,42 @@ export function ReportMetadataForm({
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <SelectField
-          id="manager-detail-risk"
-          label="Nivel de riesgo"
-          value={values.riskLevelId}
-          options={riskLevels}
-          onChange={(event) => onChange('riskLevelId', event.target.value)}
-          required
-          disabled={disabled}
-        />
-        <SelectField
-          id="manager-detail-category"
-          label="Categoria"
-          value={values.categoryId}
-          options={categories}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          required
-          disabled={disabled}
-        />
-        <SelectField
-          id="manager-detail-subtype"
+      <SelectionGroup
+        label="Nivel de riesgo"
+        icon={<AlertTriangle className="size-4" />}
+        items={riskLevels}
+        idPrefix="manager-detail-risk"
+        selected={values.riskLevelId}
+        onSelect={(id) => onChange('riskLevelId', id)}
+        required
+        disabled={disabled}
+      />
+
+      <SelectionGroup
+        label="Categoria"
+        icon={<Tag className="size-4" />}
+        items={categories}
+        idPrefix="manager-detail-category"
+        selected={values.categoryId}
+        onSelect={onCategoryChange}
+        required
+        disabled={disabled}
+      />
+
+      {values.categoryId && (
+        <SelectionGroup
           label="Razon"
-          value={values.subtypeId}
-          options={subtypes}
-          onChange={(event) => onChange('subtypeId', event.target.value)}
+          icon={<Layers className="size-4" />}
+          items={subtypes}
+          idPrefix="manager-detail-subtype"
+          selected={values.subtypeId}
+          onSelect={(id) => onChange('subtypeId', id)}
           required
-          disabled={disabled || !values.categoryId}
+          disabled={disabled}
         />
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
         <SelectField
           id="manager-detail-localization"
           label="Lugar"

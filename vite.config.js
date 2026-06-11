@@ -14,5 +14,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './src/core'),
     },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'react-photo-view',
+      'chart.js',
+      'react-chartjs-2',
+    ],
   },
 })

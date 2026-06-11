@@ -1,5 +1,6 @@
 import { hydrateReportMedia, hydrateReportsMedia } from '@/services/reportStorageService';
 import { supabase } from '@/services/supabaseClient';
+import { REPORT_STATUS_IDS } from '@/core/constants/domainConstants';
 
 export async function getManagerReportDashboard(filters = {}) {
   const { data, error } = await supabase.rpc('manager_report_dashboard', {
@@ -15,9 +16,24 @@ export async function getManagerReportDashboard(filters = {}) {
 
   if (error) throw new Error(error.message);
 
+  const byStatus = data?.byStatus ?? [];
+  const discardedCount =
+    byStatus.find(
+      (status) => Number(status.id) === REPORT_STATUS_IDS.DISCARDED
+    )?.count ?? 0;
+  const hideDiscarded = !filters.statusId;
+  const reports = hideDiscarded
+    ? (data?.reports ?? []).filter(
+        (report) => Number(report.statusId) !== REPORT_STATUS_IDS.DISCARDED
+      )
+    : data?.reports ?? [];
+
   return {
     ...data,
-    reports: await hydrateReportsMedia(data?.reports ?? []),
+    total: hideDiscarded
+      ? Math.max(0, (data?.total ?? 0) - discardedCount)
+      : data?.total ?? 0,
+    reports: await hydrateReportsMedia(reports),
   };
 }
 
@@ -53,6 +69,14 @@ export async function assignReport(reportId, operatorAuthId, notes) {
     p_id_report: Number(reportId),
     p_operator_uuid: operatorAuthId,
     p_notes: notes?.trim() || null,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function discardReport(reportId) {
+  const { data, error } = await supabase.rpc('discard_report', {
+    p_id_report: Number(reportId),
   });
   if (error) throw new Error(error.message);
   return data;

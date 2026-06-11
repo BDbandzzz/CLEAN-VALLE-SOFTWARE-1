@@ -95,6 +95,12 @@ export const sidebarConfig = {
 
   [USER_ROLE_IDS.MANAGER]: [
     {
+      title: 'Panel gestor',
+      url: '/manager',
+      icon: LayoutDashboard,
+      end: true,
+    },
+    {
       title: 'Reportes',
       url: '/manager/reports',
       icon: ClipboardList,

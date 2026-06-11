@@ -4,7 +4,6 @@ import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { ManagerReportFilters } from '@/modules/manager-reports/components/ManagerReportFilters';
-import { ManagerReportMetrics } from '@/modules/manager-reports/components/ManagerReportMetrics';
 import { ManagerReportTable } from '@/modules/manager-reports/components/ManagerReportTable';
 import { useManagerReportDashboard } from '@/modules/manager-reports/hooks/useManagerReportDashboard';
 import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
@@ -54,8 +53,6 @@ export default function ManagerReportsPage() {
         title="Gestion de Reportes"
         description="Clasifica, analiza y asigna los incidentes registrados."
       />
-
-      <ManagerReportMetrics dashboard={dashboard} />
 
       <ManagerReportFilters
         filters={filters}
