@@ -17,6 +17,9 @@ export function DashboardBarChart({
   isLoading = false,
 }) {
   const horizontal = layout === 'vertical';
+  const chartHeight = horizontal
+    ? Math.min(720, Math.max(280, data.length * 46))
+    : 280;
   const chartData = {
     labels: data.map((item) => item.label),
     datasets: [
@@ -32,12 +35,15 @@ export function DashboardBarChart({
   };
 
   return (
-    <Card className="min-h-[360px]">
+    <Card className="min-w-0 overflow-hidden">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="break-words leading-snug">{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
-      <CardContent className="h-[270px]">
+      <CardContent
+        className="min-w-0 overflow-hidden px-3 sm:px-5"
+        style={{ height: chartHeight }}
+      >
         {isLoading ? (
           <ChartMessage>Cargando datos...</ChartMessage>
         ) : data.length ? (
@@ -58,16 +64,38 @@ export function DashboardBarChart({
               scales: {
                 x: {
                   beginAtZero: true,
-                  ticks: { precision: 0 },
+                  ticks: {
+                    precision: 0,
+                    autoSkip: true,
+                    maxRotation: horizontal ? 0 : 35,
+                    minRotation: 0,
+                    font: { size: 11 },
+                  },
                   grid: { color: 'rgba(107, 114, 128, 0.12)' },
                 },
                 y: {
                   beginAtZero: true,
-                  ticks: { precision: 0 },
+                  ticks: {
+                    precision: 0,
+                    autoSkip: false,
+                    font: { size: 11 },
+                    callback(value) {
+                      const label = this.getLabelForValue(value);
+                      return label.length > 22
+                        ? `${label.slice(0, 20)}...`
+                        : label;
+                    },
+                  },
                   grid: {
                     display: horizontal,
                     color: 'rgba(107, 114, 128, 0.12)',
                   },
+                },
+              },
+              layout: {
+                padding: {
+                  left: horizontal ? 2 : 0,
+                  right: 4,
                 },
               },
             }}

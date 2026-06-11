@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
   const dashboard = useAdminDashboard();
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 pb-12">
+    <div className="mx-auto w-full min-w-0 max-w-7xl space-y-6 pb-10 sm:space-y-8 sm:pb-12">
       <AdminDashboardHeader />
 
       {dashboard.error && (
@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
         isLoading={dashboard.isLoading}
       />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:gap-5 [&>*]:min-w-0">
         <DashboardDonutChart
           title="Usuarios activos por rol"
           description="Distribucion de las cuentas habilitadas en el sistema."
