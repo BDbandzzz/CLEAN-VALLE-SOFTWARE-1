@@ -103,7 +103,7 @@ export function LandingHero() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-10 border-white/30 bg-white/10 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground">
-                  <a href={LANDING_HERO.secondaryAction.href}>{LANDING_HERO.secondaryAction.label}</a>
+                  <Link to={LANDING_HERO.secondaryAction.href}>{LANDING_HERO.secondaryAction.label}</Link>
                 </Button>
               </div>
             </div>

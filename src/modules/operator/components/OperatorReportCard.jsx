@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/core/components/ui/button';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ResolutionSummary } from '@/modules/reports/components/ResolutionSummary';
-import { getStatusMeta, getSubtypeLabel } from '@/modules/reports/constants/reportConstants';
 
 export function OperatorReportCard({ report, showResolution = false }) {
   const navigate = useNavigate();
-  const status = getStatusMeta(report.statusId);
-  const subtypeLabel = report.subtypeName || getSubtypeLabel(report.categoryId, report.subtypeId);
+  const status = {
+    label: report.statusName || 'Sin estado',
+    color: report.statusColor || '#6b7280',
+  };
 
   return (
     <article className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -18,13 +19,11 @@ export function OperatorReportCard({ report, showResolution = false }) {
           <div className="flex flex-wrap gap-2">
             <ReportBadge
               type="category"
-              value={report.categoryId}
               label={report.categoryName}
               color={report.categoryColor}
             />
             <ReportBadge
               type="risk"
-              value={report.riskLevelId}
               label={report.riskLevelName}
               color={report.riskLevelColor}
             />
@@ -44,7 +43,7 @@ export function OperatorReportCard({ report, showResolution = false }) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><MapPin className="size-3" />{formatLocation(report)}</span>
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formatDate(report.incidentDate)}</span>
-            <span>Razon: {subtypeLabel}</span>
+            <span>Razon: {report.subtypeName || 'Sin subtipo'}</span>
           </div>
 
           {showResolution && report.resolution && (

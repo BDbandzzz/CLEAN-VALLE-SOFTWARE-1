@@ -2,27 +2,31 @@ import { useState } from 'react';
 import { CheckCircle2, ClipboardPlus } from 'lucide-react';
 
 import { ModuleHero } from '@/core/components/ui/module-hero';
-import { useAuth } from '@/core/context/AuthContext';
 import { useReports } from '../context/ReportsContext';
 import { CreateReportForm } from '../components/CreateReportForm';
 import { useReportCatalogs } from '../hooks/useReportCatalogs';
 
 const CreateReportPage = () => {
   const { addReport } = useReports();
-  const { user } = useAuth();
   const catalogs = useReportCatalogs();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (formData) => {
     setIsSubmitting(true);
     setSuccessMessage('');
+    setErrorMessage('');
     try {
-      const createdReport = await addReport(formData, user?.id);
+      const createdReport = await addReport(formData);
       if (createdReport) {
         setSuccessMessage('Reporte enviado exitosamente. El equipo operativo lo revisara pronto.');
       }
+      return createdReport;
+    } catch (error) {
+      setErrorMessage(error.message);
+      return null;
     } finally {
       setIsSubmitting(false);
     }
@@ -40,6 +44,12 @@ const CreateReportPage = () => {
         <div className="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
           <p className="text-sm font-medium">{successMessage}</p>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive">
+          {errorMessage}
         </div>
       )}
 

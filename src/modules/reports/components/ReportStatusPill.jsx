@@ -1,17 +1,14 @@
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 
-const STATUS_ICONS = {
-  pendiente: Clock,
-  'en-revision': Clock,
-  asignado: Clock,
-  'en-proceso': Clock,
-  resuelto: CheckCircle2,
-  cerrado: CheckCircle2,
-  rechazado: AlertCircle,
-};
+import { REPORT_STATUS_IDS } from '@/core/constants/domainConstants';
 
 export function ReportStatusPill({ meta }) {
-  const Icon = STATUS_ICONS[meta.id] ?? Clock;
+  const Icon =
+    Number(meta.id) === REPORT_STATUS_IDS.RESOLVED
+      ? CheckCircle2
+      : Number(meta.id) === REPORT_STATUS_IDS.REJECTED
+        ? AlertCircle
+        : Clock;
 
   return (
     <span

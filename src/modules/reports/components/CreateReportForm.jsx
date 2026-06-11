@@ -39,10 +39,10 @@ export function CreateReportForm({
   const descriptionTextarea = REPORT_TEXTAREA_FIELDS.description;
   const customContextTextarea = REPORT_TEXTAREA_FIELDS.customContext;
   const hasSubtypeOptions = subtypeOptions.length > 0;
-  const shouldShowReasonOptions = form.categoryId && form.categoryId !== 'otro' && hasSubtypeOptions;
-  const shouldShowCustomContext =
-    form.categoryId === 'otro' ||
-    (form.categoryId && !hasSubtypeOptions);
+  const selectedCategory = categories.find((item) => item.id === form.categoryId);
+  const isOtherCategory = selectedCategory?.label?.trim().toLowerCase() === 'otro';
+  const shouldShowReasonOptions = Boolean(form.categoryId && hasSubtypeOptions);
+  const shouldShowCustomContext = Boolean(form.categoryId && isOtherCategory);
 
   const handleReset = () => {
     reset();
@@ -82,16 +82,19 @@ export function CreateReportForm({
 
   const confirmReport = async () => {
     if (!pendingReport) return;
-    await onSubmit(pendingReport);
+    const createdReport = await onSubmit(pendingReport);
+    if (!createdReport) return;
     setPendingReport(null);
+    handleReset();
   };
 
   return (
     <form
       onSubmit={(e) =>
-        handleSubmit(e, images.map((image) => URL.createObjectURL(image)), prepareReport, {
+        handleSubmit(e, images, prepareReport, {
           subtypeOptions,
           subareaOptions,
+          requiresContext: isOtherCategory,
         })
       }
       noValidate

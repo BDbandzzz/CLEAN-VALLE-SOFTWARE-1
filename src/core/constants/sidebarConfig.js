@@ -1,5 +1,7 @@
 import {
   Bell,
+  ClipboardCheck,
+  ClipboardList,
   ClipboardPlus,
   Eye,
   GraduationCap,
@@ -28,6 +30,11 @@ const reportItems = [
     title: 'Mis reportes',
     url: '/reports/view',
     icon: Eye,
+  },
+  {
+    title: 'Resueltos',
+    url: '/reports/resolved',
+    icon: ClipboardCheck,
   },
 ];
 
@@ -87,6 +94,16 @@ export const sidebarConfig = {
   ],
 
   [USER_ROLE_IDS.MANAGER]: [
+    {
+      title: 'Reportes',
+      url: '/manager/reports',
+      icon: ClipboardList,
+    },
+    {
+      title: 'Resoluciones',
+      url: '/manager/resolutions',
+      icon: ClipboardCheck,
+    },
     {
       title: 'Perfil',
       url: '/profile',

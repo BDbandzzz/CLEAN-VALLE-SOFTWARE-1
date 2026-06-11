@@ -13,12 +13,14 @@ import { ReportInfoItem } from './ReportInfoItem';
 import { ReportBadge } from './ReportBadge';
 import { ReportStatusPill } from './ReportStatusPill';
 import { ResolutionSummary } from './ResolutionSummary';
-import { getStatusMeta, getSubtypeLabel } from '../constants/reportConstants';
 
-export function ReportCard({ report, onDelete, showResolutionSummary = false }) {
+export function ReportCard({ report, showResolutionSummary = false }) {
   const [expanded, setExpanded] = useState(false);
-  const statusMeta = getStatusMeta(report.statusId);
-  const subtypeLabel = getSubtypeLabel(report.categoryId, report.subtypeId);
+  const statusMeta = {
+    id: report.statusId,
+    label: report.statusName || 'Sin estado',
+    color: report.statusColor || '#6b7280',
+  };
 
   const formattedDate = report.incidentDate
     ? new Date(report.incidentDate).toLocaleDateString('es-CO', {
@@ -43,13 +45,21 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
       <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <ReportBadge type="category" value={report.categoryId} />
-            <ReportBadge type="risk" value={report.riskLevelId} />
+            <ReportBadge
+              type="category"
+              label={report.categoryName}
+              color={report.categoryColor}
+            />
+            <ReportBadge
+              type="risk"
+              label={report.riskLevelName}
+              color={report.riskLevelColor}
+            />
             <ReportStatusPill meta={statusMeta} />
           </div>
           <h3 className="line-clamp-1 text-base font-semibold text-foreground">{report.title}</h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><MapPin className="size-3" />{report.locationName}</span>
+            <span className="flex items-center gap-1"><MapPin className="size-3" />{formatLocation(report)}</span>
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formattedDate}</span>
           </div>
         </div>
@@ -88,8 +98,8 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
           )}
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <ReportInfoItem label="Subtipo" value={subtypeLabel} />
-            <ReportInfoItem label="Ubicacion" value={report.locationName} />
+            <ReportInfoItem label="Subtipo" value={report.subtypeName || 'Sin subtipo'} />
+            <ReportInfoItem label="Ubicacion" value={formatLocation(report)} />
             <ReportInfoItem label="Fecha del incidente" value={formattedDate} />
             <ReportInfoItem label="Reportado el" value={formattedCreatedAt} />
           </div>
@@ -117,20 +127,12 @@ export function ReportCard({ report, onDelete, showResolutionSummary = false }) 
 
           {!showResolutionSummary && <ResolutionSummary report={report} />}
 
-          {report.statusId === 'pendiente' && onDelete && (
-            <Button
-              type="button"
-              onClick={() => onDelete(report.id)}
-              variant="destructive"
-              size="sm"
-              className="h-auto border-destructive/40 px-3 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10"
-            >
-              Eliminar reporte
-            </Button>
-          )}
         </div>
       )}
     </article>
   );
 }
 
+function formatLocation(report) {
+  return [report.localizationName, report.subareaName].filter(Boolean).join(' - ') || 'Sin ubicacion';
+}

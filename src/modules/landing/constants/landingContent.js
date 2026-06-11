@@ -33,8 +33,8 @@ export const LANDING_HERO = {
     href: '/login',
   },
   secondaryAction: {
-    label: 'Ver capacidades',
-    href: '#capacidades',
+    label: 'Ver reportes resueltos',
+    href: '/public/reports/resolved',
   },
   statusLabel: 'Sistema activo',
 };

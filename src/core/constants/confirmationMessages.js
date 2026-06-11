@@ -52,6 +52,31 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Enviar resolución',
       rejectLabel: 'Cancelar',
     },
+    updateMetadata: {
+      title: 'Actualizar clasificacion',
+      reason: 'Se guardaran el riesgo, la razon y la ubicacion seleccionados.',
+      acceptLabel: 'Guardar cambios',
+      rejectLabel: 'Cancelar',
+    },
+    assign: (operatorName) => ({
+      title: 'Asignar reporte',
+      reason: `El reporte quedara asignado a ${operatorName || 'este operador'}.`,
+      acceptLabel: 'Confirmar asignacion',
+      rejectLabel: 'Cancelar',
+    }),
+    approveResolution: {
+      title: 'Aprobar resolucion',
+      reason: 'El reporte quedara resuelto y la asignacion se cerrara.',
+      acceptLabel: 'Aprobar',
+      rejectLabel: 'Cancelar',
+    },
+    rejectResolution: {
+      title: 'Descartar resolucion',
+      reason: 'El operador recibira el comentario y podra enviar una nueva resolucion.',
+      acceptLabel: 'Descartar',
+      rejectLabel: 'Cancelar',
+      variant: 'destructive',
+    },
   },
   users: {
     create: (name) => ({

@@ -3,6 +3,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   getActiveReportCategories,
   getLocalizations,
+  getReportStatuses,
+  getResolutionQualities,
+  getResolutionReviewStatuses,
   getRiskLevels,
   getSubareasByLocalizationId,
   getSubtypesByCategoryId,
@@ -12,6 +15,9 @@ export function useReportCatalogs() {
   const [categories, setCategories] = useState([]);
   const [riskLevels, setRiskLevels] = useState([]);
   const [localizations, setLocalizations] = useState([]);
+  const [reportStatuses, setReportStatuses] = useState([]);
+  const [resolutionQualities, setResolutionQualities] = useState([]);
+  const [resolutionReviewStatuses, setResolutionReviewStatuses] = useState([]);
   const [subtypesByCategory, setSubtypesByCategory] = useState({});
   const [subareasByLocalization, setSubareasByLocalization] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -27,16 +33,29 @@ export function useReportCatalogs() {
       setError('');
 
       try {
-        const [nextCategories, nextRiskLevels, nextLocalizations] = await Promise.all([
+        const [
+          nextCategories,
+          nextRiskLevels,
+          nextLocalizations,
+          nextReportStatuses,
+          nextResolutionQualities,
+          nextResolutionReviewStatuses,
+        ] = await Promise.all([
           getActiveReportCategories(),
           getRiskLevels(),
           getLocalizations(),
+          getReportStatuses(),
+          getResolutionQualities(),
+          getResolutionReviewStatuses(),
         ]);
 
         if (!isMounted) return;
         setCategories(nextCategories);
         setRiskLevels(nextRiskLevels);
         setLocalizations(nextLocalizations);
+        setReportStatuses(nextReportStatuses);
+        setResolutionQualities(nextResolutionQualities);
+        setResolutionReviewStatuses(nextResolutionReviewStatuses);
       } catch (catalogError) {
         if (!isMounted) return;
         setError(catalogError.message);
@@ -105,6 +124,9 @@ export function useReportCatalogs() {
       categories,
       riskLevels,
       localizations,
+      reportStatuses,
+      resolutionQualities,
+      resolutionReviewStatuses,
       subtypesByCategory,
       subareasByLocalization,
       isLoading,
@@ -123,6 +145,9 @@ export function useReportCatalogs() {
       loadingSubareas,
       loadingSubtypes,
       localizations,
+      reportStatuses,
+      resolutionQualities,
+      resolutionReviewStatuses,
       riskLevels,
       subareasByLocalization,
       subtypesByCategory,

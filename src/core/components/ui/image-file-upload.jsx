@@ -4,7 +4,7 @@ import { ImagePlus, Upload, X } from 'lucide-react';
 import { Button } from '@/core/components/ui/button';
 
 function isAcceptedImage(file) {
-  return file?.type?.startsWith('image/');
+  return ['image/jpeg', 'image/png', 'image/webp'].includes(file?.type);
 }
 
 export function ImageFileUpload({

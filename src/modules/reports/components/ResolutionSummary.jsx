@@ -1,21 +1,15 @@
-import { CheckCircle2, Clock, Gauge, MessageSquare, Star } from 'lucide-react';
+import { Calendar, CheckCircle2, MessageSquare, Star } from 'lucide-react';
 
 import { ResolutionMetaPill } from '@/modules/reports/components/ResolutionMetaPill';
 import { ResolutionMetric } from '@/modules/reports/components/ResolutionMetric';
-import {
-  getResolutionQualityMeta,
-  getResolutionReviewStatusMeta,
-  getRiskMeta,
-} from '@/modules/reports/constants/reportConstants';
 
 export function ResolutionSummary({ report }) {
   if (!report?.resolution) return null;
 
-  const reviewStatus = getResolutionReviewStatusMeta(
-    report.resolution.reviewStatusId ?? report.resolution.statusId
-  );
-  const quality = getResolutionQualityMeta(report.resolution.qualityId);
-  const risk = getRiskMeta(report.riskLevelId);
+  const reviewStatus = {
+    label: report.resolution.reviewStatusName || 'Pendiente de revision',
+    color: report.statusColor || '#16a34a',
+  };
 
   return (
     <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
@@ -29,18 +23,13 @@ export function ResolutionSummary({ report }) {
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <ResolutionMetric
           icon={<Star className="size-4" />}
-          label="Satisfaccion"
-          value={quality ? `${quality.label} (${quality.score}/5)` : 'Por evaluar'}
+          label="Calidad"
+          value={report.resolution.qualityName || 'Por evaluar'}
         />
         <ResolutionMetric
-          icon={<Gauge className="size-4" />}
-          label="Prioridad"
-          value={`${risk.priorityScore} pts`}
-        />
-        <ResolutionMetric
-          icon={<Clock className="size-4" />}
-          label="Respuesta esperada"
-          value={`${risk.responseTimeHours} h`}
+          icon={<Calendar className="size-4" />}
+          label="Fecha de resolucion"
+          value={formatDate(report.resolution.resolvedAt)}
         />
         <ResolutionMetric
           icon={<CheckCircle2 className="size-4" />}
@@ -58,6 +47,25 @@ export function ResolutionSummary({ report }) {
           </div>
         </div>
       )}
+
+      {report.resolution.evidences?.length > 0 && (
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {report.resolution.evidences.map((src, index) => (
+            <a key={src} href={src} target="_blank" rel="noreferrer">
+              <img
+                src={src}
+                alt={`Evidencia de resolucion ${index + 1}`}
+                className="aspect-square w-full rounded-lg border border-emerald-200 object-cover"
+              />
+            </a>
+          ))}
+        </div>
+      )}
     </section>
   );
+}
+
+function formatDate(value) {
+  if (!value) return 'No especificada';
+  return new Date(value).toLocaleDateString('es-CO');
 }

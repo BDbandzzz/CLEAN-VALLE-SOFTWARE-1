@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Eye, FileSearch } from 'lucide-react';
 
 import { EmptyState } from '@/core/components/ui/empty-state';
-import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
-import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { ReportCard } from '../components/ReportCard';
 import { ReportFilters } from '../components/ReportFilters';
 import { useReports } from '../context/ReportsContext';
@@ -24,96 +22,29 @@ const TABS = {
   resolved: 'resolved',
 };
 
-function applyFilters(reports, filters) {
-  return reports.filter((report) => {
-    if (filters.search) {
-      const query = filters.search.toLowerCase();
-      const searchable = [
-        report.title,
-        report.description,
-        report.localizationName,
-        report.subareaName,
-        report.customContext,
-      ].join(' ').toLowerCase();
-
-      if (!searchable.includes(query)) return false;
-    }
-
-    if (filters.categoryId && String(report.categoryId) !== filters.categoryId) return false;
-    if (filters.riskLevelId && String(report.riskLevelId) !== filters.riskLevelId) return false;
-
-    if (filters.dateFrom || filters.dateTo) {
-      const reportDate = report.incidentDate ? new Date(report.incidentDate) : null;
-      if (!reportDate) return false;
-      if (filters.dateFrom && reportDate < new Date(filters.dateFrom)) return false;
-      if (filters.dateTo && reportDate > new Date(`${filters.dateTo}T23:59:59`)) return false;
-    }
-
-    return true;
-  });
-}
-
-const ViewReportsPage = () => {
-  const { reports, deleteReport } = useReports();
-  const {
-    categories,
-    riskLevels,
-    subtypesByCategory,
-    loadSubtypes,
-  } = useReportCatalogs();
+export default function ViewReportsPage() {
+  const { reports, resolvedReports, isLoading, error } = useReports();
+  const { categories, riskLevels } = useReportCatalogs();
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [activeTab, setActiveTab] = useState(TABS.mine);
-  const [reportToDelete, setReportToDelete] = useState(null);
 
-  useEffect(() => {
-    if (categories.length === 0) return;
-
-    const categoryIds = Array.from(
-      new Set(reports.map((report) => report.categoryId).filter(Boolean).map(String))
-    );
-
-    categoryIds.forEach((categoryId) => {
-      loadSubtypes(categoryId);
-    });
-  }, [categories.length, loadSubtypes, reports]);
-
-  const enrichedReports = useMemo(
-    () => enrichReports(reports, categories, riskLevels, subtypesByCategory),
-    [categories, reports, riskLevels, subtypesByCategory]
-  );
-
-  const resolvedByOperators = useMemo(
-    () => enrichedReports.filter((report) => report.resolution),
-    [enrichedReports]
-  );
-
-  const displayedReports = useMemo(
-    () => applyFilters(activeTab === TABS.resolved ? resolvedByOperators : enrichedReports, filters),
-    [activeTab, enrichedReports, resolvedByOperators, filters]
-  );
-
-  const handleFilterChange = (partial) =>
-    setFilters((prev) => ({ ...prev, ...partial }));
-
-  const handleClearFilters = () => setFilters(EMPTY_FILTERS);
-  const confirmDelete = () => {
-    if (!reportToDelete) return;
-    deleteReport(reportToDelete);
-    setReportToDelete(null);
-  };
+  const displayedReports = useMemo(() => {
+    const source = activeTab === TABS.resolved ? resolvedReports : reports;
+    return applyFilters(source, filters);
+  }, [activeTab, filters, reports, resolvedReports]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 pb-12">
       <ModuleHero
         icon={<Eye />}
         title="Mis Reportes"
-        description="Consulta el estado y el historial de reportes creados por tu cuenta."
+        description="Consulta el estado de tus reportes y las soluciones aprobadas."
       />
 
       <ReportFilters
         filters={filters}
-        onChange={handleFilterChange}
-        onClear={handleClearFilters}
+        onChange={(partial) => setFilters((current) => ({ ...current, ...partial }))}
+        onClear={() => setFilters(EMPTY_FILTERS)}
         categories={categories}
         riskLevels={riskLevels}
       />
@@ -121,25 +52,32 @@ const ViewReportsPage = () => {
       <div className="flex rounded-xl border border-border bg-muted/40 p-1">
         <SegmentedTabButton
           label="Mis reportes"
-          count={enrichedReports.length}
+          count={reports.length}
           active={activeTab === TABS.mine}
           onClick={() => setActiveTab(TABS.mine)}
         />
         <SegmentedTabButton
-          label="Resueltos por operadores"
-          count={resolvedByOperators.length}
+          label="Reportes resueltos"
+          count={resolvedReports.length}
           active={activeTab === TABS.resolved}
           onClick={() => setActiveTab(TABS.resolved)}
         />
       </div>
 
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-4">
-        {displayedReports.length > 0 ? (
+        {isLoading ? (
+          <div className="py-16 text-center text-sm text-muted-foreground">Cargando reportes...</div>
+        ) : displayedReports.length ? (
           displayedReports.map((report) => (
             <ReportCard
               key={report.id}
               report={report}
-              onDelete={setReportToDelete}
               showResolutionSummary={activeTab === TABS.resolved}
             />
           ))
@@ -152,43 +90,40 @@ const ViewReportsPage = () => {
           />
         )}
       </div>
-
-      <ConfirmationMessage
-        open={Boolean(reportToDelete)}
-        {...CONFIRMATION_MESSAGES.reports.delete}
-        onAccept={confirmDelete}
-        onReject={() => setReportToDelete(null)}
-      />
     </div>
   );
-};
-
-export default ViewReportsPage;
-
-function enrichReports(reports, categories, riskLevels, subtypesByCategory) {
-  const categoryById = new Map(categories.map((category) => [category.id, category]));
-  const riskById = new Map(riskLevels.map((riskLevel) => [riskLevel.id, riskLevel]));
-
-  return reports.map((report) => {
-    const category = categoryById.get(String(report.categoryId));
-    const riskLevel = riskById.get(String(report.riskLevelId));
-    const subtype = findSubtype(report.categoryId, report.subtypeId, subtypesByCategory);
-
-    return {
-      ...report,
-      categoryName: report.categoryName || category?.label || '',
-      categoryColor: report.categoryColor || category?.color || '',
-      subtypeName: report.subtypeName || subtype?.label || '',
-      subtypeColor: report.subtypeColor || subtype?.color || category?.color || '',
-      riskLevelName: report.riskLevelName || riskLevel?.label || '',
-      riskLevelColor: report.riskLevelColor || riskLevel?.color || '',
-    };
-  });
 }
 
-function findSubtype(categoryId, subtypeId, subtypesByCategory) {
-  if (!categoryId || !subtypeId) return null;
+function applyFilters(reports, filters) {
+  return reports.filter((report) => {
+    if (filters.search) {
+      const query = filters.search.toLowerCase();
+      const searchable = [
+        report.title,
+        report.description,
+        report.localizationName,
+        report.subareaName,
+        report.customContext,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
-  const subtypes = subtypesByCategory[String(categoryId)] ?? [];
-  return subtypes.find((subtype) => subtype.id === String(subtypeId)) ?? null;
+      if (!searchable.includes(query)) return false;
+    }
+
+    if (filters.categoryId && String(report.categoryId) !== filters.categoryId) return false;
+    if (filters.riskLevelId && String(report.riskLevelId) !== filters.riskLevelId) return false;
+
+    const reportDate = report.incidentDate ? new Date(report.incidentDate) : null;
+    if (filters.dateFrom && (!reportDate || reportDate < new Date(filters.dateFrom))) return false;
+    if (
+      filters.dateTo &&
+      (!reportDate || reportDate > new Date(`${filters.dateTo}T23:59:59`))
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 }

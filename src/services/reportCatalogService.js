@@ -50,6 +50,33 @@ function mapSubarea(row) {
   };
 }
 
+function mapReportStatus(row) {
+  return {
+    id: String(row.status_id),
+    label: row.status_name,
+    description: row.description ?? '',
+    color: row.color_hex ?? '#6b7280',
+    isTerminal: Boolean(row.is_terminal),
+  };
+}
+
+function mapResolutionQuality(row) {
+  return {
+    id: String(row.id_quality),
+    label: row.name,
+    description: row.description ?? '',
+  };
+}
+
+function mapResolutionReviewStatus(row) {
+  return {
+    id: String(row.id_review_status),
+    label: row.name,
+    description: row.description ?? '',
+    isTerminal: Boolean(row.is_terminal),
+  };
+}
+
 export async function getActiveReportCategories() {
   const { data, error } = await supabase
     .from('type_category')
@@ -126,4 +153,34 @@ export async function getSubareasByLocalizationId(localizationId) {
   }
 
   return (data ?? []).map(mapSubarea);
+}
+
+export async function getReportStatuses() {
+  const { data, error } = await supabase
+    .from('status_report')
+    .select('status_id,status_name,description,is_terminal,color_hex')
+    .order('status_id', { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapReportStatus);
+}
+
+export async function getResolutionQualities() {
+  const { data, error } = await supabase
+    .from('resolution_quality')
+    .select('id_quality,name,description')
+    .order('id_quality', { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapResolutionQuality);
+}
+
+export async function getResolutionReviewStatuses() {
+  const { data, error } = await supabase
+    .from('resolution_review_status')
+    .select('id_review_status,name,description,is_terminal')
+    .order('id_review_status', { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapResolutionReviewStatus);
 }

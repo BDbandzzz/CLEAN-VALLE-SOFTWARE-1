@@ -25,15 +25,9 @@ const INITIAL_ERRORS = {
 };
 
 function validateReport(data, options = {}) {
-  const { subtypeOptions = [], subareaOptions = [] } = options;
+  const { subareaOptions = [], requiresContext = false } = options;
   const errors = { ...INITIAL_ERRORS };
   let ok = true;
-  const needsSubtype = Boolean(data.categoryId && data.categoryId !== 'otro' && subtypeOptions.length);
-  const needsContext = Boolean(
-    data.categoryId === 'otro' ||
-    data.subtypeId === 'otro' ||
-    (data.categoryId && !subtypeOptions.length)
-  );
 
   if (!data.title.trim()) {
     errors.title = 'El titulo es requerido.';
@@ -56,12 +50,12 @@ function validateReport(data, options = {}) {
     ok = false;
   }
 
-  if (needsSubtype && !data.subtypeId) {
+  if (data.categoryId && !data.subtypeId) {
     errors.subtypeId = 'Selecciona la razon del reporte.';
     ok = false;
   }
 
-  if (needsContext && !data.customContext.trim()) {
+  if (requiresContext && !data.customContext.trim()) {
     errors.customContext = 'Agrega el contexto del reporte.';
     ok = false;
   }
@@ -103,9 +97,6 @@ export function useReportForm() {
       }
       if (field === 'localizationId') {
         next.subareaId = '';
-      }
-      if (field === 'subtypeId' && value !== 'otro' && next.categoryId !== 'otro') {
-        next.customContext = '';
       }
       return next;
     });

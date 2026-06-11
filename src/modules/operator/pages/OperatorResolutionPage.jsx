@@ -1,38 +1,70 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, FileText, RotateCcw, Send } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  RotateCcw,
+  Send,
+  Wrench,
+} from 'lucide-react';
 
 import { FormField } from '@/core/components/forms/FormField';
 import { TextareaField } from '@/core/components/forms/TextareaField';
-import { useAuth } from '@/core/context/AuthContext';
+import { formControlClass } from '@/core/components/forms/formStyles';
 import { Button } from '@/core/components/ui/button';
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { ImageFileUpload } from '@/core/components/ui/image-file-upload';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
-import { useReports } from '@/modules/reports/context/ReportsContext';
+import { RESOLUTION_REVIEW_STATUS_IDS } from '@/core/constants/domainConstants';
+import { useOperatorReports } from '@/modules/operator/hooks/useOperatorReports';
+
+const INITIAL_FORM = {
+  description: '',
+  method: '',
+  resolvedAt: new Date().toISOString().slice(0, 10),
+};
 
 export default function OperatorResolutionPage() {
   const { reportId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { allReports, submitResolution } = useReports();
-  const report = allReports.find(
-    (item) =>
-      item.id === reportId &&
-      String(item.assignedTo) === String(user?.id)
+  const {
+    assignedReports,
+    resolvedReports,
+    isLoading,
+    error: loadError,
+    submitResolution,
+  } = useOperatorReports();
+  const report = useMemo(
+    () =>
+      [...assignedReports, ...resolvedReports].find(
+        (item) => String(item.id) === String(reportId)
+      ),
+    [assignedReports, reportId, resolvedReports]
   );
-  const [description, setDescription] = useState('');
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [images, setImages] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [images, setImages] = useState([]);
   const [confirmResolution, setConfirmResolution] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canSubmit =
+    !report?.resolution ||
+    Number(report.resolution.reviewStatusId) ===
+      RESOLUTION_REVIEW_STATUS_IDS.DISCARDED;
+
+  const setField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    if (error) setError('');
+  };
 
   const handleReset = () => {
-    setDescription('');
+    setForm(INITIAL_FORM);
+    setImages([]);
     setError('');
     setSuccess('');
-    setImages([]);
   };
 
   const requestResolution = (event) => {
@@ -40,28 +72,41 @@ export default function OperatorResolutionPage() {
     setError('');
     setSuccess('');
 
-    if (description.trim().length < 10) {
+    if (form.description.trim().length < 10) {
       setError('Describe la resolucion con al menos 10 caracteres.');
       return;
     }
-    setConfirmResolution(true);
-  };
-
-  const confirmSubmit = () => {
-    const updatedReport = submitResolution(report.id, {
-      description,
-      evidences: images.map((image) => URL.createObjectURL(image)),
-    }, user.id);
-
-    if (!updatedReport) {
-      setError('No se pudo enviar la resolucion.');
+    if (form.method.trim().length < 3) {
+      setError('Indica el metodo utilizado para resolver el reporte.');
+      return;
+    }
+    if (!form.resolvedAt) {
+      setError('Selecciona la fecha de resolucion.');
       return;
     }
 
-    setConfirmResolution(false);
-    handleReset();
-    setSuccess('Resolucion enviada correctamente.');
+    setConfirmResolution(true);
   };
+
+  const confirmSubmit = async () => {
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await submitResolution(report.id, { ...form, images });
+      setConfirmResolution(false);
+      setSuccess('Resolucion enviada correctamente para revision.');
+      setImages([]);
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="py-16 text-center text-sm text-muted-foreground">Cargando reporte...</div>;
+  }
 
   if (!report) {
     return (
@@ -71,7 +116,7 @@ export default function OperatorResolutionPage() {
           Volver
         </Button>
         <div className="rounded-xl border border-border bg-card p-8 text-center text-muted-foreground">
-          No encontramos un reporte asignado con ese identificador.
+          {loadError || 'No encontramos un reporte asignado con ese identificador.'}
         </div>
       </div>
     );
@@ -87,7 +132,7 @@ export default function OperatorResolutionPage() {
       <ModuleHero
         icon={<Send />}
         title="Enviar resolucion"
-        description="Registra las acciones realizadas para resolver el reporte asignado."
+        description="Registra las acciones realizadas y sus evidencias."
       />
 
       {success && (
@@ -97,13 +142,25 @@ export default function OperatorResolutionPage() {
         </div>
       )}
 
+      {!canSubmit && (
+        <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+          Esta resolucion ya fue enviada o aprobada y no admite un nuevo envio.
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={requestResolution} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
         <FormField id="resolution-report-title" label="Titulo del reporte" icon={<FileText className="size-4" />}>
           <input
             id="resolution-report-title"
             readOnly
             value={report.title}
-            className="w-full cursor-default rounded-lg border border-input bg-muted/50 px-3.5 py-2.5 text-sm"
+            className={formControlClass(false, 'cursor-default bg-muted/50')}
           />
         </FormField>
 
@@ -112,22 +169,41 @@ export default function OperatorResolutionPage() {
           label="Descripcion de la resolucion"
           required
           icon={<FileText className="size-4" />}
-          error={error}
           rows={5}
-          value={description}
-          onChange={(event) => {
-            setDescription(event.target.value);
-            if (error) setError('');
-          }}
-          placeholder="Describe que se hizo, que materiales se usaron y si el problema quedo solucionado."
-          showCounter={false}
+          value={form.description}
+          onChange={(event) => setField('description', event.target.value)}
+          placeholder="Describe las acciones realizadas y el resultado obtenido."
+          maxLength={1000}
         />
 
-        <ImageFileUpload files={images} onChange={setImages} />
+        <FormField id="resolution-method" label="Metodo de resolucion" required icon={<Wrench className="size-4" />}>
+          <input
+            id="resolution-method"
+            value={form.method}
+            onChange={(event) => setField('method', event.target.value)}
+            placeholder="Ej. Sustitucion del componente afectado"
+            maxLength={180}
+            className={formControlClass()}
+          />
+        </FormField>
+
+        <FormField id="resolution-date" label="Fecha de resolucion" required icon={<Calendar className="size-4" />}>
+          <input
+            id="resolution-date"
+            type="date"
+            value={form.resolvedAt}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={(event) => setField('resolvedAt', event.target.value)}
+            className={formControlClass()}
+          />
+        </FormField>
+
+        <ImageFileUpload files={images} onChange={setImages} disabled={isSubmitting} />
 
         <div className="flex flex-wrap gap-3 pt-2">
           <Button
             type="submit"
+            disabled={isSubmitting || Boolean(success) || !canSubmit}
             className="px-6 py-2.5 text-sm"
           >
             <Send className="size-4" />
@@ -136,6 +212,7 @@ export default function OperatorResolutionPage() {
           <Button
             type="button"
             onClick={handleReset}
+            disabled={isSubmitting}
             variant="outline"
             className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
@@ -148,6 +225,7 @@ export default function OperatorResolutionPage() {
       <ConfirmationMessage
         open={confirmResolution}
         {...CONFIRMATION_MESSAGES.reports.submitResolution}
+        isLoading={isSubmitting}
         onAccept={confirmSubmit}
         onReject={() => setConfirmResolution(false)}
       />

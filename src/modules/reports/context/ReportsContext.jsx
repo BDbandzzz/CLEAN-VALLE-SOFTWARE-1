@@ -1,312 +1,143 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
-import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
+import {
+  createReport,
+  getMyReports,
+  getNotifications,
+  getResolvedReports,
+  markNotificationRead,
+} from '@/services/reportService';
 
-const ReportsContext = createContext();
-const REPORTS_STORAGE_KEY = 'cleanvalle_reports_backend_ready_v1';
+const ReportsContext = createContext(null);
 
-function readReports() {
-  try {
-    return JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY)) ?? [];
-  } catch {
-    return [];
-  }
-}
+export function ReportsProvider({ children }) {
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const [reports, setReports] = useState([]);
+  const [resolvedReports, setResolvedReports] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-function saveReports(reports) {
-  localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
-}
+  const refreshReports = useCallback(async () => {
+    if (!user?.id) {
+      setReports([]);
+      return [];
+    }
 
-function buildReport(formData, userId) {
-  return {
-    id: `rep-${Date.now()}`,
-    title: formData.title.trim(),
-    description: formData.description.trim(),
-    categoryId: formData.categoryId,
-    subtypeId: formData.subtypeId,
-    categoryName: formData.categoryName ?? '',
-    categoryColor: formData.categoryColor ?? '#6b7280',
-    subtypeName: formData.subtypeName ?? '',
-    subtypeColor: formData.subtypeColor ?? formData.categoryColor ?? '#6b7280',
-    customContext: formData.customContext?.trim() ?? '',
-    riskLevelId: formData.riskLevelId,
-    riskLevelName: formData.riskLevelName ?? '',
-    riskLevelColor: formData.riskLevelColor ?? '#6b7280',
-    localizationId: formData.localizationId,
-    subareaId: formData.subareaId,
-    localizationName: formData.localizationName?.trim() ?? '',
-    subareaName: formData.subareaName?.trim() ?? '',
-    incidentDate: formData.incidentDate,
-    evidences: formData.images ?? [],
-    statusId: 'pendiente',
-    createdBy: userId,
-    createdAt: new Date().toISOString(),
-    history: [
-      {
-        statusId: 'pendiente',
-        at: new Date().toISOString(),
-        by: userId,
-        note: 'Reporte creado por el usuario.',
-      },
-    ],
-  };
-}
+    const nextReports = await getMyReports();
+    setReports(nextReports);
+    return nextReports;
+  }, [user?.id]);
 
-function buildOperatorNotifications(reports, operatorId) {
-  return reports
-    .flatMap((report) => {
-      if (String(report.assignedTo) !== String(operatorId)) return [];
-
-      const notifications = [
-        {
-          id: `${report.id}-assigned`,
-          title: 'Reporte asignado',
-          detail: report.title,
-          at: report.assignedAt ?? report.createdAt,
-          reportId: report.id,
-        },
-      ];
-
-      if (report.resolution) {
-        notifications.push({
-          id: `${report.id}-resolution`,
-          title: 'Resolucion enviada',
-          detail: report.resolution.description,
-          at: report.resolution.sentAt,
-          reportId: report.id,
-        });
-      }
-
-      if (report.resolution?.feedback) {
-        notifications.push({
-          id: `${report.id}-feedback`,
-          title: 'Feedback del gestor',
-          detail: report.resolution.feedback,
-          at: report.resolution.reviewedAt ?? report.resolution.sentAt,
-          reportId: report.id,
-        });
-      }
-
-      return notifications;
-    })
-    .sort((a, b) => new Date(b.at) - new Date(a.at));
-}
-
-function buildManagerNotifications(reports) {
-  return reports
-    .flatMap((report) => {
-      const notifications = [
-        {
-          id: `${report.id}-manager-created`,
-          title: 'Nuevo reporte recibido',
-          detail: report.title,
-          at: report.createdAt,
-          reportId: report.id,
-        },
-      ];
-
-      if (report.assignedTo) {
-        notifications.push({
-          id: `${report.id}-manager-assigned`,
-          title: 'Reporte asignado',
-          detail: report.title,
-          at: report.assignedAt ?? report.createdAt,
-          reportId: report.id,
-        });
-      }
-
-      if (report.resolution?.reviewStatusId === 'enviada') {
-        notifications.push({
-          id: `${report.id}-manager-resolution`,
-          title: 'Resolucion pendiente de revision',
-          detail: report.resolution.description,
-          at: report.resolution.sentAt,
-          reportId: report.id,
-        });
-      }
-
-      return notifications;
-    })
-    .sort((a, b) => new Date(b.at) - new Date(a.at));
-}
-
-function buildUserNotifications(reports, user) {
-  if (!user?.id) return [];
-
-  if (user.roleId === USER_ROLE_IDS.OPERATOR) {
-    return buildOperatorNotifications(reports, user.id);
-  }
-
-  if (
-    user.roleId === USER_ROLE_IDS.MANAGER ||
-    user.roleId === USER_ROLE_IDS.ADMIN
-  ) {
-    return buildManagerNotifications(reports);
-  }
-
-  return reports
-    .flatMap((report) => {
-      if (String(report.createdBy) !== String(user.id)) return [];
-
-      const notifications = [
-        {
-          id: `${report.id}-created`,
-          title: 'Reporte creado',
-          detail: report.title,
-          at: report.createdAt,
-          reportId: report.id,
-        },
-      ];
-
-      if (report.assignedTo) {
-        notifications.push({
-          id: `${report.id}-assigned-to-operator`,
-          title: 'Reporte asignado',
-          detail: report.title,
-          at: report.assignedAt ?? report.createdAt,
-          reportId: report.id,
-        });
-      }
-
-      if (report.resolution) {
-        notifications.push({
-          id: `${report.id}-resolved`,
-          title: 'Resolucion registrada',
-          detail: report.resolution.description,
-          at: report.resolution.sentAt,
-          reportId: report.id,
-        });
-      }
-
-      return notifications;
-    })
-    .sort((a, b) => new Date(b.at) - new Date(a.at));
-}
-
-export const ReportsProvider = ({ children }) => {
-  const { user } = useAuth();
-  const [reports, setReports] = useState(readReports);
-
-  const userReports = useMemo(
-    () => reports.filter((report) => String(report.createdBy) === String(user?.id)),
-    [reports, user?.id]
-  );
-
-  const operatorAssignedReports = useMemo(
-    () =>
-      reports.filter(
-        (report) =>
-          String(report.assignedTo) === String(user?.id) &&
-          !report.resolution &&
-          report.statusId !== 'cerrado' &&
-          report.statusId !== 'rechazado'
-      ),
-    [reports, user?.id]
-  );
-
-  const operatorResolvedReports = useMemo(
-    () => reports.filter((report) => String(report.assignedTo) === String(user?.id) && report.resolution),
-    [reports, user?.id]
-  );
-
-  const operatorNotifications = useMemo(
-    () => buildOperatorNotifications(reports, user?.id),
-    [reports, user?.id]
-  );
-
-  const notifications = useMemo(
-    () => buildUserNotifications(reports, user),
-    [reports, user]
-  );
-
-  const addReport = useCallback(async (formData, userId) => {
-    const report = buildReport(formData, userId);
-
-    setReports((prev) => {
-      const nextReports = [report, ...prev];
-      saveReports(nextReports);
-      return nextReports;
-    });
-
-    return report;
+  const refreshResolvedReports = useCallback(async () => {
+    const nextReports = await getResolvedReports();
+    setResolvedReports(nextReports);
+    return nextReports;
   }, []);
 
-  const deleteReport = useCallback((reportId) => {
-    setReports((prev) => {
-      const nextReports = prev.filter(
-        (report) => !(report.id === reportId && report.statusId === 'pendiente')
-      );
-      saveReports(nextReports);
-      return nextReports;
-    });
-  }, []);
+  const refreshNotifications = useCallback(async () => {
+    if (!user?.id) {
+      setNotifications([]);
+      return [];
+    }
 
-  const submitResolution = useCallback((reportId, resolutionData, operatorId) => {
-    let updatedReport = null;
+    const nextNotifications = await getNotifications();
+    setNotifications(nextNotifications);
+    return nextNotifications;
+  }, [user?.id]);
 
-    setReports((prev) => {
-      const nextReports = prev.map((report) => {
-        if (report.id !== reportId || String(report.assignedTo) !== String(operatorId)) {
-          return report;
-        }
+  const refreshAll = useCallback(async () => {
+    setIsLoading(true);
+    setError('');
 
-        updatedReport = {
-          ...report,
-          statusId: 'resuelto',
-          resolution: {
-            id: `res-${Date.now()}`,
-            description: resolutionData.description.trim(),
-            evidences: resolutionData.evidences ?? [],
-            reviewStatusId: 'enviada',
-            qualityId: null,
-            resolutionMethod: '',
-            sentAt: new Date().toISOString(),
-            feedback: '',
-          },
-          history: [
-            ...(report.history ?? []),
-            {
-              statusId: 'resuelto',
-              at: new Date().toISOString(),
-              by: operatorId,
-              note: 'Resolucion enviada por el operador.',
-            },
-          ],
-        };
+    try {
+      await Promise.all([
+        refreshReports(),
+        refreshResolvedReports(),
+        refreshNotifications(),
+      ]);
+    } catch (loadError) {
+      setError(loadError.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshNotifications, refreshReports, refreshResolvedReports]);
 
-        return updatedReport;
-      });
+  useEffect(() => {
+    if (isAuthLoading) return;
+    refreshAll();
+  }, [isAuthLoading, refreshAll]);
 
-      saveReports(nextReports);
-      return nextReports;
-    });
-
-    return updatedReport;
-  }, []);
-
-  return (
-    <ReportsContext.Provider
-      value={{
-        reports: userReports,
-        allReports: reports,
-        operatorAssignedReports,
-        operatorResolvedReports,
-        operatorNotifications,
-        notifications,
-        addReport,
-        deleteReport,
-        submitResolution,
-      }}
-    >
-      {children}
-    </ReportsContext.Provider>
+  const addReport = useCallback(
+    async (formData) => {
+      const createdReport = await createReport(formData);
+      await refreshReports();
+      return createdReport;
+    },
+    [refreshReports]
   );
-};
 
-export const useReports = () => {
+  const markAsRead = useCallback(async (notificationId) => {
+    await markNotificationRead(notificationId);
+    setNotifications((current) =>
+      current.map((notification) =>
+        notification.id === notificationId
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  }, []);
+
+  const unreadNotifications = useMemo(
+    () => notifications.filter((notification) => !notification.isRead),
+    [notifications]
+  );
+
+  const value = useMemo(
+    () => ({
+      reports,
+      resolvedReports,
+      notifications,
+      unreadNotifications,
+      isLoading,
+      error,
+      addReport,
+      markAsRead,
+      refreshReports,
+      refreshResolvedReports,
+      refreshNotifications,
+      refreshAll,
+    }),
+    [
+      addReport,
+      error,
+      isLoading,
+      markAsRead,
+      notifications,
+      refreshAll,
+      refreshNotifications,
+      refreshReports,
+      refreshResolvedReports,
+      reports,
+      resolvedReports,
+      unreadNotifications,
+    ]
+  );
+
+  return <ReportsContext.Provider value={value}>{children}</ReportsContext.Provider>;
+}
+
+export function useReports() {
   const context = useContext(ReportsContext);
   if (!context) throw new Error('useReports debe ser usado dentro de ReportsProvider');
   return context;
-};
+}

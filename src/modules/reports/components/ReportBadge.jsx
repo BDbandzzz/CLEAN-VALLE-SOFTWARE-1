@@ -1,11 +1,7 @@
-import { getCategoryMeta, getRiskMeta } from '../constants/reportConstants';
-
-export function ReportBadge({ type, value, label, color, size = 'sm' }) {
-  const fallbackMeta = type === 'category' ? getCategoryMeta(value) : getRiskMeta(value);
+export function ReportBadge({ type, label, color, size = 'sm' }) {
   const meta = {
-    ...fallbackMeta,
-    label: label || fallbackMeta.label,
-    color: color || fallbackMeta.color,
+    label: label || (type === 'category' ? 'Sin categoria' : 'Sin riesgo'),
+    color: color || '#6b7280',
   };
   const sizeClasses = size === 'sm' ? 'px-2.5 py-0.5 text-xs' : 'px-3 py-1 text-sm';
 
