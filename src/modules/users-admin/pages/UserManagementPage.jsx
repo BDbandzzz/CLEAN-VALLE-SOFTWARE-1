@@ -32,21 +32,24 @@ export default function UserManagementPage() {
         description="Registra y consulta los perfiles habilitados en CleanValle."
       />
 
-      <div className="flex rounded-xl border border-border bg-muted/40 p-1">
+      <div className="grid grid-cols-3 rounded-xl bg-muted/40 p-1">
         <SegmentedTabButton
           label="Crear usuario"
+          mobileLabel="Crear"
           active={activeTab === USER_MANAGEMENT_TABS.create}
           onClick={() => setActiveTab(USER_MANAGEMENT_TABS.create)}
           className="gap-2"
         />
         <SegmentedTabButton
           label="Modificar usuario"
+          mobileLabel="Modificar"
           active={activeTab === USER_MANAGEMENT_TABS.edit}
           onClick={() => setActiveTab(USER_MANAGEMENT_TABS.edit)}
           className="gap-2"
         />
         <SegmentedTabButton
           label="Usuarios totales"
+          mobileLabel="Usuarios"
           count={total}
           active={activeTab === USER_MANAGEMENT_TABS.list}
           onClick={() => setActiveTab(USER_MANAGEMENT_TABS.list)}

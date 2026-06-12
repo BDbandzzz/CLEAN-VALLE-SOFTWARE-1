@@ -14,8 +14,8 @@ export function ResolutionReviewCard({
   onRequestReview,
 }) {
   return (
-    <article className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-      <div className="border-b border-border px-5 py-4">
+    <article className="overflow-hidden rounded-lg bg-card shadow-sm">
+      <div className="bg-muted/25 px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="font-mono text-xs text-muted-foreground">
@@ -65,7 +65,7 @@ export function ResolutionReviewCard({
           </div>
         </div>
 
-        <div className="space-y-4 border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="space-y-4 pt-5 lg:pl-6 lg:pt-0">
           <SelectField
             id={`resolution-quality-${resolution.id}`}
             label="Calidad de la resolucion"

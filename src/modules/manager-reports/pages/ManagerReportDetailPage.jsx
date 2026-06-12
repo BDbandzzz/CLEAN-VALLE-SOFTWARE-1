@@ -48,6 +48,26 @@ export default function ManagerReportDetailPage() {
   const assignmentDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
   const discardDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
 
+  const loadOperators = useCallback(async (reportIdToLoad) => {
+    if (!reportIdToLoad) {
+      setOperators([]);
+      return [];
+    }
+
+    setIsLoadingOperators(true);
+    try {
+      const nextOperators = await getAvailableOperators(reportIdToLoad);
+      setOperators(nextOperators);
+      return nextOperators;
+    } catch (loadError) {
+      setOperators([]);
+      setError(loadError.message);
+      return [];
+    } finally {
+      setIsLoadingOperators(false);
+    }
+  }, []);
+
   const loadDetail = useCallback(async () => {
     setIsLoading(true);
     setError('');
@@ -90,27 +110,34 @@ export default function ManagerReportDetailPage() {
       return;
     }
 
-    let isMounted = true;
-    setIsLoadingOperators(true);
-    getAvailableOperators(report.id)
-      .then((nextOperators) => {
-        if (isMounted) setOperators(nextOperators);
-      })
-      .catch((loadError) => {
-        if (isMounted) setError(loadError.message);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingOperators(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [assignmentDisabled, report]);
+    loadOperators(report.id);
+  }, [assignmentDisabled, loadOperators, report]);
 
   const changeCategory = async (categoryId) => {
     setForm((current) => ({ ...current, categoryId, subtypeId: '' }));
+    setOperators([]);
+    setSelectedOperatorId('');
     if (categoryId) await loadSubtypes(categoryId);
+  };
+
+  const changeSubtype = (subtypeId) => {
+    setForm((current) => ({ ...current, subtypeId }));
+    setOperators([]);
+    setSelectedOperatorId('');
+    setSuccess('');
+
+    if (!subtypeId) return;
+
+    const classificationDidNotChange =
+      String(report.categoryId ?? '') === form.categoryId &&
+      String(report.subtypeId ?? '') === String(subtypeId);
+
+    if (classificationDidNotChange) {
+      loadOperators(report.id);
+      return;
+    }
+
+    setPendingAction('classification');
   };
 
   const changeLocalization = async (localizationId) => {
@@ -129,8 +156,15 @@ export default function ManagerReportDetailPage() {
     setError('');
     try {
       await updateReportMetadata(report.id, form);
-      await loadDetail();
-      setSuccess('La clasificacion del reporte fue actualizada.');
+      const nextReport = await loadDetail();
+      if (nextReport && !assignmentDisabled) {
+        await loadOperators(nextReport.id);
+      }
+      setSuccess(
+        pendingAction === 'classification'
+          ? 'Clasificación actualizada. Los operadores compatibles ya están disponibles.'
+          : 'La clasificación del reporte fue actualizada.'
+      );
       setPendingAction('');
     } catch (saveError) {
       setError(saveError.message);
@@ -154,6 +188,17 @@ export default function ManagerReportDetailPage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const cancelClassification = async () => {
+    setPendingAction('');
+    setForm((current) => ({
+      ...current,
+      categoryId: String(report.categoryId ?? ''),
+      subtypeId: String(report.subtypeId ?? ''),
+    }));
+    if (report.categoryId) await loadSubtypes(String(report.categoryId));
+    if (!assignmentDisabled) await loadOperators(report.id);
   };
 
   const confirmDiscard = async () => {
@@ -195,10 +240,21 @@ export default function ManagerReportDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      <Button variant="outline" onClick={() => navigate('/manager/reports')}>
-        <ArrowLeft className="size-4" />
-        Volver a reportes
-      </Button>
+      <div className="sticky top-2 z-20 flex flex-col gap-2 rounded-lg bg-card/95 p-2 shadow-md backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" onClick={() => navigate('/manager/reports')}>
+          <ArrowLeft className="size-4" />
+          Volver a reportes
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={discardDisabled || isSaving}
+          onClick={() => setPendingAction('discard')}
+        >
+          <XCircle className="size-4" />
+          Descartar reporte
+        </Button>
+      </div>
 
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -213,49 +269,51 @@ export default function ManagerReportDetailPage() {
 
       <ManagerReportOverview report={report} />
 
-      <section className="flex flex-col gap-4 border-b border-border bg-background px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Decision de revision</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Descarta el reporte si no cumple los criterios de gestion.
-          </p>
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(380px,0.88fr)]">
+        <div className="overflow-hidden rounded-lg bg-background shadow-sm">
+          <ReportMetadataForm
+            values={form}
+            categories={catalogs.categories}
+            subtypes={catalogs.subtypesByCategory[form.categoryId] ?? []}
+            riskLevels={catalogs.riskLevels}
+            localizations={catalogs.localizations}
+            subareas={catalogs.subareasByLocalization[form.localizationId] ?? []}
+            disabled={report.statusTerminal}
+            isSaving={isSaving}
+            onChange={(field, value) =>
+              setForm((current) => ({ ...current, [field]: value }))
+            }
+            onCategoryChange={changeCategory}
+            onSubtypeChange={changeSubtype}
+            onLocalizationChange={changeLocalization}
+            onSubmit={() => setPendingAction('metadata')}
+          />
         </div>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={discardDisabled || isSaving}
-          onClick={() => setPendingAction('discard')}
-        >
-          <XCircle className="size-4" />
-          Descartar reporte
-        </Button>
-      </section>
 
-      <ReportMetadataForm
-        values={form}
-        categories={catalogs.categories}
-        subtypes={catalogs.subtypesByCategory[form.categoryId] ?? []}
-        riskLevels={catalogs.riskLevels}
-        localizations={catalogs.localizations}
-        subareas={catalogs.subareasByLocalization[form.localizationId] ?? []}
-        disabled={report.statusTerminal}
-        isSaving={isSaving}
-        onChange={(field, value) => setForm((current) => ({ ...current, [field]: value }))}
-        onCategoryChange={changeCategory}
-        onLocalizationChange={changeLocalization}
-        onSubmit={() => setPendingAction('metadata')}
-      />
-
-      <OperatorAssignmentPanel
-        operators={operators}
-        selectedOperatorId={selectedOperatorId}
-        notes={assignmentNotes}
-        disabled={assignmentDisabled}
-        isLoading={isLoadingOperators}
-        onSelect={setSelectedOperatorId}
-        onNotesChange={setAssignmentNotes}
-        onAssign={() => setPendingAction('assignment')}
-      />
+        <div className="overflow-hidden rounded-lg bg-card shadow-sm xl:sticky xl:top-16">
+          <OperatorAssignmentPanel
+            key={`${form.categoryId}-${form.subtypeId}`}
+            operators={operators}
+            selectedOperatorId={selectedOperatorId}
+            notes={assignmentNotes}
+            disabled={assignmentDisabled}
+            isLoading={isLoadingOperators}
+            categoryLabel={
+              catalogs.categories.find(
+                (category) => category.id === form.categoryId
+              )?.label ?? ''
+            }
+            subtypeLabel={
+              (catalogs.subtypesByCategory[form.categoryId] ?? []).find(
+                (subtype) => subtype.id === form.subtypeId
+              )?.label ?? ''
+            }
+            onSelect={setSelectedOperatorId}
+            onNotesChange={setAssignmentNotes}
+            onAssign={() => setPendingAction('assignment')}
+          />
+        </div>
+      </div>
 
       <AssignmentHistory assignments={report.assignments} />
 
@@ -276,6 +334,13 @@ export default function ManagerReportDetailPage() {
         isLoading={isSaving}
         onAccept={confirmAssignment}
         onReject={() => setPendingAction('')}
+      />
+      <ConfirmationMessage
+        open={pendingAction === 'classification'}
+        {...CONFIRMATION_MESSAGES.reports.updateClassificationAndOperators}
+        isLoading={isSaving}
+        onAccept={saveMetadata}
+        onReject={cancelClassification}
       />
       <ConfirmationMessage
         open={pendingAction === 'discard'}
