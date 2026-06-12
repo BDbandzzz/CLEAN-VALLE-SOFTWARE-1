@@ -16,6 +16,7 @@ import {
   updateRecoveredPassword,
 } from '@/services/passwordRecoveryService';
 import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
+import { createUserError } from '@/core/services/errorMessageService';
 
 const RECOVERY_STATUS = {
   validating: 'validating',
@@ -87,7 +88,7 @@ const ResetPasswordPage = () => {
       setStatus(RECOVERY_STATUS.success);
       showSuccessAlert('La contraseña fue actualizada correctamente.');
     } catch {
-      throw new Error(
+      throw createUserError(
         'No fue posible actualizar la contraseña. Solicita un enlace nuevo.'
       );
     } finally {

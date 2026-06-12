@@ -10,6 +10,38 @@ const ADMIN_ROLE_ID = 5;
 const ACTIVE_STATE_ID = 1;
 const OPERATOR_ROLE_ID = 3;
 
+const ERROR_CODES = {
+  METHOD_NOT_ALLOWED: 'METHOD_NOT_ALLOWED',
+  FUNCTION_NOT_CONFIGURED: 'FUNCTION_NOT_CONFIGURED',
+  SESSION_REQUIRED: 'SESSION_REQUIRED',
+  SESSION_INVALID: 'SESSION_INVALID',
+  ADMIN_REQUIRED: 'ADMIN_REQUIRED',
+  INVALID_PAYLOAD: 'INVALID_PAYLOAD',
+  INVALID_EMAIL: 'INVALID_EMAIL',
+  ADMIN_ROLE_NOT_ALLOWED: 'ADMIN_ROLE_NOT_ALLOWED',
+  OPERATOR_SPECIALIZATION_REQUIRED: 'OPERATOR_SPECIALIZATION_REQUIRED',
+  REDIRECT_MISMATCH: 'REDIRECT_MISMATCH',
+  EMAIL_ALREADY_REGISTERED: 'EMAIL_ALREADY_REGISTERED',
+  USER_CODE_ALREADY_REGISTERED: 'USER_CODE_ALREADY_REGISTERED',
+  USER_DOCUMENT_ALREADY_REGISTERED: 'USER_DOCUMENT_ALREADY_REGISTERED',
+  INVITATION_FAILED: 'INVITATION_FAILED',
+  PROFILE_CREATION_FAILED: 'PROFILE_CREATION_FAILED',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+} as const;
+
+type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
+
+class AppError extends Error {
+  code: ErrorCode;
+  status: number;
+
+  constructor(code: ErrorCode, status = 400) {
+    super(code);
+    this.code = code;
+    this.status = status;
+  }
+}
+
 type CreateUserPayload = {
   codeUser?: string;
   roleId?: number;
@@ -33,31 +65,31 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function requiredString(value: unknown, field: string) {
+function requiredString(value: unknown) {
   const normalized = String(value ?? '').trim();
   if (!normalized) {
-    throw new Error(`El campo ${field} es obligatorio.`);
+    throw new AppError(ERROR_CODES.INVALID_PAYLOAD);
   }
   return normalized;
 }
 
-function requiredId(value: unknown, field: string) {
+function requiredId(value: unknown) {
   const normalized = Number(value);
   if (!Number.isInteger(normalized) || normalized <= 0) {
-    throw new Error(`El campo ${field} no es valido.`);
+    throw new AppError(ERROR_CODES.INVALID_PAYLOAD);
   }
   return normalized;
 }
 
 function normalizePayload(payload: CreateUserPayload) {
-  const email = requiredString(payload.email, 'correo').toLowerCase();
+  const email = requiredString(payload.email).toLowerCase();
   if (!/\S+@\S+\.\S+/.test(email)) {
-    throw new Error('El correo electronico no es valido.');
+    throw new AppError(ERROR_CODES.INVALID_EMAIL);
   }
 
-  const roleId = requiredId(payload.roleId, 'rol');
+  const roleId = requiredId(payload.roleId);
   if (roleId === ADMIN_ROLE_ID) {
-    throw new Error('No se puede registrar otro administrador desde este modulo.');
+    throw new AppError(ERROR_CODES.ADMIN_ROLE_NOT_ALLOWED);
   }
 
   const specializationIds = [
@@ -72,17 +104,17 @@ function normalizePayload(payload: CreateUserPayload) {
   ];
 
   if (roleId === OPERATOR_ROLE_ID && specializationIds.length === 0) {
-    throw new Error('Selecciona al menos una especialidad para el operador.');
+    throw new AppError(ERROR_CODES.OPERATOR_SPECIALIZATION_REQUIRED);
   }
 
   return {
-    codeUser: requiredString(payload.codeUser, 'codigo institucional'),
+    codeUser: requiredString(payload.codeUser),
     roleId,
-    typeDniId: requiredId(payload.typeDniId, 'tipo de documento'),
-    genderId: requiredId(payload.genderId, 'genero'),
-    firstName: requiredString(payload.firstName, 'nombres'),
-    lastName: requiredString(payload.lastName, 'apellidos'),
-    dniUser: requiredString(payload.dniUser, 'documento'),
+    typeDniId: requiredId(payload.typeDniId),
+    genderId: requiredId(payload.genderId),
+    firstName: requiredString(payload.firstName),
+    lastName: requiredString(payload.lastName),
+    dniUser: requiredString(payload.dniUser),
     email,
     specializationIds,
   };
@@ -94,7 +126,7 @@ Deno.serve(async (request) => {
   }
 
   if (request.method !== 'POST') {
-    return jsonResponse({ error: 'Metodo no permitido.' }, 405);
+    return jsonResponse({ code: ERROR_CODES.METHOD_NOT_ALLOWED }, 405);
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -105,7 +137,7 @@ Deno.serve(async (request) => {
 
   if (!supabaseUrl || !serviceRoleKey || !invitationRedirectUrl) {
     return jsonResponse(
-      { error: 'La funcion de invitacion no esta configurada.' },
+      { code: ERROR_CODES.FUNCTION_NOT_CONFIGURED },
       500
     );
   }
@@ -114,7 +146,7 @@ Deno.serve(async (request) => {
   const accessToken = authorization.replace(/^Bearer\s+/i, '').trim();
 
   if (!accessToken) {
-    return jsonResponse({ error: 'No se encontro una sesion valida.' }, 401);
+    return jsonResponse({ code: ERROR_CODES.SESSION_REQUIRED }, 401);
   }
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -131,7 +163,7 @@ Deno.serve(async (request) => {
     } = await adminClient.auth.getUser(accessToken);
 
     if (authError || !requestingUser) {
-      return jsonResponse({ error: 'La sesion no es valida.' }, 401);
+      return jsonResponse({ code: ERROR_CODES.SESSION_INVALID }, 401);
     }
 
     const { data: adminProfile, error: adminError } = await adminClient
@@ -144,30 +176,48 @@ Deno.serve(async (request) => {
       .maybeSingle();
 
     if (adminError) {
-      throw new Error(adminError.message);
+      throw new AppError(ERROR_CODES.INTERNAL_ERROR, 500);
     }
 
     if (!adminProfile) {
       return jsonResponse(
-        { error: 'Esta operacion requiere un administrador activo.' },
+        { code: ERROR_CODES.ADMIN_REQUIRED },
         403
       );
     }
 
-    const requestPayload = (await request.json()) as CreateUserPayload;
-    const requestedRedirectUrl = requiredString(
-      requestPayload.redirectTo,
-      'URL de invitacion'
-    );
+    let requestPayload: CreateUserPayload;
+    try {
+      requestPayload = (await request.json()) as CreateUserPayload;
+    } catch {
+      throw new AppError(ERROR_CODES.INVALID_PAYLOAD);
+    }
+
+    const requestedRedirectUrl = requiredString(requestPayload.redirectTo);
 
     if (requestedRedirectUrl !== invitationRedirectUrl) {
-      throw new Error(
-        'La URL de invitacion no coincide con la configuracion de la funcion:' + requestedRedirectUrl + invitationRedirectUrl
-
-      );
+      throw new AppError(ERROR_CODES.REDIRECT_MISMATCH);
     }
 
     const payload = normalizePayload(requestPayload);
+
+    const { data: validationCode, error: validationError } =
+      await adminClient.rpc('rpc_admin_validate_new_user', {
+        p_code_user: payload.codeUser,
+        p_dni_user: payload.dniUser,
+      });
+
+    if (validationError) {
+      throw new AppError(ERROR_CODES.INTERNAL_ERROR, 500);
+    }
+
+    if (validationCode === ERROR_CODES.USER_CODE_ALREADY_REGISTERED) {
+      throw new AppError(ERROR_CODES.USER_CODE_ALREADY_REGISTERED);
+    }
+
+    if (validationCode === ERROR_CODES.USER_DOCUMENT_ALREADY_REGISTERED) {
+      throw new AppError(ERROR_CODES.USER_DOCUMENT_ALREADY_REGISTERED);
+    }
 
     const { data: invitationData, error: invitationError } =
       await adminClient.auth.admin.inviteUserByEmail(payload.email, {
@@ -180,12 +230,16 @@ Deno.serve(async (request) => {
       });
 
     if (invitationError) {
-      throw new Error(invitationError.message);
+      throw new AppError(
+        invitationError.code === 'email_exists'
+          ? ERROR_CODES.EMAIL_ALREADY_REGISTERED
+          : ERROR_CODES.INVITATION_FAILED
+      );
     }
 
     const invitedUser = invitationData.user;
     if (!invitedUser) {
-      throw new Error('Supabase no retorno el usuario invitado.');
+      throw new AppError(ERROR_CODES.INVITATION_FAILED);
     }
 
     const { data: profile, error: profileError } = await adminClient.rpc(
@@ -205,7 +259,7 @@ Deno.serve(async (request) => {
 
     if (profileError) {
       await adminClient.auth.admin.deleteUser(invitedUser.id);
-      throw new Error(profileError.message);
+      throw new AppError(ERROR_CODES.PROFILE_CREATION_FAILED);
     }
 
     return jsonResponse(
@@ -219,11 +273,10 @@ Deno.serve(async (request) => {
       201
     );
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : 'No fue posible registrar al usuario.';
+    if (error instanceof AppError) {
+      return jsonResponse({ code: error.code }, error.status);
+    }
 
-    return jsonResponse({ error: message }, 400);
+    return jsonResponse({ code: ERROR_CODES.INTERNAL_ERROR }, 500);
   }
 });

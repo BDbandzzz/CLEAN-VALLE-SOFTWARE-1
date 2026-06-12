@@ -2,6 +2,7 @@ import {
   ALERT_DEFAULTS,
   ALERT_TYPES,
 } from '@/core/constants/alertMessages';
+import { getUserErrorMessage } from '@/core/services/errorMessageService';
 
 const ALERT_EVENT = 'cleanvalle:alert';
 
@@ -47,7 +48,10 @@ export function showErrorAlert(error, options = {}) {
   showAlert({
     type: ALERT_TYPES.ERROR,
     title: options.title ?? ALERT_DEFAULTS.errorTitle,
-    message: getMessage(error, options.fallback),
+    message: getUserErrorMessage(
+      error,
+      options.fallback ?? ALERT_DEFAULTS.fallbackError
+    ),
     duration: options.duration,
   });
 }

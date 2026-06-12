@@ -1,12 +1,16 @@
 import { supabase } from '@/services/supabaseClient';
 import { invalidateUserManagementCatalogCache } from '@/services/adminUserService';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 export async function listManagedSpecializations() {
   const { data, error } = await supabase.rpc(
     'rpc_admin_list_specializations'
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.specializations.list);
+  }
   return data ?? [];
 }
 
@@ -15,7 +19,12 @@ export async function listActiveCategoryOptions() {
     'rpc_admin_list_specialization_categories'
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.specializations.categories
+    );
+  }
   return data ?? [];
 }
 
@@ -28,7 +37,12 @@ export async function createManagedSpecialization(formData) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.specializations.create
+    );
+  }
   invalidateUserManagementCatalogCache();
   return data;
 }
@@ -46,7 +60,12 @@ export async function updateManagedSpecialization(
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.specializations.update
+    );
+  }
   invalidateUserManagementCatalogCache();
   return data;
 }
@@ -59,6 +78,11 @@ export async function deleteManagedSpecialization(specializationId) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.specializations.delete
+    );
+  }
   invalidateUserManagementCatalogCache();
 }

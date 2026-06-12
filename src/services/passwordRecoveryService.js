@@ -1,4 +1,6 @@
 import { AUTH_REDIRECT_URLS } from '@/core/constants/authRoutes';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 import { supabase } from '@/services/supabaseClient';
 
 export function getPasswordRecoveryRedirectUrl() {
@@ -11,7 +13,10 @@ export async function requestPasswordRecovery(email) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.auth.recoveryEmail
+    );
   }
 }
 
@@ -19,7 +24,7 @@ export async function getRecoverySession() {
   const { data, error } = await supabase.auth.getSession();
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.recovery);
   }
 
   return data.session;
@@ -41,7 +46,7 @@ export async function updateRecoveredPassword(password) {
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.password);
   }
 }
 
@@ -49,9 +54,10 @@ export function getRecoveryUrlError() {
   const searchParams = new URLSearchParams(window.location.search);
   const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
 
-  return (
+  const hasUrlError = Boolean(
     searchParams.get('error_description') ||
-    hashParams.get('error_description') ||
-    ''
+      hashParams.get('error_description')
   );
+
+  return hasUrlError ? SERVICE_ERROR_MESSAGES.auth.recovery : '';
 }

@@ -11,11 +11,13 @@ import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay
 import { requestPasswordRecovery } from '@/services/passwordRecoveryService';
 import { validateRecoverEmail } from '@/modules/auth/utils/recoverUtils';
 import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
 import {
   showErrorAlert,
   showSuccessAlert,
   showWarningAlert,
 } from '@/core/services/alertService';
+import { getUserErrorMessage } from '@/core/services/errorMessageService';
 
 const RecoverPassword = () => {
   const navigate = useNavigate();
@@ -43,9 +45,11 @@ const RecoverPassword = () => {
       setSubmittedEmail(result.email);
       setSent(true);
       showSuccessAlert(ALERT_MESSAGES.auth.recoverySent);
-    } catch {
-      const message =
-        'No fue posible enviar el correo. Espera un momento e intenta nuevamente.';
+    } catch (recoveryError) {
+      const message = getUserErrorMessage(
+        recoveryError,
+        SERVICE_ERROR_MESSAGES.auth.recoveryEmail
+      );
       setError(message);
       showErrorAlert(message);
     } finally {

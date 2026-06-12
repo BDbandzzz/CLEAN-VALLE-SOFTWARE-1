@@ -1,5 +1,7 @@
 import { REPORT_STORAGE_BUCKETS } from '@/core/constants/domainConstants';
 import { createId } from '@/core/lib/createId';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 import { supabase } from '@/services/supabaseClient';
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
@@ -79,7 +81,7 @@ async function uploadFiles(bucket, parentId, files) {
     if (uploadedPaths.length) {
       await supabase.storage.from(bucket).remove(uploadedPaths);
     }
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.storage.upload);
   }
 }
 
@@ -97,7 +99,9 @@ async function createSignedUrlLookup(bucket, paths = []) {
     .from(bucket)
     .createSignedUrls(missingPaths, SIGNED_URL_TTL_SECONDS);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.storage.read);
+  }
 
   (data ?? []).forEach((item, index) => {
     const path = item.path ?? missingPaths[index];

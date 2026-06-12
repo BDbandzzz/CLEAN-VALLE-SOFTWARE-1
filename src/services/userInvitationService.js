@@ -1,4 +1,9 @@
 import { supabase } from '@/services/supabaseClient';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import {
+  createServiceError,
+  createUserError,
+} from '@/core/services/errorMessageService';
 
 const INVITE_TYPE = 'invite';
 
@@ -95,10 +100,9 @@ async function verifyInvitation(invitation) {
   });
 
   if (error || !isInvitationSession(data?.session)) {
-    throw new Error(
-      error?.message ||
-        'La invitación venció, ya fue utilizada o no está disponible.'
-    );
+    throw createUserError(SERVICE_ERROR_MESSAGES.auth.invitation, {
+      cause: error,
+    });
   }
 
   return data.session;
@@ -109,10 +113,7 @@ export async function getInvitationSession() {
     await supabase.auth.getSession();
 
   if (error) {
-    throw new Error(
-      error?.message ||
-        'No fue posible obtener la sesión.'
-    );
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.session);
   }
 
   return isInvitationSession(data?.session)
@@ -123,7 +124,7 @@ export async function getInvitationSession() {
 export async function validateInvitationAccess() {
   const urlError = getInvitationUrlError();
   if (urlError) {
-    throw new Error(urlError);
+    throw createUserError(SERVICE_ERROR_MESSAGES.auth.invitation);
   }
 
   const invitation = getInvitationLinkData();
@@ -142,9 +143,7 @@ export async function validateInvitationAccess() {
   }
 
   if (!invitation) {
-    throw new Error(
-      'La invitación no es válida o ya fue utilizada.'
-    );
+    throw createUserError(SERVICE_ERROR_MESSAGES.auth.invitation);
   }
 
   return verifyInvitation(invitation);
@@ -181,9 +180,7 @@ export async function createInvitedUserPassword(
   const session = await validateInvitationAccess();
 
   if (!isInvitationSession(session)) {
-    throw new Error(
-      'La invitación ya fue utilizada o no está disponible.'
-    );
+    throw createUserError(SERVICE_ERROR_MESSAGES.auth.invitation);
   }
 
   const { error } =
@@ -196,10 +193,7 @@ export async function createInvitedUserPassword(
     });
 
   if (error) {
-    throw new Error(
-      error?.message ||
-        'No fue posible actualizar la contraseña.'
-    );
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.password);
   }
 
   return true;
