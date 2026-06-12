@@ -46,13 +46,13 @@ export function useReportCatalogs() {
 
   const loadSubtypes = useCallback(
     async (categoryId) =>
-      catalogs.subtypesByCategory[String(categoryId)] ?? [],
+      catalogs.subtypesByCategory?.[String(categoryId)] ?? [],
     [catalogs.subtypesByCategory]
   );
 
   const loadSubareas = useCallback(
     async (localizationId) =>
-      catalogs.subareasByLocalization[String(localizationId)] ?? [],
+      catalogs.subareasByLocalization?.[String(localizationId)] ?? [],
     [catalogs.subareasByLocalization]
   );
 
