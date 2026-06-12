@@ -4,6 +4,8 @@ import {
   uploadResolutionPhotos,
 } from '@/services/reportStorageService';
 import { supabase } from '@/services/supabaseClient';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 async function registerResolutionPhotos(resolutionId, paths) {
   for (const path of paths) {
@@ -11,13 +13,13 @@ async function registerResolutionPhotos(resolutionId, paths) {
       p_id_resolution: resolutionId,
       p_file_path: path,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.operator.photos);
   }
 }
 
 export async function getOperatorReportDashboard() {
   const { data, error } = await supabase.rpc('operator_report_dashboard');
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.operator.dashboard);
 
   const [assigned, groupAssignments, resolutions] = await Promise.all([
     hydrateReportsMedia(data?.assigned ?? []),
@@ -52,7 +54,7 @@ export async function submitOperatorResolution(sourceType, sourceId, values) {
     p_resolved_at: resolvedAt,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.operator.resolution);
 
   const paths = await uploadResolutionPhotos(resolutionId, values.images ?? []);
   await registerResolutionPhotos(resolutionId, paths);
@@ -72,7 +74,7 @@ export async function rejectOperatorAssignment(sourceType, sourceId, reason) {
     p_reason: reason.trim(),
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.operator.reject);
 }
 
 async function hydrateOperatorGroups(groups) {

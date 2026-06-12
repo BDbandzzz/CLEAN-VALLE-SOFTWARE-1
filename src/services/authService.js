@@ -1,5 +1,10 @@
 import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
 import { isActiveState } from '@/core/mappers/domainMappers';
+import {
+  createServiceError,
+  createUserError,
+} from '@/core/services/errorMessageService';
 import { supabase } from '@/services/supabaseClient';
 
 async function getUserByAuthId(authId) {
@@ -16,7 +21,7 @@ async function getUserByAuthId(authId) {
     .single();
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.profile);
   }
 
   if (data.id_role !== USER_ROLE_IDS.OPERATOR) {
@@ -37,7 +42,7 @@ async function getUserByAuthId(authId) {
     .eq('operator_uuid', authId);
 
   if (specializationError) {
-    throw new Error(specializationError.message);
+    throw createServiceError(specializationError, SERVICE_ERROR_MESSAGES.auth.profile);
   }
 
   return {
@@ -51,15 +56,15 @@ async function getUserByAuthId(authId) {
 function mapUser(authUser, user) {
   const invitationPending = authUser.user_metadata?.invitation_pending;
   if (invitationPending === true || invitationPending === 'true') {
-    throw new Error('Debes completar la invitación antes de ingresar.');
+    throw createUserError('Debes completar la invitación antes de ingresar.');
   }
 
   if (!user.roles?.role_id) {
-    throw new Error('Rol no soportado.');
+    throw createUserError('Tu cuenta no tiene un rol válido.');
   }
 
   if (user.deleted_at || !isActiveState(user.id_state)) {
-    throw new Error('Usuario inactivo.');
+    throw createUserError('Tu cuenta se encuentra inactiva.');
   }
 
   return {
@@ -117,7 +122,7 @@ export async function signIn(email, password) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.login);
   }
   return buildSessionUser(data.session);
 }
@@ -125,7 +130,7 @@ export async function signIn(email, password) {
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.logout);
   }
 }
 
@@ -134,7 +139,7 @@ export async function getCurrentUser() {
     await supabase.auth.getSession();
 
   if (sessionError) {
-    throw new Error(sessionError.message);
+    throw createServiceError(sessionError, SERVICE_ERROR_MESSAGES.auth.session);
   }
 
   if (!sessionData.session) {
@@ -166,7 +171,7 @@ export async function updateAuthPassword(currentPassword, newPassword) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (userError || !userData.user?.email) {
-    throw new Error('No fue posible verificar la sesión actual.');
+    throw createUserError('No fue posible verificar la sesión actual.');
   }
 
   const { error: verificationError } =
@@ -176,7 +181,7 @@ export async function updateAuthPassword(currentPassword, newPassword) {
     });
 
   if (verificationError) {
-    throw new Error('La contraseña actual no es correcta.');
+    throw createUserError('La contraseña actual no es correcta.');
   }
 
   const { error: updateError } = await supabase.auth.updateUser({
@@ -184,7 +189,7 @@ export async function updateAuthPassword(currentPassword, newPassword) {
   });
 
   if (updateError) {
-    throw new Error(updateError.message);
+    throw createServiceError(updateError, SERVICE_ERROR_MESSAGES.auth.password);
   }
 
   return true;
@@ -194,7 +199,7 @@ export async function updateUserEmail(email) {
   const { error } = await supabase.auth.updateUser({ email });
 
   if (error) {
-    throw new Error(error.message);
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.auth.email);
   }
 
   return true;

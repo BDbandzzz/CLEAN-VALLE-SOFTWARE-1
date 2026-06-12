@@ -1,5 +1,13 @@
 import { supabase } from '@/services/supabaseClient';
 import { AUTH_REDIRECT_URLS } from '@/core/constants/authRoutes';
+import {
+  CONTROLLED_ERROR_MESSAGES,
+  SERVICE_ERROR_MESSAGES,
+} from '@/core/constants/errorMessages';
+import {
+  createServiceError,
+  createUserError,
+} from '@/core/services/errorMessageService';
 
 const CREATE_USER_FUNCTION = 'admin-create-user';
 const USER_CATALOG_CACHE_KEY = 'cleanvalle_user_catalogs_v1';
@@ -58,14 +66,14 @@ export function invalidateUserManagementCatalogCache() {
   }
 }
 
-async function getFunctionErrorMessage(error) {
-  if (!error?.context) return error?.message;
+async function getFunctionErrorCode(error) {
+  if (!error?.context) return '';
 
   try {
     const body = await error.context.json();
-    return body?.error ?? error.message;
+    return body?.code ?? '';
   } catch {
-    return error.message;
+    return '';
   }
 }
 
@@ -77,7 +85,9 @@ export async function getUserManagementCatalogs() {
   userCatalogPromise = supabase
     .rpc('rpc_admin_user_catalogs')
     .then(({ data, error }) => {
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw createServiceError(error, SERVICE_ERROR_MESSAGES.users.catalogs);
+      }
       return cacheUserCatalogs(data);
     })
     .finally(() => {
@@ -96,7 +106,9 @@ export async function listManagedUsers(filters = {}) {
     p_role_id: filters.roleId ? Number(filters.roleId) : null,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.users.list);
+  }
 
   return {
     users: data?.users ?? [],
@@ -124,13 +136,22 @@ export async function createManagedUser(formData) {
   );
 
   if (error) {
-    throw new Error(
-      (await getFunctionErrorMessage(error)) ||
-        'No fue posible enviar la invitacion.'
+    const code = await getFunctionErrorCode(error);
+    throw createUserError(
+      CONTROLLED_ERROR_MESSAGES[code] ?? SERVICE_ERROR_MESSAGES.users.create,
+      { code, cause: error }
     );
   }
 
-  if (data?.error) throw new Error(data.error);
+  if (data?.code) {
+    throw createUserError(
+      CONTROLLED_ERROR_MESSAGES[data.code] ??
+        SERVICE_ERROR_MESSAGES.users.create,
+      { code: data.code }
+    );
+  }
+
+  if (!data?.user) throw createUserError(SERVICE_ERROR_MESSAGES.users.create);
   return data.user;
 }
 
@@ -147,7 +168,9 @@ export async function updateManagedUser(authId, formData) {
     p_specialization_ids: formData.specializationIds.map(Number),
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.users.update);
+  }
   return data;
 }
 
@@ -160,6 +183,8 @@ export async function setManagedUserActive(authId, active) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.users.delete);
+  }
   return data;
 }

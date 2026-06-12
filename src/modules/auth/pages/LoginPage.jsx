@@ -7,8 +7,9 @@ import { Field } from '@/core/components/ui/fields';
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
 import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { useAuth } from '@/core/context/AuthContext';
-import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
 import { showErrorAlert } from '@/core/services/alertService';
+import { getUserErrorMessage } from '@/core/services/errorMessageService';
 import { AuthPageShell } from '@/modules/auth/components/AuthPageShell';
 import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay';
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
@@ -39,9 +40,13 @@ const LoginPage = () => {
     try {
       const roleId = await login(email, password);
       navigate(ROLE_HOME_PATHS[roleId] ?? '/reports/view');
-    } catch {
-      setErrorMsg(ALERT_MESSAGES.auth.invalidCredentials);
-      showErrorAlert(ALERT_MESSAGES.auth.invalidCredentials, {
+    } catch (loginError) {
+      const message = getUserErrorMessage(
+        loginError,
+        SERVICE_ERROR_MESSAGES.auth.login
+      );
+      setErrorMsg(message);
+      showErrorAlert(message, {
         title: 'No fue posible iniciar sesión',
       });
       setIsLoggingIn(false);

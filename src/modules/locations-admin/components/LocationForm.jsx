@@ -19,6 +19,7 @@ import {
   showSuccessAlert,
   showValidationAlert,
 } from '@/core/services/alertService';
+import { getUserErrorMessage } from '@/core/services/errorMessageService';
 
 const EMPTY_FORM = {
   label: '',
@@ -29,9 +30,13 @@ const EMPTY_FORM = {
 function mapLocationToForm(location) {
   if (!location) return EMPTY_FORM;
   return {
-    label: location.label,
-    description: location.description,
-    subareas: location.subareas.map((subarea) => ({ ...subarea })),
+    label: location.label ?? '',
+    description: location.description ?? '',
+    subareas: (location.subareas ?? []).map((subarea) => ({
+      ...subarea,
+      label: subarea.label ?? '',
+      description: subarea.description ?? '',
+    })),
   };
 }
 
@@ -92,8 +97,14 @@ export function LocationForm({ location, onSaved }) {
   const validateForm = () => {
     const nextErrors = {};
     if (!formData.label.trim()) nextErrors.label = 'El nombre del lugar es obligatorio.';
+    if (!formData.description.trim()) {
+      nextErrors.description = 'La descripción del lugar es obligatoria.';
+    }
     if (formData.subareas.some((subarea) => !subarea.label.trim())) {
       nextErrors.subareas = 'Todas las ubicaciones específicas deben tener nombre.';
+    } else if (formData.subareas.some((subarea) => !subarea.description.trim())) {
+      nextErrors.subareas =
+        'Todas las ubicaciones específicas deben tener una descripción.';
     }
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
@@ -127,7 +138,9 @@ export function LocationForm({ location, onSaved }) {
       );
       onSaved?.();
     } catch (error) {
-      setErrors({ form: error.message });
+      setErrors({
+        form: getUserErrorMessage(error),
+      });
       setMessage('');
       showErrorAlert(error);
     }
@@ -162,7 +175,11 @@ export function LocationForm({ location, onSaved }) {
                 value={formData.description}
                 onChange={(event) => updateField('description', event.target.value)}
                 placeholder="Descripción del lugar"
+                aria-invalid={Boolean(errors.description)}
               />
+              {errors.description && (
+                <p className="text-xs text-destructive">{errors.description}</p>
+              )}
             </div>
           </div>
 

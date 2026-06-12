@@ -1,6 +1,8 @@
 import { supabase } from '@/services/supabaseClient';
 import { invalidateReportCatalogCache } from '@/services/reportCatalogService';
 import { invalidateUserManagementCatalogCache } from '@/services/adminUserService';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 function invalidateCategoryCaches() {
   invalidateReportCatalogCache();
@@ -10,7 +12,9 @@ function invalidateCategoryCaches() {
 export async function listManagedReportTypes() {
   const { data, error } = await supabase.rpc('rpc_admin_list_report_types');
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reportTypes.list);
+  }
   return data ?? [];
 }
 
@@ -25,7 +29,9 @@ export async function createManagedReportType(formData) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reportTypes.create);
+  }
   invalidateCategoryCaches();
   return data;
 }
@@ -42,7 +48,9 @@ export async function updateManagedReportType(categoryId, formData) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reportTypes.update);
+  }
   invalidateCategoryCaches();
   return data;
 }
@@ -56,7 +64,9 @@ export async function setManagedReportTypeActive(categoryId, active) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reportTypes.delete);
+  }
   invalidateCategoryCaches();
   return data;
 }

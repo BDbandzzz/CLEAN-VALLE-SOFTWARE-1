@@ -20,6 +20,11 @@ import {
   validateInvitationAccess,
 } from '@/services/userInvitationService';
 import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
+import {
+  createUserError,
+  getUserErrorMessage,
+} from '@/core/services/errorMessageService';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
 
 const INVITATION_STATUS = {
   validating: 'validating',
@@ -61,9 +66,10 @@ export default function InvitationPasswordPage() {
         setStatus(INVITATION_STATUS.invalid);
       } catch (validationError) {
         if (!isMounted) return;
-        const validationMessage =
-          validationError.message ||
-          'La invitación no es válida o ya fue utilizada.';
+        const validationMessage = getUserErrorMessage(
+          validationError,
+          SERVICE_ERROR_MESSAGES.auth.invitation
+        );
         setMessage(validationMessage);
         showErrorAlert(validationMessage, {
           title: 'Invitación no disponible',
@@ -89,9 +95,11 @@ export default function InvitationPasswordPage() {
       setStatus(INVITATION_STATUS.success);
       showSuccessAlert('Tu contraseña fue creada y el acceso quedó activado.');
     } catch (creationError) {
-      throw new Error(
-        creationError.message ||
+      throw createUserError(
+        getUserErrorMessage(
+          creationError,
           'No fue posible crear la contraseña con esta invitación.'
+        )
       );
     } finally {
       setIsUpdating(false);

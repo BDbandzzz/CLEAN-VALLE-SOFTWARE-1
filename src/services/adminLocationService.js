@@ -1,10 +1,17 @@
 import { supabase } from '@/services/supabaseClient';
 import { invalidateReportCatalogCache } from '@/services/reportCatalogService';
+import {
+  CONTROLLED_ERROR_MESSAGES,
+  SERVICE_ERROR_MESSAGES,
+} from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 export async function listManagedLocations() {
   const { data, error } = await supabase.rpc('rpc_admin_list_locations');
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.locations.list);
+  }
   return data ?? [];
 }
 
@@ -15,7 +22,13 @@ export async function createManagedLocation(formData) {
     p_subareas: formData.subareas,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.locations.create,
+      CONTROLLED_ERROR_MESSAGES
+    );
+  }
   invalidateReportCatalogCache();
   return data;
 }
@@ -28,7 +41,13 @@ export async function updateManagedLocation(locationId, formData) {
     p_subareas: formData.subareas,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.locations.update,
+      CONTROLLED_ERROR_MESSAGES
+    );
+  }
   invalidateReportCatalogCache();
   return data;
 }
@@ -42,7 +61,13 @@ export async function setManagedLocationActive(locationId, active) {
     }
   );
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.locations.delete,
+      CONTROLLED_ERROR_MESSAGES
+    );
+  }
   invalidateReportCatalogCache();
   return data;
 }

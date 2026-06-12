@@ -1,5 +1,7 @@
 import { supabase } from '@/services/supabaseClient';
 import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 const REPORT_CATALOG_CACHE_KEY = 'cleanvalle_report_catalogs_v1';
 const REPORT_CATALOG_CACHE_TTL = 60 * 60 * 1000;
@@ -130,7 +132,9 @@ function cacheCatalogBundle(data) {
 
 async function runCatalogQuery(query) {
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reports.catalogs);
+  }
   return data ?? [];
 }
 

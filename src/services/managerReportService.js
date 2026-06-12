@@ -5,6 +5,8 @@ import {
 } from '@/services/reportStorageService';
 import { supabase } from '@/services/supabaseClient';
 import { REPORT_STATUS_IDS } from '@/core/constants/domainConstants';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 export async function getManagerReportDashboard(filters = {}) {
   const { data, error } = await supabase.rpc('manager_report_dashboard', {
@@ -18,7 +20,7 @@ export async function getManagerReportDashboard(filters = {}) {
     p_page_size: filters.pageSize ?? 15,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.dashboard);
 
   const byStatus = data?.byStatus ?? [];
   const discardedCount =
@@ -45,7 +47,7 @@ export async function getManagerReportDetail(reportId) {
   const { data, error } = await supabase.rpc('manager_report_detail', {
     p_id_report: Number(reportId),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.detail);
   return hydrateReportMedia(data);
 }
 
@@ -56,7 +58,7 @@ export async function updateReportMetadata(reportId, values) {
     p_id_subtype: Number(values.subtypeId),
     p_id_subarea: values.subareaId ? Number(values.subareaId) : null,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.metadata);
   return data;
 }
 
@@ -64,7 +66,7 @@ export async function getAvailableOperators(reportId) {
   const { data, error } = await supabase.rpc('get_available_operators', {
     p_id_report: Number(reportId),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.operators);
   return data ?? [];
 }
 
@@ -74,7 +76,7 @@ export async function assignReport(reportId, operatorAuthId, notes) {
     p_operator_uuid: operatorAuthId,
     p_notes: notes?.trim() || null,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.assign);
   return data;
 }
 
@@ -82,13 +84,13 @@ export async function discardReport(reportId) {
   const { data, error } = await supabase.rpc('discard_report', {
     p_id_report: Number(reportId),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.discard);
   return data;
 }
 
 export async function getPendingResolutions() {
   const { data, error } = await supabase.rpc('manager_pending_resolutions');
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.resolutions);
 
   return Promise.all(
     (data ?? []).map(async (resolution) => {
@@ -114,7 +116,7 @@ export async function reviewResolution(resolutionId, values) {
     p_feedback: values.feedback?.trim() || '',
     p_quality: values.qualityId ? Number(values.qualityId) : null,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.review);
   return data;
 }
 
@@ -124,13 +126,13 @@ export async function createReportGroup(values) {
     p_description: values.description?.trim() || null,
     p_report_ids: values.reportIds.map(Number),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.createGroup);
   return { id: data };
 }
 
 export async function getManagerReportGroups() {
   const { data, error } = await supabase.rpc('manager_report_groups');
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.groups);
   return Promise.all((data ?? []).map(hydrateReportGroup));
 }
 
@@ -138,7 +140,7 @@ export async function getManagerReportGroupDetail(groupId) {
   const { data, error } = await supabase.rpc('manager_report_group_detail', {
     p_id_group: Number(groupId),
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.groupDetail);
   return hydrateReportGroup(data);
 }
 
@@ -147,7 +149,7 @@ export async function getAvailableOperatorsForGroup(groupId) {
     'get_available_operators_for_group',
     { p_id_group: Number(groupId) }
   );
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.groupOperators);
   return data ?? [];
 }
 
@@ -157,7 +159,7 @@ export async function assignReportGroup(groupId, operatorAuthId, notes) {
     p_operator_uuid: operatorAuthId,
     p_notes: notes?.trim() || null,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw createServiceError(error, SERVICE_ERROR_MESSAGES.manager.assignGroup);
   return data;
 }
 

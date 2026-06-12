@@ -1,5 +1,7 @@
 import { hydrateReportsMedia, uploadReportPhotos } from '@/services/reportStorageService';
 import { supabase } from '@/services/supabaseClient';
+import { SERVICE_ERROR_MESSAGES } from '@/core/constants/errorMessages';
+import { createServiceError } from '@/core/services/errorMessageService';
 
 function toOccurredAt(date) {
   if (!date) return null;
@@ -12,7 +14,9 @@ async function registerReportPhotos(reportId, paths) {
       p_id_report: reportId,
       p_file_path: path,
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      throw createServiceError(error, SERVICE_ERROR_MESSAGES.reports.photos);
+    }
   }
 }
 
@@ -27,7 +31,9 @@ export async function createReport(formData) {
     p_context_report: formData.customContext?.trim() ?? '',
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reports.create);
+  }
 
   const paths = await uploadReportPhotos(reportId, formData.images ?? []);
   await registerReportPhotos(reportId, paths);
@@ -36,12 +42,16 @@ export async function createReport(formData) {
 
 export async function getMyReports() {
   const { data, error } = await supabase.rpc('list_my_reports');
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reports.list);
+  }
   return hydrateReportsMedia(data ?? []);
 }
 
 export async function getResolvedReports() {
   const { data, error } = await supabase.rpc('list_resolved_reports');
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw createServiceError(error, SERVICE_ERROR_MESSAGES.reports.resolved);
+  }
   return hydrateReportsMedia(data ?? []);
 }
