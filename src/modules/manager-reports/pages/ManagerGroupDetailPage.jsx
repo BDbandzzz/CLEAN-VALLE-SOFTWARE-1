@@ -1,4 +1,4 @@
-import { ArrowLeft, Layers3 } from 'lucide-react';
+import { ArrowLeft, Layers3, ListPlus, SlidersHorizontal } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -8,15 +8,28 @@ import { ModuleHero } from '@/core/components/ui/module-hero';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
 import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
+import { AddReportsToGroupDialog } from '@/modules/manager-reports/components/AddReportsToGroupDialog';
 import { AssignmentHistory } from '@/modules/manager-reports/components/AssignmentHistory';
+import { GroupReportsMetadataDialog } from '@/modules/manager-reports/components/GroupReportsMetadataDialog';
 import { OperatorAssignmentPanel } from '@/modules/manager-reports/components/OperatorAssignmentPanel';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ReportStatusPill } from '@/modules/reports/components/ReportStatusPill';
+import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
 import {
+  addReportsToGroup,
   assignReportGroup,
   getAvailableOperatorsForGroup,
+  getGroupableReports,
   getManagerReportGroupDetail,
+  updateGroupReportsMetadata,
 } from '@/services/managerReportService';
+
+const EMPTY_METADATA = {
+  statusId: '',
+  riskLevelId: '',
+  localizationId: '',
+  subareaId: '',
+};
 
 export default function ManagerGroupDetailPage() {
   const { groupId } = useParams();
@@ -28,6 +41,17 @@ export default function ManagerGroupDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmAssignment, setConfirmAssignment] = useState(false);
+  const [showAddReports, setShowAddReports] = useState(false);
+  const [showMetadata, setShowMetadata] = useState(false);
+  const [groupableReports, setGroupableReports] = useState([]);
+  const [selectedReportIds, setSelectedReportIds] = useState([]);
+  const [metadata, setMetadata] = useState(EMPTY_METADATA);
+  const {
+    riskLevels,
+    reportStatuses,
+    localizations,
+    subareasByLocalization,
+  } = useReportCatalogs();
 
   const loadGroup = useCallback(async () => {
     setIsLoading(true);
@@ -66,6 +90,59 @@ export default function ManagerGroupDetailPage() {
       setSelectedOperatorId('');
       setNotes('');
       await loadGroup();
+    } catch (error) {
+      showErrorAlert(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openAddReports = async () => {
+    setIsLoading(true);
+    try {
+      setGroupableReports(await getGroupableReports(group.id));
+      setSelectedReportIds([]);
+      setShowAddReports(true);
+    } catch (error) {
+      showErrorAlert(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveAddedReports = async () => {
+    setIsSaving(true);
+    try {
+      await addReportsToGroup(group.id, selectedReportIds);
+      showSuccessAlert('Los reportes fueron añadidos al grupo.');
+      setShowAddReports(false);
+      setSelectedReportIds([]);
+      await loadGroup();
+    } catch (error) {
+      showErrorAlert(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openMetadata = () => {
+    const reports = group.reports ?? [];
+    setMetadata({
+      statusId: getSharedValue(reports, 'statusId'),
+      riskLevelId: getSharedValue(reports, 'riskLevelId'),
+      localizationId: getSharedValue(reports, 'localizationId'),
+      subareaId: getSharedValue(reports, 'subareaId'),
+    });
+    setShowMetadata(true);
+  };
+
+  const saveMetadata = async () => {
+    setIsSaving(true);
+    try {
+      const updatedGroup = await updateGroupReportsMetadata(group.id, metadata);
+      setGroup(updatedGroup);
+      setShowMetadata(false);
+      showSuccessAlert('Todos los reportes del grupo fueron actualizados.');
     } catch (error) {
       showErrorAlert(error);
     } finally {
@@ -119,6 +196,8 @@ export default function ManagerGroupDetailPage() {
           'Grupo de reportes relacionados para una atención conjunta.'
         }
         size="compact"
+        variant="surface"
+        className="border-primary/15 bg-emerald-50/70"
         aside={
           <ReportBadge
             type="category"
@@ -129,9 +208,28 @@ export default function ManagerGroupDetailPage() {
       />
 
       <section className="rounded-lg bg-card p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-foreground">
-          Reportes incluidos
-        </h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">
+              Reportes incluidos
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {group.reports?.length ?? 0} reportes vinculados a este grupo.
+            </p>
+          </div>
+          {!blockingAssignment && (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button type="button" variant="outline" onClick={openMetadata}>
+                <SlidersHorizontal className="size-4" />
+                Editar todos
+              </Button>
+              <Button type="button" onClick={openAddReports}>
+                <ListPlus className="size-4" />
+                Añadir reportes
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
@@ -200,6 +298,49 @@ export default function ManagerGroupDetailPage() {
         onAccept={saveAssignment}
         onReject={() => setConfirmAssignment(false)}
       />
+
+      <AddReportsToGroupDialog
+        open={showAddReports}
+        reports={groupableReports}
+        selectedIds={selectedReportIds}
+        isLoading={isSaving}
+        onToggle={(reportId) =>
+          setSelectedReportIds((current) =>
+            current.includes(reportId)
+              ? current.filter((id) => id !== reportId)
+              : [...current, reportId]
+          )
+        }
+        onConfirm={saveAddedReports}
+        onClose={() => setShowAddReports(false)}
+      />
+
+      <GroupReportsMetadataDialog
+        open={showMetadata}
+        values={metadata}
+        statuses={reportStatuses.filter((status) => !status.isTerminal)}
+        riskLevels={riskLevels}
+        localizations={localizations}
+        subareas={subareasByLocalization?.[metadata.localizationId] ?? []}
+        isLoading={isSaving}
+        onChange={(field, value) =>
+          setMetadata((current) => ({ ...current, [field]: value }))
+        }
+        onLocalizationChange={(localizationId) =>
+          setMetadata((current) => ({
+            ...current,
+            localizationId,
+            subareaId: '',
+          }))
+        }
+        onConfirm={saveMetadata}
+        onClose={() => setShowMetadata(false)}
+      />
     </div>
   );
+}
+
+function getSharedValue(items, field) {
+  const values = [...new Set(items.map((item) => String(item[field] ?? '')))];
+  return values.length === 1 ? values[0] : '';
 }

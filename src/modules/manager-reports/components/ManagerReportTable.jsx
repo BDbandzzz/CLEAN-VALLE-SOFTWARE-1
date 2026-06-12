@@ -11,6 +11,7 @@ export function ManagerReportTable({
   isLoading,
   selectedIds = [],
   selectedCategoryId = '',
+  groupableReportIds = null,
   onToggleSelection,
 }) {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function ManagerReportTable({
         <tbody className="divide-y divide-border">
           {reports.map((report) => {
             const disabledSelection =
-              ![1, 2].includes(Number(report.statusId)) ||
+              !groupableReportIds?.has(String(report.id)) ||
               (selectedCategoryId &&
                 String(report.categoryId) !== String(selectedCategoryId) &&
                 !selectedIds.includes(report.id));
@@ -60,6 +61,11 @@ export function ManagerReportTable({
                     disabled={disabledSelection}
                     onChange={() => onToggleSelection(report)}
                     aria-label={`Seleccionar ${report.title}`}
+                    title={
+                      groupableReportIds?.has(String(report.id))
+                        ? 'Seleccionar reporte'
+                        : 'Este reporte no está disponible para agrupar'
+                    }
                     className="size-4 rounded border-input accent-primary"
                   />
                 </td>

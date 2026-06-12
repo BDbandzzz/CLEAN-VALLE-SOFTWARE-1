@@ -62,7 +62,7 @@ function CardBox({ className = "", title, value, children }) {
         {title}
       </p>
 
-      <p className="mt-1 font-mono text-sm font-semibold text-foreground">
+      <p className="mt-1 break-words text-sm font-semibold text-foreground">
         {value || "—"}
       </p>
 

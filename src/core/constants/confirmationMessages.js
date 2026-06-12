@@ -91,6 +91,39 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       rejectLabel: 'Cancelar',
       variant: 'destructive',
     },
+    rejectAssignment: {
+      title: 'Rechazar asignación',
+      reason:
+        'Esta acción devolverá el reporte al gestor para reasignación. Debes justificar el motivo.',
+      acceptLabel: 'Confirmar rechazo',
+      rejectLabel: 'Cancelar',
+      variant: 'destructive',
+    },
+    createGroup: (count) => ({
+      title: 'Crear grupo de reportes',
+      reason: `Se agruparán ${count} reportes para gestionarlos como una sola asignación.`,
+      acceptLabel: 'Crear grupo',
+      rejectLabel: 'Cancelar',
+    }),
+    addToGroup: (count) => ({
+      title: 'Añadir reportes al grupo',
+      reason: `Se añadirán ${count} reportes al grupo actual.`,
+      acceptLabel: 'Añadir reportes',
+      rejectLabel: 'Cancelar',
+    }),
+    updateGroupMetadata: {
+      title: 'Actualizar reportes del grupo',
+      reason:
+        'El estado, el nivel de riesgo y la ubicación se aplicarán a todos los reportes incluidos.',
+      acceptLabel: 'Actualizar reportes',
+      rejectLabel: 'Cancelar',
+    },
+    assignGroup: (operatorName) => ({
+      title: 'Asignar grupo',
+      reason: `El grupo quedará asignado a ${operatorName || 'este operador'}.`,
+      acceptLabel: 'Confirmar asignación',
+      rejectLabel: 'Cancelar',
+    }),
   },
   users: {
     create: (name) => ({
@@ -119,26 +152,6 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       rejectLabel: 'Cancelar',
       variant: 'destructive',
     },
-    rejectAssignment: {
-      title: 'Rechazar asignación',
-      reason:
-        'Esta acción devolverá el reporte al gestor para reasignación. Debes justificar el motivo.',
-      acceptLabel: 'Confirmar rechazo',
-      rejectLabel: 'Cancelar',
-      variant: 'destructive',
-    },
-    createGroup: (count) => ({
-      title: 'Crear grupo de reportes',
-      reason: `Se agruparán ${count} reportes para gestionarlos como una sola asignación.`,
-      acceptLabel: 'Crear grupo',
-      rejectLabel: 'Cancelar',
-    }),
-    assignGroup: (operatorName) => ({
-      title: 'Asignar grupo',
-      reason: `El grupo quedará asignado a ${operatorName || 'este operador'}.`,
-      acceptLabel: 'Confirmar asignación',
-      rejectLabel: 'Cancelar',
-    }),
   },
   reportTypes: {
     create: (name) => ({

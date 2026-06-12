@@ -144,6 +144,52 @@ export async function getManagerReportGroupDetail(groupId) {
   return hydrateReportGroup(data);
 }
 
+export async function getGroupableReports(groupId = null) {
+  const { data, error } = await supabase.rpc('manager_groupable_reports', {
+    p_id_group: groupId ? Number(groupId) : null,
+  });
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.manager.groupCandidates
+    );
+  }
+  return hydrateReportsMedia(Array.isArray(data) ? data : []);
+}
+
+export async function addReportsToGroup(groupId, reportIds) {
+  const { data, error } = await supabase.rpc('add_reports_to_group', {
+    p_id_group: Number(groupId),
+    p_report_ids: reportIds.map(Number),
+  });
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.manager.addGroupReports
+    );
+  }
+  return hydrateReportGroup(data);
+}
+
+export async function updateGroupReportsMetadata(groupId, values) {
+  const { data, error } = await supabase.rpc(
+    'update_group_reports_metadata',
+    {
+      p_id_group: Number(groupId),
+      p_status_id: Number(values.statusId),
+      p_risk_id: Number(values.riskLevelId),
+      p_id_subarea: Number(values.subareaId),
+    }
+  );
+  if (error) {
+    throw createServiceError(
+      error,
+      SERVICE_ERROR_MESSAGES.manager.updateGroupReports
+    );
+  }
+  return hydrateReportGroup(data);
+}
+
 export async function getAvailableOperatorsForGroup(groupId) {
   const { data, error } = await supabase.rpc(
     'get_available_operators_for_group',

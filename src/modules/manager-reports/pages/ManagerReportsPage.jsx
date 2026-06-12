@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, ChevronLeft, ChevronRight, Layers3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,7 +9,10 @@ import { ManagerReportTable } from '@/modules/manager-reports/components/Manager
 import { ReportGroupDialog } from '@/modules/manager-reports/components/ReportGroupDialog';
 import { useManagerReportDashboard } from '@/modules/manager-reports/hooks/useManagerReportDashboard';
 import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
-import { createReportGroup } from '@/services/managerReportService';
+import {
+  createReportGroup,
+  getGroupableReports,
+} from '@/services/managerReportService';
 import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 const INITIAL_FILTERS = {
@@ -30,6 +33,7 @@ export default function ManagerReportsPage() {
   const [groupForm, setGroupForm] = useState({ title: '', description: '' });
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [groupableReportIds, setGroupableReportIds] = useState(null);
   const {
     categories,
     riskLevels,
@@ -45,6 +49,29 @@ export default function ManagerReportsPage() {
     () => `Pagina ${filters.page} de ${totalPages}`,
     [filters.page, totalPages]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getGroupableReports()
+      .then((reports) => {
+        if (isMounted) {
+          setGroupableReportIds(
+            new Set(reports.map((report) => String(report.id)))
+          );
+        }
+      })
+      .catch((loadError) => {
+        if (isMounted) {
+          setGroupableReportIds(new Set());
+          showErrorAlert(loadError);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const changeFilters = (partial) => {
     setFilters((current) => ({ ...current, ...partial }));
@@ -131,6 +158,7 @@ export default function ManagerReportsPage() {
         isLoading={isLoading}
         selectedIds={selectedReports.map((report) => report.id)}
         selectedCategoryId={selectedReports[0]?.categoryId ?? ''}
+        groupableReportIds={groupableReportIds}
         onToggleSelection={toggleSelection}
       />
 
