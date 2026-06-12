@@ -1,11 +1,11 @@
 import {
-  Bell,
   ClipboardCheck,
   ClipboardList,
   ClipboardPlus,
   Eye,
   GraduationCap,
   LayoutDashboard,
+  Layers3,
   Lock,
   LogOut,
   MapPinned,
@@ -46,11 +46,6 @@ const logoutItem = {
 
 const securityItems = [
   {
-    title: 'Notificaciones',
-    url: '/notifications',
-    icon: Bell,
-  },
-  {
     title: 'Cambiar contraseña',
     url: '/change-password',
     icon: Lock,
@@ -81,14 +76,25 @@ export const sidebarConfig = {
 
   [USER_ROLE_IDS.OPERATOR]: [
     {
+      title: 'Panel operador',
+      url: '/operator/dashboard',
+      icon: Wrench,
+      end: true,
+    },
+    {
+      title: 'Mis asignaciones',
+      url: '/operator/assignments',
+      icon: ClipboardList,
+    },
+    {
+      title: 'Resoluciones',
+      url: '/operator/resolutions',
+      icon: ClipboardCheck,
+    },
+    {
       title: 'Perfil',
       url: '/profile',
       icon: User,
-    },
-    {
-      title: 'Panel operador',
-      url: '/operator',
-      icon: Wrench,
     },
     ...securityItems,
   ],
@@ -109,6 +115,11 @@ export const sidebarConfig = {
       title: 'Resoluciones',
       url: '/manager/resolutions',
       icon: ClipboardCheck,
+    },
+    {
+      title: 'Grupos',
+      url: '/manager/groups',
+      icon: Layers3,
     },
     {
       title: 'Perfil',

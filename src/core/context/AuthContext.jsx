@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   signIn,
   signOut,
+  subscribeToAuthChanges,
   updateAuthPassword,
   updateUserEmail,
 } from '@/services/authService';
@@ -14,7 +15,16 @@ const CURRENT_USER_KEY = 'cleanvalle_current_user';
 
 function readCachedUser() {
   try {
-    return JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
+    const cachedUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY));
+    if (!cachedUser) return null;
+
+    const expiresAt = Number(cachedUser.sessionExpiresAt);
+    if (expiresAt && expiresAt * 1000 <= Date.now()) {
+      localStorage.removeItem(CURRENT_USER_KEY);
+      return null;
+    }
+
+    return cachedUser;
   } catch {
     localStorage.removeItem(CURRENT_USER_KEY);
     return null;
@@ -36,26 +46,49 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let syncSequence = 0;
 
-    async function loadSession() {
+    async function syncSession() {
+      const sequence = ++syncSequence;
       try {
         const currentUser = await getCurrentUser();
-        if (!isMounted) return;
+        if (!isMounted || sequence !== syncSequence) return;
         setUser(currentUser);
         cacheUser(currentUser);
       } catch {
-        if (!isMounted) return;
+        if (!isMounted || sequence !== syncSequence) return;
         setUser(null);
         cacheUser(null);
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted && sequence === syncSequence) setIsLoading(false);
       }
     }
 
-    loadSession();
+    syncSession();
+
+    const unsubscribe = subscribeToAuthChanges((event) => {
+      if (!isMounted) return;
+
+      if (event === 'SIGNED_OUT') {
+        syncSequence += 1;
+        setUser(null);
+        cacheUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      if (
+        event === 'SIGNED_IN' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED'
+      ) {
+        window.setTimeout(syncSession, 0);
+      }
+    });
 
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 

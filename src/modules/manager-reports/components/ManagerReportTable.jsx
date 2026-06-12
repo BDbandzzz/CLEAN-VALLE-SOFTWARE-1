@@ -6,7 +6,13 @@ import { EmptyState } from '@/core/components/ui/empty-state';
 import { ReportBadge } from '@/modules/reports/components/ReportBadge';
 import { ReportStatusPill } from '@/modules/reports/components/ReportStatusPill';
 
-export function ManagerReportTable({ reports, isLoading }) {
+export function ManagerReportTable({
+  reports,
+  isLoading,
+  selectedIds = [],
+  selectedCategoryId = '',
+  onToggleSelection,
+}) {
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -22,6 +28,11 @@ export function ManagerReportTable({ reports, isLoading }) {
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
           <tr>
+            {onToggleSelection && (
+              <th className="w-12 px-4 py-3">
+                <span className="sr-only">Seleccionar</span>
+              </th>
+            )}
             <th className="px-4 py-3">Titulo</th>
             <th className="px-4 py-3">Categoria</th>
             <th className="px-4 py-3">Razon</th>
@@ -32,8 +43,27 @@ export function ManagerReportTable({ reports, isLoading }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {reports.map((report) => (
+          {reports.map((report) => {
+            const disabledSelection =
+              ![1, 2].includes(Number(report.statusId)) ||
+              (selectedCategoryId &&
+                String(report.categoryId) !== String(selectedCategoryId) &&
+                !selectedIds.includes(report.id));
+
+            return (
             <tr key={report.id} className="transition hover:bg-muted/30">
+              {onToggleSelection && (
+                <td className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(report.id)}
+                    disabled={disabledSelection}
+                    onChange={() => onToggleSelection(report)}
+                    aria-label={`Seleccionar ${report.title}`}
+                    className="size-4 rounded border-input accent-primary"
+                  />
+                </td>
+              )}
               <td className="max-w-64 px-4 py-3 font-semibold text-foreground">
                 <span className="line-clamp-2">{report.title}</span>
               </td>
@@ -75,7 +105,7 @@ export function ManagerReportTable({ reports, isLoading }) {
                 </Button>
               </td>
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </div>

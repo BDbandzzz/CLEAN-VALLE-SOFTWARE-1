@@ -9,6 +9,7 @@ import { sidebarConfig } from '@/core/constants/sidebarConfig';
 import { useAuth } from '@/core/context/AuthContext';
 import { cn } from '@/core/lib/utils';
 import { NavDropdown } from '@/core/layouts/NavDropdown';
+import { NotificationBell } from '@/modules/notifications/components/NotificationBell';
 
 export function AppNavbar({ roleId }) {
   const items = sidebarConfig[roleId] || sidebarConfig[USER_ROLE_IDS.STUDENT];
@@ -44,7 +45,8 @@ export function AppNavbar({ roleId }) {
                     'inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold transition md:size-12 lg:h-10 lg:w-auto lg:gap-2 lg:px-3',
                     'text-muted-foreground hover:bg-emerald-100 hover:text-emerald-800',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    isActive && 'bg-primary text-primary-foreground shadow-sm hover:bg-emerald-500 hover:text-primary-foreground'
+                    isActive &&
+                      'bg-primary text-primary-foreground shadow-sm hover:bg-emerald-500 hover:text-primary-foreground'
                   )
                 }
               >
@@ -67,10 +69,15 @@ export function AppNavbar({ roleId }) {
           )}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-3 border-l border-border pl-3 sm:pl-4">
+        <div className="ml-auto flex shrink-0 items-center gap-2 border-l border-border pl-3 sm:gap-3 sm:pl-4">
+          <NotificationBell />
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-bold leading-tight text-foreground">{APP_NAME}</p>
-            <p className="text-xs leading-tight text-muted-foreground">{INSTITUTION_NAME}</p>
+            <p className="text-sm font-bold leading-tight text-foreground">
+              {APP_NAME}
+            </p>
+            <p className="text-xs leading-tight text-muted-foreground">
+              {INSTITUTION_NAME}
+            </p>
           </div>
           <img
             src={UNIVALLE_LOGO_SRC}

@@ -1,4 +1,5 @@
 import {
+  getResolutionPhotoUrls,
   hydrateReportsMedia,
   uploadResolutionPhotos,
 } from '@/services/reportStorageService';
@@ -18,21 +19,34 @@ export async function getOperatorReportDashboard() {
   const { data, error } = await supabase.rpc('operator_report_dashboard');
   if (error) throw new Error(error.message);
 
-  const [assigned, resolutions] = await Promise.all([
+  const [assigned, groupAssignments, resolutions] = await Promise.all([
     hydrateReportsMedia(data?.assigned ?? []),
-    hydrateReportsMedia(data?.resolutions ?? []),
+    hydrateOperatorGroups(data?.groupAssignments ?? []),
+    hydrateOperatorItems(data?.resolutions ?? []),
   ]);
 
-  return { assigned, resolutions };
+  return {
+    assigned,
+    groupAssignments,
+    resolutions,
+    metrics: data?.metrics ?? {},
+  };
 }
 
-export async function submitReportResolution(reportId, values) {
+export async function submitOperatorResolution(sourceType, sourceId, values) {
   const resolvedAt = values.resolvedAt
     ? new Date(`${values.resolvedAt}T12:00:00`).toISOString()
     : new Date().toISOString();
 
-  const { data: resolutionId, error } = await supabase.rpc('submit_resolution', {
-    p_id_report: Number(reportId),
+  const rpcName =
+    sourceType === 'group' ? 'submit_group_resolution' : 'submit_resolution';
+  const sourceParameter =
+    sourceType === 'group'
+      ? { p_id_group: Number(sourceId) }
+      : { p_id_report: Number(sourceId) };
+
+  const { data: resolutionId, error } = await supabase.rpc(rpcName, {
+    ...sourceParameter,
     p_description: values.description.trim(),
     p_method: values.method.trim(),
     p_resolved_at: resolvedAt,
@@ -43,4 +57,53 @@ export async function submitReportResolution(reportId, values) {
   const paths = await uploadResolutionPhotos(resolutionId, values.images ?? []);
   await registerResolutionPhotos(resolutionId, paths);
   return { id: resolutionId };
+}
+
+export async function rejectOperatorAssignment(sourceType, sourceId, reason) {
+  const rpcName =
+    sourceType === 'group' ? 'reject_group_assignment' : 'reject_assignment';
+  const sourceParameter =
+    sourceType === 'group'
+      ? { p_id_group: Number(sourceId) }
+      : { p_id_report: Number(sourceId) };
+
+  const { error } = await supabase.rpc(rpcName, {
+    ...sourceParameter,
+    p_reason: reason.trim(),
+  });
+
+  if (error) throw new Error(error.message);
+}
+
+async function hydrateOperatorGroups(groups) {
+  return Promise.all(groups.map(hydrateOperatorGroup));
+}
+
+async function hydrateOperatorItems(items) {
+  const reportItems = items.filter((item) => item.sourceType !== 'group');
+  const groupItems = items.filter((item) => item.sourceType === 'group');
+  const [reports, groups] = await Promise.all([
+    hydrateReportsMedia(reportItems),
+    hydrateOperatorGroups(groupItems),
+  ]);
+  return [...reports, ...groups].sort(
+    (a, b) =>
+      new Date(b.resolution?.resolvedAt ?? b.createdAt ?? 0) -
+      new Date(a.resolution?.resolvedAt ?? a.createdAt ?? 0)
+  );
+}
+
+async function hydrateOperatorGroup(group) {
+  const [reports, resolutionUrls] = await Promise.all([
+    hydrateReportsMedia(group.reports ?? []),
+    getResolutionPhotoUrls(group.resolution?.evidencePaths ?? []),
+  ]);
+
+  return {
+    ...group,
+    reports,
+    resolution: group.resolution
+      ? { ...group.resolution, evidences: resolutionUrls }
+      : null,
+  };
 }

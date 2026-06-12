@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AUTH_PATHS } from '@/core/constants/authRoutes';
 import { USER_ROLE_IDS } from '@/core/constants/domainConstants';
 import { HomeRedirect } from '@/core/router/HomeRedirect';
+import GuestRoute from '@/core/router/GuestRoute';
 import PrivateRoute from '@/core/router/PrivateRoute';
 import InvitationPasswordPage from '@/modules/auth/pages/InvitationPasswordPage';
 import LoginPage from '@/modules/auth/pages/LoginPage';
@@ -14,10 +15,14 @@ import LocationManagementPage from '@/modules/locations-admin/pages/LocationMana
 import { LocationManagementProvider } from '@/modules/locations-admin/context/LocationManagementContext';
 import ManagerReportDetailPage from '@/modules/manager-reports/pages/ManagerReportDetailPage';
 import ManagerReportsPage from '@/modules/manager-reports/pages/ManagerReportsPage';
+import ManagerGroupDetailPage from '@/modules/manager-reports/pages/ManagerGroupDetailPage';
+import ManagerGroupsPage from '@/modules/manager-reports/pages/ManagerGroupsPage';
 import ManagerResolutionReviewPage from '@/modules/manager-reports/pages/ManagerResolutionReviewPage';
 import NotificationsPage from '@/modules/notifications/pages/NotificationsPage';
+import OperatorAssignmentsPage from '@/modules/operator/pages/OperatorAssignmentsPage';
 import OperatorDashboardPage from '@/modules/operator/pages/OperatorDashboardPage';
 import OperatorResolutionPage from '@/modules/operator/pages/OperatorResolutionPage';
+import OperatorResolutionsPage from '@/modules/operator/pages/OperatorResolutionsPage';
 import ProfilePage from '@/modules/profile/pages/ProfilePage';
 import CreateReportPage from '@/modules/reports/pages/CreateReportPage';
 import ResolvedReportsPage from '@/modules/reports/pages/ResolvedReportsPage';
@@ -55,7 +60,10 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path={AUTH_PATHS.login} element={<LoginPage />} />
+      <Route
+        path={AUTH_PATHS.login}
+        element={<GuestRoute element={<LoginPage />} />}
+      />
       <Route path={AUTH_PATHS.recoverPassword} element={<RecoverPassword />} />
       <Route path={AUTH_PATHS.resetPassword} element={<ResetPasswordPage />} />
       <Route path={AUTH_PATHS.createPassword} element={<InvitationPasswordPage />} />
@@ -86,10 +94,32 @@ export default function AppRouter() {
 
       <Route
         path="/operator"
+        element={<Navigate to="/operator/dashboard" replace />}
+      />
+      <Route
+        path="/operator/dashboard"
         element={
           <PrivateRoute
             allowedRoleIds={[USER_ROLE_IDS.OPERATOR]}
             element={<OperatorDashboardPage />}
+          />
+        }
+      />
+      <Route
+        path="/operator/assignments"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.OPERATOR]}
+            element={<OperatorAssignmentsPage />}
+          />
+        }
+      />
+      <Route
+        path="/operator/resolutions"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.OPERATOR]}
+            element={<OperatorResolutionsPage />}
           />
         }
       />
@@ -117,6 +147,15 @@ export default function AppRouter() {
         }
       />
       <Route
+        path="/operator/groups/:groupId/resolution"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.OPERATOR]}
+            element={<OperatorResolutionPage />}
+          />
+        }
+      />
+      <Route
         path="/manager/reports"
         element={
           <PrivateRoute
@@ -140,6 +179,24 @@ export default function AppRouter() {
           <PrivateRoute
             allowedRoleIds={[USER_ROLE_IDS.MANAGER]}
             element={<ManagerResolutionReviewPage />}
+          />
+        }
+      />
+      <Route
+        path="/manager/groups"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.MANAGER]}
+            element={<ManagerGroupsPage />}
+          />
+        }
+      />
+      <Route
+        path="/manager/groups/:groupId"
+        element={
+          <PrivateRoute
+            allowedRoleIds={[USER_ROLE_IDS.MANAGER]}
+            element={<ManagerGroupDetailPage />}
           />
         }
       />

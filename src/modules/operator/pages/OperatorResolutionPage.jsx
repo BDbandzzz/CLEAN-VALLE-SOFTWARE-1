@@ -34,21 +34,27 @@ const INITIAL_FORM = {
 };
 
 export default function OperatorResolutionPage() {
-  const { reportId } = useParams();
+  const { reportId, groupId } = useParams();
   const navigate = useNavigate();
   const {
     assignedReports,
+    assignedGroups,
     resolvedReports,
     isLoading,
     error: loadError,
     submitResolution,
   } = useOperatorReports();
+  const sourceType = groupId ? 'group' : 'report';
+  const sourceId = groupId ?? reportId;
   const report = useMemo(
-    () =>
-      [...assignedReports, ...resolvedReports].find(
-        (item) => String(item.id) === String(reportId)
-      ),
-    [assignedReports, reportId, resolvedReports]
+    () => {
+      const availableItems =
+        sourceType === 'group'
+          ? [...assignedGroups, ...resolvedReports.filter((item) => item.sourceType === 'group')]
+          : [...assignedReports, ...resolvedReports.filter((item) => item.sourceType !== 'group')];
+      return availableItems.find((item) => String(item.id) === String(sourceId));
+    },
+    [assignedGroups, assignedReports, resolvedReports, sourceId, sourceType]
   );
   const [form, setForm] = useState(INITIAL_FORM);
   const [images, setImages] = useState([]);
@@ -105,7 +111,7 @@ export default function OperatorResolutionPage() {
     setError('');
 
     try {
-      await submitResolution(report.id, { ...form, images });
+      await submitResolution(sourceType, report.id, { ...form, images });
       setConfirmResolution(false);
       setSuccess('Resolucion enviada correctamente para revision.');
       showSuccessAlert(ALERT_MESSAGES.reports.resolutionSent);
@@ -125,7 +131,7 @@ export default function OperatorResolutionPage() {
   if (!report) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 pb-12">
-        <Button variant="outline" onClick={() => navigate('/operator')}>
+        <Button variant="outline" onClick={() => navigate('/operator/assignments')}>
           <ArrowLeft className="size-4" />
           Volver
         </Button>
@@ -138,15 +144,19 @@ export default function OperatorResolutionPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 pb-12">
-      <Button variant="outline" onClick={() => navigate('/operator')}>
+      <Button variant="outline" onClick={() => navigate('/operator/assignments')}>
         <ArrowLeft className="size-4" />
         Volver al panel
       </Button>
 
       <ModuleHero
         icon={<Send />}
-        title="Enviar resolucion"
-        description="Registra las acciones realizadas y sus evidencias."
+        title={sourceType === 'group' ? 'Enviar resolución grupal' : 'Enviar resolución'}
+        description={
+          sourceType === 'group'
+            ? 'Documenta una única solución para todos los reportes del grupo.'
+            : 'Registra las acciones realizadas y sus evidencias.'
+        }
       />
 
       {success && (
@@ -169,7 +179,11 @@ export default function OperatorResolutionPage() {
       )}
 
       <form onSubmit={requestResolution} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
-        <FormField id="resolution-report-title" label="Titulo del reporte" icon={<FileText className="size-4" />}>
+        <FormField
+          id="resolution-report-title"
+          label={sourceType === 'group' ? 'Grupo de reportes' : 'Título del reporte'}
+          icon={<FileText className="size-4" />}
+        >
           <input
             id="resolution-report-title"
             readOnly

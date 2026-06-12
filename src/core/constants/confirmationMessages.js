@@ -119,6 +119,26 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       rejectLabel: 'Cancelar',
       variant: 'destructive',
     },
+    rejectAssignment: {
+      title: 'Rechazar asignación',
+      reason:
+        'Esta acción devolverá el reporte al gestor para reasignación. Debes justificar el motivo.',
+      acceptLabel: 'Confirmar rechazo',
+      rejectLabel: 'Cancelar',
+      variant: 'destructive',
+    },
+    createGroup: (count) => ({
+      title: 'Crear grupo de reportes',
+      reason: `Se agruparán ${count} reportes para gestionarlos como una sola asignación.`,
+      acceptLabel: 'Crear grupo',
+      rejectLabel: 'Cancelar',
+    }),
+    assignGroup: (operatorName) => ({
+      title: 'Asignar grupo',
+      reason: `El grupo quedará asignado a ${operatorName || 'este operador'}.`,
+      acceptLabel: 'Confirmar asignación',
+      rejectLabel: 'Cancelar',
+    }),
   },
   reportTypes: {
     create: (name) => ({
