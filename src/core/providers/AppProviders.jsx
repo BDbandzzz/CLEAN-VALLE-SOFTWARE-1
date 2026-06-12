@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { AuthProvider } from '@/core/context/AuthContext';
 import { AlertProvider } from '@/core/providers/AlertProvider';
+import { NotificationProvider } from '@/modules/notifications/context/NotificationContext';
 import { ReportsProvider } from '@/modules/reports/context/ReportsContext';
 
 export function AppProviders({ children }) {
@@ -9,7 +10,9 @@ export function AppProviders({ children }) {
     <AlertProvider>
       <BrowserRouter>
         <AuthProvider>
-          <ReportsProvider>{children}</ReportsProvider>
+          <NotificationProvider>
+            <ReportsProvider>{children}</ReportsProvider>
+          </NotificationProvider>
         </AuthProvider>
       </BrowserRouter>
     </AlertProvider>

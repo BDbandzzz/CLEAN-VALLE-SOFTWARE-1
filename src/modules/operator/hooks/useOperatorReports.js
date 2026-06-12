@@ -2,13 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 
 import {
   getOperatorReportDashboard,
-  submitReportResolution,
+  rejectOperatorAssignment,
+  submitOperatorResolution,
 } from '@/services/operatorReportService';
 import { showErrorAlert } from '@/core/services/alertService';
 
 export function useOperatorReports() {
   const [assignedReports, setAssignedReports] = useState([]);
+  const [assignedGroups, setAssignedGroups] = useState([]);
   const [resolvedReports, setResolvedReports] = useState([]);
+  const [metrics, setMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,7 +22,9 @@ export function useOperatorReports() {
     try {
       const dashboard = await getOperatorReportDashboard();
       setAssignedReports(dashboard.assigned);
+      setAssignedGroups(dashboard.groupAssignments);
       setResolvedReports(dashboard.resolutions);
+      setMetrics(dashboard.metrics);
       return dashboard;
     } catch (loadError) {
       setError(loadError.message);
@@ -35,20 +40,35 @@ export function useOperatorReports() {
   }, [refresh]);
 
   const submitResolution = useCallback(
-    async (reportId, values) => {
-      const result = await submitReportResolution(reportId, values);
+    async (sourceType, sourceId, values) => {
+      const result = await submitOperatorResolution(
+        sourceType,
+        sourceId,
+        values
+      );
       await refresh();
       return result;
     },
     [refresh]
   );
 
+  const rejectAssignment = useCallback(
+    async (sourceType, sourceId, reason) => {
+      await rejectOperatorAssignment(sourceType, sourceId, reason);
+      await refresh();
+    },
+    [refresh]
+  );
+
   return {
     assignedReports,
+    assignedGroups,
     resolvedReports,
+    metrics,
     isLoading,
     error,
     refresh,
     submitResolution,
+    rejectAssignment,
   };
 }

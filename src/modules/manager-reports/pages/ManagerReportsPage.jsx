@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
-import { ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ClipboardList, ChevronLeft, ChevronRight, Layers3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/core/components/ui/button';
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { ManagerReportFilters } from '@/modules/manager-reports/components/ManagerReportFilters';
 import { ManagerReportTable } from '@/modules/manager-reports/components/ManagerReportTable';
+import { ReportGroupDialog } from '@/modules/manager-reports/components/ReportGroupDialog';
 import { useManagerReportDashboard } from '@/modules/manager-reports/hooks/useManagerReportDashboard';
 import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
+import { createReportGroup } from '@/services/managerReportService';
+import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 const INITIAL_FILTERS = {
   categoryId: '',
@@ -20,7 +24,12 @@ const INITIAL_FILTERS = {
 };
 
 export default function ManagerReportsPage() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [selectedReports, setSelectedReports] = useState([]);
+  const [groupForm, setGroupForm] = useState({ title: '', description: '' });
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const {
     categories,
     riskLevels,
@@ -46,6 +55,33 @@ export default function ManagerReportsPage() {
     if (categoryId) await loadSubtypes(categoryId);
   };
 
+  const toggleSelection = (report) => {
+    setSelectedReports((current) =>
+      current.some((item) => item.id === report.id)
+        ? current.filter((item) => item.id !== report.id)
+        : [...current, report]
+    );
+  };
+
+  const confirmGroupCreation = async () => {
+    setIsCreatingGroup(true);
+    try {
+      const group = await createReportGroup({
+        ...groupForm,
+        reportIds: selectedReports.map((report) => report.id),
+      });
+      showSuccessAlert('El grupo de reportes fue creado correctamente.');
+      setShowGroupDialog(false);
+      setSelectedReports([]);
+      setGroupForm({ title: '', description: '' });
+      navigate(`/manager/groups/${group.id}`);
+    } catch (createError) {
+      showErrorAlert(createError);
+    } finally {
+      setIsCreatingGroup(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
       <ModuleHero
@@ -65,13 +101,38 @@ export default function ManagerReportsPage() {
         onReset={() => setFilters(INITIAL_FILTERS)}
       />
 
+      <div className="flex flex-col gap-3 rounded-lg bg-card px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            Agrupación de reportes
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Selecciona al menos dos reportes de la misma categoría.
+          </p>
+        </div>
+        <Button
+          type="button"
+          disabled={selectedReports.length < 2}
+          onClick={() => setShowGroupDialog(true)}
+        >
+          <Layers3 className="size-4" />
+          Crear grupo ({selectedReports.length})
+        </Button>
+      </div>
+
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      <ManagerReportTable reports={dashboard.reports ?? []} isLoading={isLoading} />
+      <ManagerReportTable
+        reports={dashboard.reports ?? []}
+        isLoading={isLoading}
+        selectedIds={selectedReports.map((report) => report.id)}
+        selectedCategoryId={selectedReports[0]?.categoryId ?? ''}
+        onToggleSelection={toggleSelection}
+      />
 
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">{pageLabel}</p>
@@ -98,6 +159,18 @@ export default function ManagerReportsPage() {
           </Button>
         </div>
       </div>
+
+      <ReportGroupDialog
+        open={showGroupDialog}
+        reportCount={selectedReports.length}
+        values={groupForm}
+        isLoading={isCreatingGroup}
+        onChange={(field, value) =>
+          setGroupForm((current) => ({ ...current, [field]: value }))
+        }
+        onConfirm={confirmGroupCreation}
+        onClose={() => setShowGroupDialog(false)}
+      />
     </div>
   );
 }

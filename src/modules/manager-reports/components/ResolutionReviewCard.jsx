@@ -13,28 +13,35 @@ export function ResolutionReviewCard({
   onChange,
   onRequestReview,
 }) {
+  const source = resolution.sourceType === 'group'
+    ? resolution.group
+    : resolution.report;
+  const isGroup = resolution.sourceType === 'group';
+
   return (
     <article className="overflow-hidden rounded-lg bg-card shadow-sm">
       <div className="bg-muted/25 px-5 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="font-mono text-xs text-muted-foreground">
-              Reporte #{resolution.report.id} · Resolucion #{resolution.id}
+              {isGroup ? 'Grupo' : 'Reporte'} #{source.id} · Resolución #{resolution.id}
             </p>
             <h2 className="mt-1 text-lg font-semibold text-foreground">
-              {resolution.report.title}
+              {source.title}
             </h2>
             <div className="mt-2 flex flex-wrap gap-2">
               <ReportBadge
                 type="category"
-                label={resolution.report.categoryName}
-                color={resolution.report.categoryColor}
+                label={source.categoryName}
+                color={source.categoryColor}
               />
-              <ReportBadge
-                type="risk"
-                label={resolution.report.riskLevelName}
-                color={resolution.report.riskLevelColor}
-              />
+              {!isGroup && (
+                <ReportBadge
+                  type="risk"
+                  label={source.riskLevelName}
+                  color={source.riskLevelColor}
+                />
+              )}
             </div>
           </div>
           <div className="space-y-1 text-xs text-muted-foreground">

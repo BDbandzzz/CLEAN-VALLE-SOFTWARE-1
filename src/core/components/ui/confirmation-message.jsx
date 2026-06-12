@@ -14,7 +14,9 @@ export function ConfirmationMessage({
   onReject,
   variant = 'default',
   isLoading = false,
+  acceptDisabled = false,
   className = '',
+  children,
 }) {
   if (!open) return null;
 
@@ -75,6 +77,8 @@ export function ConfirmationMessage({
           </div>
         </div>
 
+        {children && <div className="mt-5">{children}</div>}
+
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" onClick={onReject} disabled={isLoading}>
             {rejectLabel}
@@ -83,7 +87,7 @@ export function ConfirmationMessage({
             type="button"
             variant={isDestructive ? 'destructive' : 'default'}
             onClick={onAccept}
-            disabled={isLoading}
+            disabled={isLoading || acceptDisabled}
           >
             {isLoading ? 'Procesando...' : acceptLabel}
           </Button>

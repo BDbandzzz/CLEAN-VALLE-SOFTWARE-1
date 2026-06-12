@@ -1,4 +1,8 @@
-import { hydrateReportMedia, hydrateReportsMedia } from '@/services/reportStorageService';
+import {
+  getResolutionPhotoUrls,
+  hydrateReportMedia,
+  hydrateReportsMedia,
+} from '@/services/reportStorageService';
 import { supabase } from '@/services/supabaseClient';
 import { REPORT_STATUS_IDS } from '@/core/constants/domainConstants';
 
@@ -86,16 +90,21 @@ export async function getPendingResolutions() {
   const { data, error } = await supabase.rpc('manager_pending_resolutions');
   if (error) throw new Error(error.message);
 
-  const resolutions = data ?? [];
-  const reports = await hydrateReportsMedia(
-    resolutions.map((resolution) => resolution.report)
-  );
+  return Promise.all(
+    (data ?? []).map(async (resolution) => {
+      const [report, group, evidences] = await Promise.all([
+        resolution.report
+          ? hydrateReportMedia(resolution.report)
+          : Promise.resolve(null),
+        resolution.group
+          ? hydrateReportGroup(resolution.group)
+          : Promise.resolve(null),
+        getResolutionPhotoUrls(resolution.evidencePaths ?? []),
+      ]);
 
-  return resolutions.map((resolution, index) => ({
-    ...resolution,
-    report: reports[index],
-    evidences: reports[index]?.resolution?.evidences ?? [],
-  }));
+      return { ...resolution, report, group, evidences };
+    })
+  );
 }
 
 export async function reviewResolution(resolutionId, values) {
@@ -107,4 +116,63 @@ export async function reviewResolution(resolutionId, values) {
   });
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function createReportGroup(values) {
+  const { data, error } = await supabase.rpc('create_report_group', {
+    p_title: values.title.trim(),
+    p_description: values.description?.trim() || null,
+    p_report_ids: values.reportIds.map(Number),
+  });
+  if (error) throw new Error(error.message);
+  return { id: data };
+}
+
+export async function getManagerReportGroups() {
+  const { data, error } = await supabase.rpc('manager_report_groups');
+  if (error) throw new Error(error.message);
+  return Promise.all((data ?? []).map(hydrateReportGroup));
+}
+
+export async function getManagerReportGroupDetail(groupId) {
+  const { data, error } = await supabase.rpc('manager_report_group_detail', {
+    p_id_group: Number(groupId),
+  });
+  if (error) throw new Error(error.message);
+  return hydrateReportGroup(data);
+}
+
+export async function getAvailableOperatorsForGroup(groupId) {
+  const { data, error } = await supabase.rpc(
+    'get_available_operators_for_group',
+    { p_id_group: Number(groupId) }
+  );
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function assignReportGroup(groupId, operatorAuthId, notes) {
+  const { data, error } = await supabase.rpc('assign_group', {
+    p_id_group: Number(groupId),
+    p_operator_uuid: operatorAuthId,
+    p_notes: notes?.trim() || null,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+async function hydrateReportGroup(group) {
+  if (!group) return null;
+  const [reports, resolutionUrls] = await Promise.all([
+    hydrateReportsMedia(group.reports ?? []),
+    getResolutionPhotoUrls(group.resolution?.evidencePaths ?? []),
+  ]);
+
+  return {
+    ...group,
+    reports,
+    resolution: group.resolution
+      ? { ...group.resolution, evidences: resolutionUrls }
+      : null,
+  };
 }

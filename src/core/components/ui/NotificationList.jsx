@@ -2,6 +2,8 @@ export function NotificationList({
   notifications = [],
   emptyText = 'No hay notificaciones para mostrar.',
   onMarkAsRead,
+  onMarkAllAsRead,
+  onOpen,
 }) {
   if (!notifications.length) {
     return (
@@ -13,18 +15,30 @@ export function NotificationList({
 
   return (
     <div className="space-y-3">
+      {onMarkAllAsRead && notifications.some((notification) => !notification.isRead) && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onMarkAllAsRead}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            Marcar todas como leídas
+          </button>
+        </div>
+      )}
       {notifications.map((notification) => (
         <NotificationItem
           key={notification.id}
           notification={notification}
           onMarkAsRead={onMarkAsRead}
+          onOpen={onOpen}
         />
       ))}
     </div>
   );
 }
 
-function NotificationItem({ notification, onMarkAsRead }) {
+function NotificationItem({ notification, onMarkAsRead, onOpen }) {
   return (
     <article
       className={[
@@ -45,7 +59,20 @@ function NotificationItem({ notification, onMarkAsRead }) {
         )}
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{notification.detail}</p>
-      <p className="mt-2 text-xs text-muted-foreground">{formatDateTime(notification.at)}</p>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          {formatDateTime(notification.at)}
+        </p>
+        {onOpen && notification.entityType && (
+          <button
+            type="button"
+            onClick={() => onOpen(notification)}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Ver detalle
+          </button>
+        )}
+      </div>
     </article>
   );
 }

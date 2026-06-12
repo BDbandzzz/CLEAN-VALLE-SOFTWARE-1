@@ -100,6 +100,16 @@ async function buildCurrentUser(authUser) {
   return mapUser(authUser, user);
 }
 
+async function buildSessionUser(session) {
+  if (!session?.user) return null;
+
+  const currentUser = await buildCurrentUser(session.user);
+  return {
+    ...currentUser,
+    sessionExpiresAt: session.expires_at ?? null,
+  };
+}
+
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email: String(email ?? '').trim(),
@@ -109,7 +119,7 @@ export async function signIn(email, password) {
   if (error) {
     throw new Error(error.message);
   }
-  return buildCurrentUser(data.user);
+  return buildSessionUser(data.session);
 }
 
 export async function signOut() {
@@ -120,11 +130,36 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) {
+  const { data: sessionData, error: sessionError } =
+    await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error(sessionError.message);
+  }
+
+  if (!sessionData.session) {
     return null;
   }
-  return buildCurrentUser(data.user);
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return null;
+  }
+
+  return buildSessionUser({
+    ...sessionData.session,
+    user: userData.user,
+  });
+}
+
+export function subscribeToAuthChanges(onChange) {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    onChange(event, session);
+  });
+
+  return () => subscription.unsubscribe();
 }
 
 export async function updateAuthPassword(currentPassword, newPassword) {

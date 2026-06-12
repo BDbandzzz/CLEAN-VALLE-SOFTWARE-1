@@ -21,6 +21,7 @@ export function AssignmentHistory({ assignments = [] }) {
                 <th className="px-4 py-3">Cerrado</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Notas</th>
+                <th className="px-4 py-3">Motivo de rechazo</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -32,6 +33,15 @@ export function AssignmentHistory({ assignments = [] }) {
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(assignment.closedAt)}</td>
                   <td className="px-4 py-3">{getStateLabel(assignment.stateId)}</td>
                   <td className="max-w-72 px-4 py-3 text-muted-foreground">{assignment.notes || '-'}</td>
+                  <td className="max-w-80 px-4 py-3">
+                    {assignment.reasonReject ? (
+                      <span className="font-medium text-amber-700">
+                        {assignment.reasonReject}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

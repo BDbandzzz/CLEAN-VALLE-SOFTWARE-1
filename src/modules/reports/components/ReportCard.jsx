@@ -10,7 +10,8 @@ import { ReportStatusPill } from './ReportStatusPill';
 import { ResolutionSummary } from './ResolutionSummary';
 
 export function ReportCard({ report, showResolutionSummary = false }) {
-  const [expanded, setExpanded] = useState(false);
+  const [reportExpanded, setReportExpanded] = useState(false);
+  const [resolutionExpanded, setResolutionExpanded] = useState(false);
   const statusMeta = {
     id: report.statusId,
     label: report.statusName || 'Sin estado',
@@ -37,7 +38,7 @@ export function ReportCard({ report, showResolutionSummary = false }) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <ReportBadge
@@ -52,39 +53,50 @@ export function ReportCard({ report, showResolutionSummary = false }) {
             />
             <ReportStatusPill meta={statusMeta} />
           </div>
-          <h3 className="line-clamp-1 text-base font-semibold text-foreground">{report.title}</h3>
+          <h3 className="break-words text-base font-semibold text-foreground">
+            {report.title}
+          </h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><MapPin className="size-3" />{formatLocation(report)}</span>
             <span className="flex items-center gap-1"><Calendar className="size-3" />{formattedDate}</span>
           </div>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          variant="outline"
-          className="
-            mt-1 shrink-0 self-start bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground
-            transition hover:bg-muted hover:text-foreground
-          "
-          aria-expanded={expanded}
-          aria-label={expanded ? 'Ocultar detalles' : 'Ver detalles'}
-        >
-          {expanded ? (
-            <><span>Ocultar</span><ChevronUp className="size-3.5" /></>
-          ) : (
-            <><span>Ver mas</span><ChevronDown className="size-3.5" /></>
+        <div className="flex w-full shrink-0 flex-wrap gap-2 sm:w-auto sm:justify-end">
+          <Button
+            type="button"
+            onClick={() => setReportExpanded((value) => !value)}
+            variant={reportExpanded ? 'default' : 'outline'}
+            className="flex-1 px-3 text-xs sm:flex-none"
+            aria-expanded={reportExpanded}
+          >
+            Detalles
+            {reportExpanded ? (
+              <ChevronUp className="size-3.5" />
+            ) : (
+              <ChevronDown className="size-3.5" />
+            )}
+          </Button>
+          {report.resolution && (
+            <Button
+              type="button"
+              onClick={() => setResolutionExpanded((value) => !value)}
+              variant={resolutionExpanded ? 'default' : 'outline'}
+              className="flex-1 px-3 text-xs sm:flex-none"
+              aria-expanded={resolutionExpanded}
+            >
+              Resolución
+              {resolutionExpanded ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
 
-      {showResolutionSummary && report.resolution && (
-        <div className="border-t border-border bg-muted/20 px-5 pb-5 pt-4">
-          <ResolutionSummary report={report} />
-        </div>
-      )}
-
-      {expanded && (
+      {reportExpanded && (
         <div className="space-y-4 border-t border-border bg-muted/30 px-5 pb-5 pt-4">
           <ReportInfoBlock label="Descripcion" value={report.description || 'Sin descripcion.'} />
 
@@ -110,8 +122,15 @@ export function ReportCard({ report, showResolutionSummary = false }) {
             />
           </div>
 
-          {!showResolutionSummary && <ResolutionSummary report={report} />}
+        </div>
+      )}
 
+      {resolutionExpanded && report.resolution && (
+        <div className="border-t border-border bg-muted/20 px-4 py-4 sm:px-5">
+          <ResolutionSummary
+            report={report}
+            compact={!showResolutionSummary}
+          />
         </div>
       )}
     </article>

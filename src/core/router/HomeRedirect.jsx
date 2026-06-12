@@ -6,7 +6,7 @@ import { useAuth } from '@/core/context/AuthContext';
 const HOME_BY_ROLE = Object.freeze({
   [USER_ROLE_IDS.STUDENT]: '/reports/view',
   [USER_ROLE_IDS.TEACHER]: '/reports/view',
-  [USER_ROLE_IDS.OPERATOR]: '/operator',
+  [USER_ROLE_IDS.OPERATOR]: '/operator/dashboard',
   [USER_ROLE_IDS.MANAGER]: '/manager',
   [USER_ROLE_IDS.ADMIN]: '/admin',
 });

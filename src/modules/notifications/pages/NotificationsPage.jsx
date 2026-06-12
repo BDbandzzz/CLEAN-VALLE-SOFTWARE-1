@@ -3,19 +3,25 @@ import { Bell } from 'lucide-react';
 
 import { ModuleHero } from '@/core/components/ui/module-hero';
 import { NotificationList } from '@/core/components/ui/NotificationList';
-import { useReports } from '@/modules/reports/context/ReportsContext';
+import { useAuth } from '@/core/context/AuthContext';
+import { getNotificationRoute } from '@/modules/notifications/constants/notificationRoutes';
+import { useNotifications } from '@/modules/notifications/context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function NotificationsPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     notifications,
-    isLoadingNotifications,
+    isLoading,
     markAsRead,
-    refreshNotifications,
-  } = useReports();
+    markAllAsRead,
+    refresh,
+  } = useNotifications();
 
   useEffect(() => {
-    refreshNotifications().catch(() => {});
-  }, [refreshNotifications]);
+    refresh();
+  }, [refresh]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-12">
@@ -27,12 +33,20 @@ export default function NotificationsPage() {
         variant="surface"
       />
 
-      {isLoadingNotifications ? (
+      {isLoading ? (
         <div className="py-14 text-center text-sm text-muted-foreground">
           Cargando notificaciones...
         </div>
       ) : (
-        <NotificationList notifications={notifications} onMarkAsRead={markAsRead} />
+        <NotificationList
+          notifications={notifications}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+          onOpen={(notification) => {
+            if (!notification.isRead) markAsRead(notification.id);
+            navigate(getNotificationRoute(notification, user?.roleId));
+          }}
+        />
       )}
     </div>
   );

@@ -33,11 +33,12 @@ const DETAIL_VIEWS = {
 };
 
 function reportHasBlockingAssignment(report) {
-  return (report?.assignments ?? []).some((assignment) =>
-    [ELEMENT_STATE_IDS.ACTIVE, ELEMENT_STATE_IDS.CLOSED].includes(
-      Number(assignment.stateId)
-    )
-  );
+  return Boolean(report?.activeGroup) ||
+    (report?.assignments ?? []).some((assignment) =>
+      [ELEMENT_STATE_IDS.ACTIVE, ELEMENT_STATE_IDS.CLOSED].includes(
+        Number(assignment.stateId)
+      )
+    );
 }
 
 export default function ManagerReportDetailPage() {
@@ -316,6 +317,9 @@ export default function ManagerReportDetailPage() {
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               La clasificación no puede modificarse porque el reporte ya tiene una asignación.
+              {report.activeGroup
+                ? ` Pertenece al grupo "${report.activeGroup.title}".`
+                : ''}
             </p>
             <Button
               type="button"

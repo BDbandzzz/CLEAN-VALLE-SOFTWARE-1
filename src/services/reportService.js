@@ -45,17 +45,3 @@ export async function getResolvedReports() {
   if (error) throw new Error(error.message);
   return hydrateReportsMedia(data ?? []);
 }
-
-export async function getNotifications() {
-  const { data, error } = await supabase.rpc('list_notifications');
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
-
-export async function markNotificationRead(notificationId) {
-  const { data, error } = await supabase.rpc('mark_notification_read', {
-    p_id_notification: notificationId,
-  });
-  if (error) throw new Error(error.message);
-  return data;
-}

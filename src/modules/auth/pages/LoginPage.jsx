@@ -14,7 +14,7 @@ import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
 
 const ROLE_HOME_PATHS = {
-  [USER_ROLE_IDS.OPERATOR]: '/operator',
+  [USER_ROLE_IDS.OPERATOR]: '/operator/dashboard',
   [USER_ROLE_IDS.MANAGER]: '/manager',
   [USER_ROLE_IDS.ADMIN]: '/admin',
 };
