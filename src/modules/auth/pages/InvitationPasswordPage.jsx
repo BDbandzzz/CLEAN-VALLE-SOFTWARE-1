@@ -16,10 +16,8 @@ import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay
 import { ResetPasswordForm } from '@/modules/auth/components/ResetPasswordForm';
 import {
   createInvitedUserPassword,
-  getInvitationSession,
-  getInvitationUrlError,
-  hasInvitationToken,
   subscribeToInvitationSession,
+  validateInvitationAccess,
 } from '@/services/userInvitationService';
 import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
@@ -46,28 +44,30 @@ export default function InvitationPasswordPage() {
 
     async function validateSession() {
       try {
-        const session = await getInvitationSession();
+        const session = await validateInvitationAccess();
         if (!isMounted) return;
 
-        if (session || hasInvitationToken()) {
+        if (session) {
           setStatus(INVITATION_STATUS.ready);
           return;
         }
 
-        setMessage(
-          getInvitationUrlError() ||
-            'La invitación no es válida o ya fue utilizada.'
-        );
-        showErrorAlert(
-          getInvitationUrlError() ||
-            'La invitación no es válida o ya fue utilizada.',
-          { title: 'Invitación no disponible' }
-        );
+        const invalidMessage =
+          'La invitación no es válida o ya fue utilizada.';
+        setMessage(invalidMessage);
+        showErrorAlert(invalidMessage, {
+          title: 'Invitación no disponible',
+        });
         setStatus(INVITATION_STATUS.invalid);
-      } catch {
+      } catch (validationError) {
         if (!isMounted) return;
-        setMessage('No fue posible validar la invitación.');
-        showErrorAlert('No fue posible validar la invitación.');
+        const validationMessage =
+          validationError.message ||
+          'La invitación no es válida o ya fue utilizada.';
+        setMessage(validationMessage);
+        showErrorAlert(validationMessage, {
+          title: 'Invitación no disponible',
+        });
         setStatus(INVITATION_STATUS.invalid);
       }
     }

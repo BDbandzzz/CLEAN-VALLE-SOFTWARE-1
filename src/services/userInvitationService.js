@@ -1,109 +1,216 @@
 import { supabase } from '@/services/supabaseClient';
 
-function isInvitationSession(session) {
-  const invitationPending =
-    session?.user?.user_metadata?.invitation_pending;
-  const isPending =
-    invitationPending === true || invitationPending === 'true';
-  const isCompleted =
-    invitationPending === false || invitationPending === 'false';
+const INVITE_TYPE = 'invite';
 
-  return (
-    isPending ||
-    (!isCompleted && Boolean(session?.user?.invited_at))
-  );
+const USER_METADATA = {
+  INVITATION_PENDING: 'invitation_pending',
+};
+
+function parseBoolean(value) {
+  if (value === true || value === 'true') return true;
+  if (value === false || value === 'false') return false;
+  return null;
+}
+
+function getParams() {
+  return {
+    search: new URLSearchParams(window.location.search),
+    hash: new URLSearchParams(
+      window.location.hash.replace(/^#/, '')
+    ),
+  };
 }
 
 function getUrlParams() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const { search, hash } = getParams();
 
   return {
-    token: searchParams.get('token') || hashParams.get('token') || '',
-    email: searchParams.get('email') || hashParams.get('email') || '',
+    token:
+      search.get('token') ||
+      hash.get('token') ||
+      '',
+    email:
+      search.get('email') ||
+      hash.get('email') ||
+      '',
     type: (
-      searchParams.get('type') ||
-      hashParams.get('type') ||
+      search.get('type') ||
+      hash.get('type') ||
       ''
     ).toLowerCase(),
   };
 }
 
+function normalizeEmail(email) {
+  try {
+    return decodeURIComponent(email)
+      .trim()
+      .toLowerCase();
+  } catch {
+    return email.trim().toLowerCase();
+  }
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isInvitationSession(session) {
+  const invitationPending = parseBoolean(
+    session?.user?.user_metadata?.[
+      USER_METADATA.INVITATION_PENDING
+    ]
+  );
+
+  return invitationPending === true;
+}
+
 function getInvitationLinkData() {
   const { token, email, type } = getUrlParams();
 
-  if (!token || !email || type !== 'invite') return null;
+  if (!token || !email || type !== INVITE_TYPE) {
+    return null;
+  }
+
+  const normalizedEmail = normalizeEmail(
+    email.replace(/ /g, '+')
+  );
+
+  if (!isValidEmail(normalizedEmail)) {
+    return null;
+  }
 
   return {
     token,
-    email: email.replace(/ /g, '+').trim().toLowerCase(),
-    type: 'invite',
+    email: normalizedEmail,
+    type: INVITE_TYPE,
   };
 }
 
-export function hasInvitationToken() {
-  return Boolean(getInvitationLinkData());
+async function verifyInvitation(invitation) {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: invitation.email,
+    token: invitation.token,
+    type: invitation.type,
+  });
+
+  if (error || !isInvitationSession(data?.session)) {
+    throw new Error(
+      error?.message ||
+        'La invitación venció, ya fue utilizada o no está disponible.'
+    );
+  }
+
+  return data.session;
 }
 
 export async function getInvitationSession() {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } =
+    await supabase.auth.getSession();
 
-  if (error) throw new Error(error.message);
-  return isInvitationSession(data.session) ? data.session : null;
+  if (error) {
+    throw new Error(
+      error?.message ||
+        'No fue posible obtener la sesión.'
+    );
+  }
+
+  return isInvitationSession(data?.session)
+    ? data.session
+    : null;
 }
 
-export function subscribeToInvitationSession(callback) {
+export async function validateInvitationAccess() {
+  const urlError = getInvitationUrlError();
+  if (urlError) {
+    throw new Error(urlError);
+  }
+
+  const invitation = getInvitationLinkData();
+  const session = await getInvitationSession();
+
+  if (session) {
+    if (!invitation) return session;
+
+    const sessionEmail = normalizeEmail(
+      session.user?.email || ''
+    );
+
+    if (sessionEmail === invitation.email) {
+      return session;
+    }
+  }
+
+  if (!invitation) {
+    throw new Error(
+      'La invitación no es válida o ya fue utilizada.'
+    );
+  }
+
+  return verifyInvitation(invitation);
+}
+
+export function subscribeToInvitationSession(
+  callback
+) {
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    if (isInvitationSession(session)) callback(session);
-  });
+  } = supabase.auth.onAuthStateChange(
+    (_event, session) => {
+      if (!isInvitationSession(session)) {
+        return;
+      }
+
+      try {
+        callback(session);
+      } catch (err) {
+        console.error(
+          'Error en callback de invitación:',
+          err
+        );
+      }
+    }
+  );
 
   return () => subscription.unsubscribe();
 }
 
-export async function createInvitedUserPassword(password) {
-  let session = await getInvitationSession();
+export async function createInvitedUserPassword(
+  password
+) {
+  const session = await validateInvitationAccess();
 
-  if (!session) {
-    const invitation = getInvitationLinkData();
-
-    if (!invitation) {
-      throw new Error('La invitacion no es valida o ya fue utilizada.');
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: invitation.email,
-      token: invitation.token,
-      type: invitation.type,
-    });
-
-    if (error || !data.session?.user) {
-      throw new Error(
-        error?.message || 'La invitacion vencio o ya fue utilizada.'
-      );
-    }
-
-    session = data.session;
+  if (!isInvitationSession(session)) {
+    throw new Error(
+      'La invitación ya fue utilizada o no está disponible.'
+    );
   }
 
-  const { error } = await supabase.auth.updateUser({
-    password,
-    data: {
-      invitation_pending: false,
-    },
-  });
+  const { error } =
+    await supabase.auth.updateUser({
+      password,
+      data: {
+        [USER_METADATA.INVITATION_PENDING]:
+          false,
+      },
+    });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(
+      error?.message ||
+        'No fue posible actualizar la contraseña.'
+    );
+  }
+
+  return true;
 }
 
-export function getInvitationUrlError() {
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+function getInvitationUrlError() {
+  const { search, hash } = getParams();
 
   return (
-    searchParams.get('error_description') ||
-    hashParams.get('error_description') ||
+    search.get('error_description') ||
+    hash.get('error_description') ||
     ''
   );
 }
