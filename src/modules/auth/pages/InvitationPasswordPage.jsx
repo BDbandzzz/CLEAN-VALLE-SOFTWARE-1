@@ -21,6 +21,7 @@ import {
   hasInvitationToken,
   subscribeToInvitationSession,
 } from '@/services/userInvitationService';
+import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 const INVITATION_STATUS = {
   validating: 'validating',
@@ -57,10 +58,16 @@ export default function InvitationPasswordPage() {
           getInvitationUrlError() ||
             'La invitación no es válida o ya fue utilizada.'
         );
+        showErrorAlert(
+          getInvitationUrlError() ||
+            'La invitación no es válida o ya fue utilizada.',
+          { title: 'Invitación no disponible' }
+        );
         setStatus(INVITATION_STATUS.invalid);
       } catch {
         if (!isMounted) return;
         setMessage('No fue posible validar la invitación.');
+        showErrorAlert('No fue posible validar la invitación.');
         setStatus(INVITATION_STATUS.invalid);
       }
     }
@@ -80,6 +87,7 @@ export default function InvitationPasswordPage() {
       await createInvitedUserPassword(password);
       await clearSession();
       setStatus(INVITATION_STATUS.success);
+      showSuccessAlert('Tu contraseña fue creada y el acceso quedó activado.');
     } catch (creationError) {
       throw new Error(
         creationError.message ||

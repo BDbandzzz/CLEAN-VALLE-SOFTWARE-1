@@ -5,6 +5,8 @@ import { ModuleHero } from '@/core/components/ui/module-hero';
 import { useReports } from '../context/ReportsContext';
 import { CreateReportForm } from '../components/CreateReportForm';
 import { useReportCatalogs } from '../hooks/useReportCatalogs';
+import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 const CreateReportPage = () => {
   const { addReport } = useReports();
@@ -22,10 +24,12 @@ const CreateReportPage = () => {
       const createdReport = await addReport(formData);
       if (createdReport) {
         setSuccessMessage('Reporte enviado exitosamente. El equipo operativo lo revisara pronto.');
+        showSuccessAlert(ALERT_MESSAGES.reports.created);
       }
       return createdReport;
     } catch (error) {
       setErrorMessage(error.message);
+      showErrorAlert(error);
       return null;
     } finally {
       setIsSubmitting(false);

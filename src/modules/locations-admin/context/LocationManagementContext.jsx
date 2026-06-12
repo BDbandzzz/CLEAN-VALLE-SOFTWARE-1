@@ -14,6 +14,7 @@ import {
   setManagedLocationActive,
   updateManagedLocation,
 } from '@/services/adminLocationService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const LocationManagementContext = createContext(null);
 
@@ -33,6 +34,7 @@ export function LocationManagementProvider({ children }) {
     } catch (loadError) {
       setLocations([]);
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar las localizaciones' });
       return [];
     } finally {
       setIsLoading(false);
@@ -53,6 +55,7 @@ export function LocationManagementProvider({ children }) {
         return result;
       } catch (mutationError) {
         setError(mutationError.message);
+        showErrorAlert(mutationError);
         throw mutationError;
       } finally {
         setIsMutating(false);

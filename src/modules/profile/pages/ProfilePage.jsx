@@ -5,6 +5,11 @@ import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { getRoleDisplayLabel } from '@/core/mappers/domainMappers';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 import { ProfileHero } from '@/modules/profile/components/ProfileHero';
 import { ProfilePersonalDataCard } from '@/modules/profile/components/ProfilePersonalDataCard';
 import { ProfileSummaryCard } from '@/modules/profile/components/ProfileSummaryCard';
@@ -72,6 +77,7 @@ const ProfilePage = () => {
     const validation = validateProfileForm(formData);
     if (!validation.ok) {
       setMessage(validation.message);
+      showWarningAlert(validation.message.text ?? validation.message);
       return;
     }
 
@@ -88,8 +94,14 @@ const ProfilePage = () => {
           ? { type: 'success', text: 'Perfil actualizado correctamente' }
           : { type: 'error', text: 'Error al actualizar el perfil' }
       );
+      if (success) {
+        showSuccessAlert('Perfil actualizado correctamente.');
+      } else {
+        showErrorAlert('No fue posible actualizar el perfil.');
+      }
     } catch {
       setMessage({ type: 'error', text: 'Error al guardar los cambios' });
+      showErrorAlert('Error al guardar los cambios.');
     } finally {
       setIsSaving(false);
       setConfirmEmail(false);

@@ -9,6 +9,7 @@ import {
   listActiveCategoryOptions,
   listManagedSpecializations,
 } from '@/services/adminSpecializationService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const SPECIALIZATION_VIEWS = {
   list: 'list',
@@ -37,6 +38,7 @@ export default function SpecializationManagementPage() {
       setCategories(nextCategories);
     } catch (loadError) {
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar las especializaciones' });
     } finally {
       setIsLoading(false);
     }

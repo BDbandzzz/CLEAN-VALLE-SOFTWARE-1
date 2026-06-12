@@ -2,6 +2,11 @@ import { INITIAL_USER_FORM } from '@/modules/users-admin/constants/userFormOptio
 import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
 import { useUserForm } from '@/modules/users-admin/hooks/useUserForm';
 import { validateUserForm } from '@/modules/users-admin/utils/userFormValidation';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showValidationAlert,
+} from '@/core/services/alertService';
 
 export function useCreateUserForm() {
   const { users, createUser } = useUserManagement();
@@ -13,6 +18,7 @@ export function useCreateUserForm() {
     if (Object.keys(validationErrors).length > 0) {
       form.setErrors(validationErrors);
       form.setMessage('');
+      showValidationAlert(validationErrors);
       return false;
     }
     return true;
@@ -27,10 +33,12 @@ export function useCreateUserForm() {
       form.setMessage(
         `La invitación para ${createdUser.firstName} ${createdUser.lastName} fue enviada correctamente.`
       );
+      showSuccessAlert('La invitación del usuario fue enviada correctamente.');
       return createdUser;
     } catch (error) {
       form.setErrors({ form: error.message });
       form.setMessage('');
+      showErrorAlert(error);
       return null;
     }
   };

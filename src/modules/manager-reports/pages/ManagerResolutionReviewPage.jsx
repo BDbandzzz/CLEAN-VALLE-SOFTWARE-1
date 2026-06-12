@@ -11,6 +11,11 @@ import {
   getPendingResolutions,
   reviewResolution,
 } from '@/services/managerReportService';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 
 export default function ManagerResolutionReviewPage() {
   const { resolutionQualities } = useReportCatalogs();
@@ -38,6 +43,7 @@ export default function ManagerResolutionReviewPage() {
       });
     } catch (loadError) {
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar las resoluciones' });
     } finally {
       setIsLoading(false);
     }
@@ -53,11 +59,15 @@ export default function ManagerResolutionReviewPage() {
     setSuccess('');
 
     if (approve && !draft.qualityId) {
-      setError('Selecciona la calidad antes de aprobar la resolucion.');
+      const message = 'Selecciona la calidad antes de aprobar la resolución.';
+      setError(message);
+      showWarningAlert(message);
       return;
     }
     if (!approve && !draft.feedback.trim()) {
-      setError('Escribe el motivo antes de descartar la resolucion.');
+      const message = 'Escribe el motivo antes de descartar la resolución.';
+      setError(message);
+      showWarningAlert(message);
       return;
     }
 
@@ -80,10 +90,16 @@ export default function ManagerResolutionReviewPage() {
           ? 'La resolucion fue aprobada y el reporte quedo cerrado.'
           : 'La resolucion fue descartada y el operador fue notificado.'
       );
+      showSuccessAlert(
+        pendingReview.approve
+          ? 'La resolución fue aprobada.'
+          : 'La resolución fue descartada y el operador fue notificado.'
+      );
       setPendingReview(null);
       await loadResolutions();
     } catch (reviewError) {
       setError(reviewError.message);
+      showErrorAlert(reviewError);
     } finally {
       setIsReviewing(false);
     }

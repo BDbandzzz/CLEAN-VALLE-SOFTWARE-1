@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { useAuth } from '@/core/context/AuthContext';
+import { showErrorAlert } from '@/core/services/alertService';
 import {
   createReport,
   getMyReports,
@@ -59,6 +60,7 @@ export function ReportsProvider({ children }) {
         })
         .catch((loadError) => {
           setError(loadError.message);
+          showErrorAlert(loadError, { title: 'No fue posible cargar tus reportes' });
           reportsRequest.current = null;
           throw loadError;
         })
@@ -82,6 +84,7 @@ export function ReportsProvider({ children }) {
         })
         .catch((loadError) => {
           setError(loadError.message);
+          showErrorAlert(loadError, { title: 'No fue posible cargar los reportes resueltos' });
           resolvedRequest.current = null;
           throw loadError;
         })
@@ -118,6 +121,7 @@ export function ReportsProvider({ children }) {
         })
         .catch((loadError) => {
           setError(loadError.message);
+          showErrorAlert(loadError, { title: 'No fue posible cargar las notificaciones' });
           notificationsRequest.current = null;
           throw loadError;
         })

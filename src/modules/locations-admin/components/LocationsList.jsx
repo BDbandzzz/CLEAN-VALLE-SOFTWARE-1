@@ -22,6 +22,7 @@ import { Input } from '@/core/components/ui/input';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useLocationManagement } from '@/modules/locations-admin/context/LocationManagementContext';
+import { showSuccessAlert } from '@/core/services/alertService';
 
 function normalize(value) {
   return String(value ?? '')
@@ -69,6 +70,7 @@ export function LocationsList({ onEdit }) {
     if (!locationToDelete) return;
     try {
       await deleteLocation(locationToDelete.id);
+      showSuccessAlert('La localización fue eliminada.');
       setLocationToDelete(null);
     } catch {
       // El contexto muestra el error.

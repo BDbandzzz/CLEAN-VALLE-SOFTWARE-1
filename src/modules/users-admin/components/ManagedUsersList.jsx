@@ -28,6 +28,7 @@ import { ELEMENT_STATE_IDS, USER_ROLE_IDS } from '@/core/constants/domainConstan
 import { useAuth } from '@/core/context/AuthContext';
 import { getRoleDisplayLabel, isRoleId } from '@/core/mappers/domainMappers';
 import { useUserManagement } from '@/modules/users-admin/context/UserManagementContext';
+import { showSuccessAlert } from '@/core/services/alertService';
 
 const PAGE_SIZE = 10;
 
@@ -86,6 +87,7 @@ export function ManagedUsersList({ onEditUser }) {
 
     try {
       await deleteUser(userToDelete.id);
+      showSuccessAlert('El usuario fue eliminado.');
       setUserToDelete(null);
     } catch {
       // El contexto muestra el error del servicio.

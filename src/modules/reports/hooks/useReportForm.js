@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { showValidationAlert } from '@/core/services/alertService';
 
 const INITIAL_FORM = {
   title: '',
@@ -115,7 +116,10 @@ export function useReportForm() {
     setTouched(Object.fromEntries(Object.keys(INITIAL_FORM).map((key) => [key, true])));
     const validation = validateReport(form, validationOptions);
     setErrors(validation.errors);
-    if (!validation.ok) return;
+    if (!validation.ok) {
+      showValidationAlert(validation.errors);
+      return;
+    }
     onSubmit({ ...form, images });
   };
 

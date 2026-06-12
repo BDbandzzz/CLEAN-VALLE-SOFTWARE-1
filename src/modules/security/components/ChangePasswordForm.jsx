@@ -7,6 +7,12 @@ import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useAuth } from '@/core/context/AuthContext';
 import { PasswordInputField } from '@/modules/auth/components/PasswordInputField';
 import { validateNewPassword } from '@/modules/auth/utils/passwordValidation';
+import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 
 const INITIAL_DATA = {
   currentPassword: '',
@@ -49,6 +55,7 @@ export function ChangePasswordForm({ onSuccess }) {
 
     if (validationError) {
       setError(validationError);
+      showWarningAlert(validationError);
       return;
     }
 
@@ -64,9 +71,13 @@ export function ChangePasswordForm({ onSuccess }) {
       setDone(true);
       setData(INITIAL_DATA);
       setConfirmChange(false);
+      showSuccessAlert(ALERT_MESSAGES.auth.passwordUpdated);
       onSuccess?.();
     } catch (changeError) {
-      setError(changeError.message || 'No se pudo actualizar la contraseña.');
+      const message =
+        changeError.message || 'No se pudo actualizar la contraseña.';
+      setError(message);
+      showErrorAlert(message);
       setConfirmChange(false);
     } finally {
       setIsLoading(false);

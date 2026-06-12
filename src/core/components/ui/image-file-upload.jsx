@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ImagePlus, Upload, X } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
+import { showWarningAlert } from '@/core/services/alertService';
 
 function isAcceptedImage(file) {
   return ['image/jpeg', 'image/png', 'image/webp'].includes(file?.type);
@@ -62,7 +63,11 @@ export function ImageFileUpload({
     }
 
     onChange(next);
-    setError(errors[0] ?? '');
+    const nextError = errors[0] ?? '';
+    setError(nextError);
+    if (nextError) {
+      showWarningAlert(nextError, { title: 'No se pudo añadir la imagen' });
+    }
   };
 
   const removeAt = (index) => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { getManagerReportDashboard } from '@/services/managerReportService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 export function useManagerReportDashboard(filters) {
   const [dashboard, setDashboard] = useState({
@@ -23,6 +24,7 @@ export function useManagerReportDashboard(filters) {
       return nextDashboard;
     } catch (loadError) {
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar la gestión de reportes' });
       return null;
     } finally {
       setIsLoading(false);

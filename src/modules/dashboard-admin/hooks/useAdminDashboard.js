@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { mapUsersByRole } from '@/modules/dashboard-admin/utils/dashboardMappers';
 import { getAdminDashboardData } from '@/services/adminDashboardService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const INITIAL_METRICS = {
   activeUsers: 0,
@@ -55,6 +56,7 @@ export function useAdminDashboard() {
       ]);
     } catch (dashboardError) {
       setError(dashboardError.message);
+      showErrorAlert(dashboardError, { title: 'No fue posible cargar el panel administrativo' });
     } finally {
       setIsLoading(false);
     }

@@ -17,6 +17,7 @@ import {
   updateManagedUser,
 } from '@/services/adminUserService';
 import { getRoleDisplayLabel } from '@/core/mappers/domainMappers';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const UserManagementContext = createContext(null);
 const INITIAL_QUERY = {
@@ -55,6 +56,7 @@ export function UserManagementProvider({ children }) {
       setUsers([]);
       setTotal(0);
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar los usuarios' });
       return null;
     } finally {
       setIsLoading(false);
@@ -81,6 +83,7 @@ export function UserManagementProvider({ children }) {
       setSpecializations(catalogs.specializations);
     } catch (catalogError) {
       setError(catalogError.message);
+      showErrorAlert(catalogError, { title: 'No fue posible cargar los catálogos' });
     }
   }, []);
 
@@ -98,6 +101,7 @@ export function UserManagementProvider({ children }) {
         return result;
       } catch (mutationError) {
         setError(mutationError.message);
+        showErrorAlert(mutationError);
         throw mutationError;
       } finally {
         setIsMutating(false);

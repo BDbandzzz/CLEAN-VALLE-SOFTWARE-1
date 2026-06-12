@@ -10,6 +10,12 @@ import { AuthPageShell } from '@/modules/auth/components/AuthPageShell';
 import { AuthProcessOverlay } from '@/modules/auth/components/AuthProcessOverlay';
 import { requestPasswordRecovery } from '@/services/passwordRecoveryService';
 import { validateRecoverEmail } from '@/modules/auth/utils/recoverUtils';
+import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 
 const RecoverPassword = () => {
   const navigate = useNavigate();
@@ -25,6 +31,7 @@ const RecoverPassword = () => {
     const result = validateRecoverEmail(email);
     if (!result.ok) {
       setError(result.message);
+      showWarningAlert(result.message, { title: 'Revisa el correo' });
       return;
     }
 
@@ -35,10 +42,12 @@ const RecoverPassword = () => {
       await requestPasswordRecovery(result.email);
       setSubmittedEmail(result.email);
       setSent(true);
+      showSuccessAlert(ALERT_MESSAGES.auth.recoverySent);
     } catch {
-      setError(
-        'No fue posible enviar el correo. Espera un momento e intenta nuevamente.'
-      );
+      const message =
+        'No fue posible enviar el correo. Espera un momento e intenta nuevamente.';
+      setError(message);
+      showErrorAlert(message);
     } finally {
       setIsSending(false);
     }
