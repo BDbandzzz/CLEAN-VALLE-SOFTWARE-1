@@ -53,7 +53,7 @@ export default function ManagerGroupsPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="font-mono text-xs text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Grupo #{group.id}
                   </p>
                   <h2 className="mt-1 text-base font-semibold text-foreground">

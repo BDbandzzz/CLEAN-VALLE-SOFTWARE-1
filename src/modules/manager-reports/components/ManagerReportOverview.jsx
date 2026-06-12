@@ -9,7 +9,7 @@ export function ManagerReportOverview({ report }) {
     <section className="space-y-6 rounded-lg bg-card px-5 py-6 shadow-sm sm:px-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="font-mono text-xs text-muted-foreground">Reporte #{report.id}</p>
+          <p className="text-xs font-medium text-muted-foreground">Reporte #{report.id}</p>
           <h2 className="mt-1 text-xl font-bold text-foreground">{report.title}</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             <ReportBadge type="category" label={report.categoryName} color={report.categoryColor} />

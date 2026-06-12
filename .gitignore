@@ -14,7 +14,8 @@ dist-ssr
 .env.*
 !.env.example
 *.local
-email-templates/**
+/email-templates/**
+/supabase/migrations/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

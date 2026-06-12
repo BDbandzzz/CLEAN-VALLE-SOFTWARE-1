@@ -6,6 +6,14 @@ export const APP_ERROR_CODES = Object.freeze({
   SUBAREA_DESCRIPTION_REQUIRED: 'CV105',
   LOCATION_NOT_FOUND: 'CV106',
   SUBAREA_NOT_FOUND: 'CV107',
+  REPORT_GROUP_NOT_FOUND: 'CV201',
+  REPORT_GROUP_LOCKED: 'CV202',
+  REPORT_GROUP_SELECTION_INVALID: 'CV203',
+  REPORT_GROUP_CATEGORY_MISMATCH: 'CV204',
+  REPORT_ALREADY_GROUPED: 'CV205',
+  REPORT_GROUP_STATUS_INVALID: 'CV206',
+  REPORT_GROUP_RISK_INVALID: 'CV207',
+  REPORT_GROUP_LOCATION_INVALID: 'CV208',
 });
 
 export const EDGE_ERROR_CODES = Object.freeze({
@@ -42,6 +50,22 @@ export const CONTROLLED_ERROR_MESSAGES = Object.freeze({
     'La localización seleccionada ya no existe.',
   [APP_ERROR_CODES.SUBAREA_NOT_FOUND]:
     'Una ubicación específica no pertenece a la localización seleccionada.',
+  [APP_ERROR_CODES.REPORT_GROUP_NOT_FOUND]:
+    'El grupo seleccionado ya no existe o no está activo.',
+  [APP_ERROR_CODES.REPORT_GROUP_LOCKED]:
+    'El grupo no puede modificarse porque ya tiene una asignación.',
+  [APP_ERROR_CODES.REPORT_GROUP_SELECTION_INVALID]:
+    'Uno o más reportes ya no están disponibles para agrupar.',
+  [APP_ERROR_CODES.REPORT_GROUP_CATEGORY_MISMATCH]:
+    'Todos los reportes deben pertenecer a la misma categoría del grupo.',
+  [APP_ERROR_CODES.REPORT_ALREADY_GROUPED]:
+    'Uno o más reportes ya pertenecen a otro grupo activo.',
+  [APP_ERROR_CODES.REPORT_GROUP_STATUS_INVALID]:
+    'El estado seleccionado no está disponible para una actualización grupal.',
+  [APP_ERROR_CODES.REPORT_GROUP_RISK_INVALID]:
+    'El nivel de riesgo seleccionado ya no está disponible.',
+  [APP_ERROR_CODES.REPORT_GROUP_LOCATION_INVALID]:
+    'La ubicación seleccionada ya no existe o no está activa.',
   [EDGE_ERROR_CODES.METHOD_NOT_ALLOWED]:
     'La operación solicitada no está disponible.',
   [EDGE_ERROR_CODES.FUNCTION_NOT_CONFIGURED]:
@@ -139,6 +163,9 @@ export const SERVICE_ERROR_MESSAGES = Object.freeze({
     groupDetail: 'No fue posible cargar el grupo de reportes.',
     groupOperators: 'No fue posible cargar los operadores disponibles.',
     assignGroup: 'No fue posible asignar el grupo de reportes.',
+    groupCandidates: 'No fue posible cargar los reportes disponibles.',
+    addGroupReports: 'No fue posible añadir los reportes al grupo.',
+    updateGroupReports: 'No fue posible actualizar los reportes del grupo.',
   },
   operator: {
     dashboard: 'No fue posible cargar tus asignaciones.',
