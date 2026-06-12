@@ -38,7 +38,7 @@ export function SelectField({
           )}
         >
           <option value="">{placeholder}</option>
-          {options.map((option) => (
+          {(Array.isArray(options) ? options : []).map((option) => (
             <option key={option.id} value={option.id}>
               {option.label}
             </option>

@@ -9,6 +9,50 @@ const REPORT_CATALOG_CACHE_TTL = 60 * 60 * 1000;
 let catalogBundleMemory = null;
 let catalogBundlePromise = null;
 
+function normalizeCatalogBundle(data) {
+  return {
+    categories: Array.isArray(data?.categories) ? data.categories : [],
+    riskLevels: Array.isArray(data?.riskLevels) ? data.riskLevels : [],
+    localizations: Array.isArray(data?.localizations) ? data.localizations : [],
+    reportStatuses: Array.isArray(data?.reportStatuses)
+      ? data.reportStatuses
+      : [],
+    resolutionQualities: Array.isArray(data?.resolutionQualities)
+      ? data.resolutionQualities
+      : [],
+    resolutionReviewStatuses: Array.isArray(data?.resolutionReviewStatuses)
+      ? data.resolutionReviewStatuses
+      : [],
+    subtypesByCategory:
+      data?.subtypesByCategory &&
+      typeof data.subtypesByCategory === 'object' &&
+      !Array.isArray(data.subtypesByCategory)
+        ? data.subtypesByCategory
+        : {},
+    subareasByLocalization:
+      data?.subareasByLocalization &&
+      typeof data.subareasByLocalization === 'object' &&
+      !Array.isArray(data.subareasByLocalization)
+        ? data.subareasByLocalization
+        : {},
+  };
+}
+
+function hasCurrentCatalogShape(data) {
+  return (
+    data &&
+    Array.isArray(data.categories) &&
+    Array.isArray(data.riskLevels) &&
+    Array.isArray(data.reportStatuses) &&
+    data.subtypesByCategory &&
+    typeof data.subtypesByCategory === 'object' &&
+    !Array.isArray(data.subtypesByCategory) &&
+    data.subareasByLocalization &&
+    typeof data.subareasByLocalization === 'object' &&
+    !Array.isArray(data.subareasByLocalization)
+  );
+}
+
 function mapCategory(row) {
   return {
     id: String(row.id_category),
@@ -99,11 +143,13 @@ function readCachedCatalogBundle() {
     if (
       cached?.savedAt &&
       Date.now() - cached.savedAt < REPORT_CATALOG_CACHE_TTL &&
-      cached.data
+      hasCurrentCatalogShape(cached.data)
     ) {
-      catalogBundleMemory = cached.data;
-      return cached.data;
+      catalogBundleMemory = normalizeCatalogBundle(cached.data);
+      return catalogBundleMemory;
     }
+
+    localStorage.removeItem(REPORT_CATALOG_CACHE_KEY);
   } catch {
     try {
       localStorage.removeItem(REPORT_CATALOG_CACHE_KEY);
@@ -116,18 +162,18 @@ function readCachedCatalogBundle() {
 }
 
 function cacheCatalogBundle(data) {
-  catalogBundleMemory = data;
+  catalogBundleMemory = normalizeCatalogBundle(data);
 
   try {
     localStorage.setItem(
       REPORT_CATALOG_CACHE_KEY,
-      JSON.stringify({ savedAt: Date.now(), data })
+      JSON.stringify({ savedAt: Date.now(), data: catalogBundleMemory })
     );
   } catch {
     // El cache en memoria sigue evitando solicitudes repetidas en esta sesion.
   }
 
-  return data;
+  return catalogBundleMemory;
 }
 
 async function runCatalogQuery(query) {

@@ -38,7 +38,7 @@ export default function ManagerReportsPage() {
     loadSubtypes,
   } = useReportCatalogs();
   const { dashboard, isLoading, error } = useManagerReportDashboard(filters);
-  const subtypes = subtypesByCategory[filters.categoryId] ?? [];
+  const subtypes = subtypesByCategory?.[filters.categoryId] ?? [];
   const totalPages = Math.max(1, Math.ceil((dashboard.total ?? 0) / filters.pageSize));
 
   const pageLabel = useMemo(
