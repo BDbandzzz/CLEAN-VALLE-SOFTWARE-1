@@ -15,11 +15,12 @@ export function ReportMetadataForm({
   isSaving,
   onChange,
   onCategoryChange,
+  onSubtypeChange,
   onLocalizationChange,
   onSubmit,
 }) {
   return (
-    <section className="space-y-5 border-b border-border bg-background px-5 py-6 sm:px-7">
+    <section className="space-y-5 bg-background px-5 py-6 sm:px-7">
       <div>
         <h2 className="text-lg font-semibold text-foreground">Clasificacion del reporte</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -56,7 +57,7 @@ export function ReportMetadataForm({
           items={subtypes}
           idPrefix="manager-detail-subtype"
           selected={values.subtypeId}
-          onSelect={(id) => onChange('subtypeId', id)}
+          onSelect={onSubtypeChange}
           required
           disabled={disabled}
         />
@@ -83,7 +84,7 @@ export function ReportMetadataForm({
 
       <Button type="button" onClick={onSubmit} disabled={disabled || isSaving}>
         <Save className="size-4" />
-        {isSaving ? 'Guardando...' : 'Guardar clasificacion'}
+        {isSaving ? 'Actualizando...' : 'Guardar otros cambios'}
       </Button>
 
       {disabled && (

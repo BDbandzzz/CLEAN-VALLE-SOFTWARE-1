@@ -18,24 +18,22 @@ export function ManagerReportTable({ reports, isLoading }) {
   }
 
   return (
-    <div className="overflow-x-auto border-y border-border bg-card">
+    <div className="overflow-x-auto rounded-lg bg-card shadow-sm">
       <table className="w-full min-w-[900px] text-left text-sm">
         <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
           <tr>
-            <th className="px-4 py-3">ID</th>
             <th className="px-4 py-3">Titulo</th>
             <th className="px-4 py-3">Categoria</th>
             <th className="px-4 py-3">Razon</th>
             <th className="px-4 py-3">Riesgo</th>
             <th className="px-4 py-3">Estado</th>
             <th className="px-4 py-3">Creado</th>
-            <th className="w-12 px-4 py-3"><span className="sr-only">Abrir</span></th>
+            <th className="w-32 px-4 py-3"><span className="sr-only">Gestionar</span></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {reports.map((report) => (
             <tr key={report.id} className="transition hover:bg-muted/30">
-              <td className="px-4 py-3 font-mono text-xs">#{report.id}</td>
               <td className="max-w-64 px-4 py-3 font-semibold text-foreground">
                 <span className="line-clamp-2">{report.title}</span>
               </td>
@@ -67,11 +65,12 @@ export function ManagerReportTable({ reports, isLoading }) {
               <td className="px-4 py-3">
                 <Button
                   type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  title="Abrir reporte"
+                  size="sm"
+                  variant="outline"
+                  title="Gestionar reporte"
                   onClick={() => navigate(`/manager/reports/${report.id}`)}
                 >
+                  Gestionar
                   <ChevronRight className="size-4" />
                 </Button>
               </td>

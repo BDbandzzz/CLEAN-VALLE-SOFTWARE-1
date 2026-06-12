@@ -4,14 +4,14 @@ import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
 
 export function AssignmentHistory({ assignments = [] }) {
   return (
-    <section className="space-y-4 px-5 py-6 sm:px-7">
+    <section className="space-y-4 rounded-lg bg-card px-5 py-6 shadow-sm sm:px-7">
       <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
         <History className="size-5" />
         Historial de asignaciones
       </h2>
 
       {assignments.length ? (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-lg bg-background">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>

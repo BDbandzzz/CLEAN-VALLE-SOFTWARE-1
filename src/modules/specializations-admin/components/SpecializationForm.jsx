@@ -1,4 +1,4 @@
-import { Save } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/core/components/ui/button';
@@ -27,6 +27,7 @@ export function SpecializationForm({
   isSaving,
   setIsSaving,
   onSaved,
+  onCancel,
 }) {
   const [formData, setFormData] = useState(() =>
     specialization
@@ -83,7 +84,7 @@ export function SpecializationForm({
   };
 
   return (
-    <Card>
+    <Card className="mx-auto w-full max-w-2xl">
       <CardHeader>
         <CardTitle>
           {isEditing ? 'Modificar especialización' : 'Crear especialización'}
@@ -139,14 +140,26 @@ export function SpecializationForm({
             </div>
           )}
 
-          <Button type="submit" size="lg" disabled={isSaving}>
-            <Save className="size-4" />
-            {isSaving
-              ? 'Procesando...'
-              : isEditing
-                ? 'Guardar cambios'
-                : 'Guardar especialización'}
-          </Button>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
+              <ArrowLeft className="size-4" />
+              Volver al listado
+            </Button>
+            <Button type="submit" size="lg" disabled={isSaving}>
+              <Save className="size-4" />
+              {isSaving
+                ? 'Procesando...'
+                : isEditing
+                  ? 'Guardar cambios'
+                  : 'Guardar especialización'}
+            </Button>
+          </div>
         </form>
       </CardContent>
 

@@ -6,7 +6,7 @@ import { ReportStatusPill } from '@/modules/reports/components/ReportStatusPill'
 
 export function ManagerReportOverview({ report }) {
   return (
-    <section className="space-y-6 border-y border-border bg-card px-5 py-6 sm:px-7">
+    <section className="space-y-6 rounded-lg bg-card px-5 py-6 shadow-sm sm:px-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="font-mono text-xs text-muted-foreground">Reporte #{report.id}</p>

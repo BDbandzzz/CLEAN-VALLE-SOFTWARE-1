@@ -58,6 +58,13 @@ export const CONFIRMATION_MESSAGES = Object.freeze({
       acceptLabel: 'Guardar cambios',
       rejectLabel: 'Cancelar',
     },
+    updateClassificationAndOperators: {
+      title: 'Actualizar clasificación',
+      reason:
+        'Se guardará la nueva categoría y razón, y se buscarán inmediatamente los operadores compatibles.',
+      acceptLabel: 'Actualizar y buscar',
+      rejectLabel: 'Cancelar',
+    },
     assign: (operatorName) => ({
       title: 'Asignar reporte',
       reason: `El reporte quedara asignado a ${operatorName || 'este operador'}.`,

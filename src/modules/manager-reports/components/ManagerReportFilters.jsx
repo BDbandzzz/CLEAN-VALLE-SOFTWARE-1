@@ -14,7 +14,7 @@ export function ManagerReportFilters({
   onCategoryChange,
 }) {
   return (
-    <section className="border-y border-border bg-card px-4 py-5 sm:px-6">
+    <section className="rounded-lg bg-card px-4 py-5 shadow-sm sm:px-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SelectField
           id="manager-filter-category"

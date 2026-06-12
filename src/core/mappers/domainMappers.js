@@ -18,6 +18,11 @@ export function isOperatorRoleId(roleId) {
 
 export function getRoleDisplayLabel(roleId, roleName = '') {
   if (isRoleId(roleId, USER_ROLE_IDS.ADMIN)) return 'Administrador';
+  if (isRoleId(roleId, USER_ROLE_IDS.MANAGER)) return 'Gestor administrativo';
+  if (isRoleId(roleId, USER_ROLE_IDS.OPERATOR)) return 'Personal administrativo';
+  if (isRoleId(roleId, USER_ROLE_IDS.STUDENT)) return 'Estudiante';
+  if (isRoleId(roleId, USER_ROLE_IDS.TEACHER)) return 'Docente';
+
   return roleName || 'Rol sin nombre';
 }
 
