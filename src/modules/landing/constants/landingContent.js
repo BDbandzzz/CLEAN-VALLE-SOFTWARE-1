@@ -24,10 +24,8 @@ export const LANDING_HEADER = {
 };
 
 export const LANDING_HERO = {
-  eyebrow: 'Plataforma institucional',
-  title: 'Gestion de problemas universitarios desde un solo panel',
   subtitle:
-    'CleanValle conecta reportes, seguimiento operativo y notificaciones para que la comunidad pueda cuidar el campus con informacion clara y trazable.',
+    'Registra, consulta y acompaña la atención de situaciones dentro de la comunidad universitaria.',
   primaryAction: {
     label: 'Entrar a la plataforma',
     href: '/login',
@@ -122,18 +120,18 @@ export const LANDING_FLOW_SECTION = {
 export const LANDING_FLOW_STEPS = [
   {
     icon: Leaf,
-    title: 'La comunidad reporta',
-    description: 'El usuario registra el incidente y agrega la informacion necesaria para ubicarlo.',
+    title: 'Reporta',
+    description: 'Registra la situación y adjunta la información necesaria.',
   },
   {
     icon: BarChart3,
-    title: 'El sistema organiza',
-    description: 'Los reportes quedan clasificados por estado, riesgo, categoria y fecha.',
+    title: 'Da seguimiento',
+    description: 'Consulta el estado y las novedades del reporte.',
   },
   {
     icon: CheckCircle2,
-    title: 'El equipo resuelve',
-    description: 'Los operadores revisan, documentan la respuesta y dejan evidencia del cierre.',
+    title: 'Consulta la solución',
+    description: 'Revisa la atención y las evidencias del cierre.',
   },
 ];
 

@@ -3,7 +3,7 @@ import { LogIn } from 'lucide-react';
 
 import { Button } from '@/core/components/ui/button';
 import { APP_NAME, INSTITUTION_NAME, UNIVALLE_LOGO_SRC } from '@/core/constants/branding';
-import { LANDING_HEADER, LANDING_NAV_LINKS } from '@/modules/landing/constants/landingContent';
+import { LANDING_HEADER } from '@/modules/landing/constants/landingContent';
 
 export function LandingHeader() {
   return (
@@ -21,19 +21,7 @@ export function LandingHeader() {
           </div>
         </Link>
 
-        <nav className="ml-auto hidden items-center gap-1 md:flex">
-          {LANDING_NAV_LINKS.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground no-underline transition hover:bg-muted hover:text-foreground"
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-
-        <Button asChild className="ml-auto h-9 gap-2 px-3 md:ml-2">
+        <Button asChild className="ml-auto h-9 gap-2 px-3">
           <Link to="/login">
             <LogIn className="size-4" />
             <span className="hidden sm:inline">{LANDING_HEADER.loginLabel}</span>

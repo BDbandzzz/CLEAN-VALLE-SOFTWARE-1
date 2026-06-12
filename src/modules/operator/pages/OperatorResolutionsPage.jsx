@@ -1,9 +1,9 @@
 import { CheckCircle2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { Button } from '@/core/components/ui/button';
 import { EmptyState } from '@/core/components/ui/empty-state';
 import { ModuleHero } from '@/core/components/ui/module-hero';
+import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { OperatorResolutionCard } from '@/modules/operator/components/OperatorResolutionCard';
 import { useOperatorReports } from '@/modules/operator/hooks/useOperatorReports';
 import { useReportCatalogs } from '@/modules/reports/hooks/useReportCatalogs';
@@ -12,6 +12,15 @@ export default function OperatorResolutionsPage() {
   const { resolvedReports, isLoading } = useOperatorReports();
   const { resolutionReviewStatuses } = useReportCatalogs();
   const [reviewStatusId, setReviewStatusId] = useState('');
+  const statusCounts = useMemo(
+    () =>
+      resolvedReports.reduce((counts, item) => {
+        const statusId = String(item.resolution?.reviewStatusId ?? '');
+        counts[statusId] = (counts[statusId] ?? 0) + 1;
+        return counts;
+      }, {}),
+    [resolvedReports]
+  );
   const filteredResolutions = useMemo(
     () =>
       reviewStatusId
@@ -32,23 +41,21 @@ export default function OperatorResolutionsPage() {
         size="compact"
       />
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={!reviewStatusId ? 'default' : 'outline'}
+      <div className="grid grid-cols-2 rounded-xl border border-border bg-muted/40 p-1 sm:flex">
+        <SegmentedTabButton
+          label="Todas"
+          count={resolvedReports.length}
+          active={!reviewStatusId}
           onClick={() => setReviewStatusId('')}
-        >
-          Todas
-        </Button>
+        />
         {resolutionReviewStatuses.map((status) => (
-          <Button
+          <SegmentedTabButton
             key={status.id}
-            type="button"
-            variant={reviewStatusId === status.id ? 'default' : 'outline'}
+            label={status.label}
+            count={statusCounts[status.id] ?? 0}
+            active={reviewStatusId === status.id}
             onClick={() => setReviewStatusId(status.id)}
-          >
-            {status.label}
-          </Button>
+          />
         ))}
       </div>
 
