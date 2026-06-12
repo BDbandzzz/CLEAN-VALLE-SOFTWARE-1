@@ -24,6 +24,7 @@ import { Label } from '@/core/components/ui/label';
 import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useReportTypeManagement } from '@/modules/report-types-admin/context/ReportTypeManagementContext';
+import { showSuccessAlert } from '@/core/services/alertService';
 
 function normalize(value) {
   return String(value ?? '')
@@ -83,6 +84,7 @@ export function ReportTypesList({ onEditType }) {
     if (!typeToDelete) return;
     try {
       await deleteReportType(typeToDelete.id);
+      showSuccessAlert('El tipo de reporte fue eliminado.');
       setTypeToDelete(null);
     } catch {
       // El contexto muestra el error del servicio.

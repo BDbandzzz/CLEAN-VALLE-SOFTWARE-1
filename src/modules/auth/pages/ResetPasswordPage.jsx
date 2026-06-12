@@ -15,6 +15,7 @@ import {
   subscribeToPasswordRecovery,
   updateRecoveredPassword,
 } from '@/services/passwordRecoveryService';
+import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 const RECOVERY_STATUS = {
   validating: 'validating',
@@ -36,6 +37,9 @@ const ResetPasswordPage = () => {
     if (getRecoveryUrlError()) {
       setMessage('El enlace de recuperación venció o ya fue utilizado.');
       setStatus(RECOVERY_STATUS.invalid);
+      showErrorAlert('El enlace de recuperación venció o ya fue utilizado.', {
+        title: 'Enlace no disponible',
+      });
       return undefined;
     }
 
@@ -55,10 +59,14 @@ const ResetPasswordPage = () => {
 
         setMessage('El enlace de recuperación no es válido o ha vencido.');
         setStatus(RECOVERY_STATUS.invalid);
+        showErrorAlert('El enlace de recuperación no es válido o ha vencido.', {
+          title: 'Enlace no disponible',
+        });
       } catch {
         if (!isMounted) return;
         setMessage('No fue posible validar el enlace de recuperación.');
         setStatus(RECOVERY_STATUS.invalid);
+        showErrorAlert('No fue posible validar el enlace de recuperación.');
       }
     }
 
@@ -77,6 +85,7 @@ const ResetPasswordPage = () => {
       await updateRecoveredPassword(password);
       await clearSession();
       setStatus(RECOVERY_STATUS.success);
+      showSuccessAlert('La contraseña fue actualizada correctamente.');
     } catch {
       throw new Error(
         'No fue posible actualizar la contraseña. Solicita un enlace nuevo.'

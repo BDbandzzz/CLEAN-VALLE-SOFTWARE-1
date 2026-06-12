@@ -14,6 +14,7 @@ import {
   setManagedReportTypeActive,
   updateManagedReportType,
 } from '@/services/adminReportTypeService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const ReportTypeManagementContext = createContext(null);
 
@@ -33,6 +34,7 @@ export function ReportTypeManagementProvider({ children }) {
     } catch (loadError) {
       setReportTypes([]);
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar los tipos de reporte' });
       return [];
     } finally {
       setIsLoading(false);
@@ -53,6 +55,7 @@ export function ReportTypeManagementProvider({ children }) {
         return result;
       } catch (mutationError) {
         setError(mutationError.message);
+        showErrorAlert(mutationError);
         throw mutationError;
       } finally {
         setIsMutating(false);

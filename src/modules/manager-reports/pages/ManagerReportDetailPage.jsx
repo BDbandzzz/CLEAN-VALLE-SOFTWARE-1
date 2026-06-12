@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, XCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Button } from '@/core/components/ui/button';
 import { ConfirmationMessage } from '@/core/components/ui/confirmation-message';
+import { SegmentedTabButton } from '@/core/components/ui/segmented-tab-button';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
+import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
 import { ELEMENT_STATE_IDS } from '@/core/constants/domainConstants';
 import { AssignmentHistory } from '@/modules/manager-reports/components/AssignmentHistory';
 import { ManagerReportOverview } from '@/modules/manager-reports/components/ManagerReportOverview';
@@ -18,6 +20,25 @@ import {
   getManagerReportDetail,
   updateReportMetadata,
 } from '@/services/managerReportService';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
+
+const DETAIL_VIEWS = {
+  review: 'review',
+  assignment: 'assignment',
+  history: 'history',
+};
+
+function reportHasBlockingAssignment(report) {
+  return (report?.assignments ?? []).some((assignment) =>
+    [ELEMENT_STATE_IDS.ACTIVE, ELEMENT_STATE_IDS.CLOSED].includes(
+      Number(assignment.stateId)
+    )
+  );
+}
 
 export default function ManagerReportDetailPage() {
   const { reportId } = useParams();
@@ -35,16 +56,9 @@ export default function ManagerReportDetailPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [pendingAction, setPendingAction] = useState('');
+  const [activeView, setActiveView] = useState(DETAIL_VIEWS.review);
 
-  const hasBlockingAssignment = useMemo(
-    () =>
-      (report?.assignments ?? []).some((assignment) =>
-        [ELEMENT_STATE_IDS.ACTIVE, ELEMENT_STATE_IDS.CLOSED].includes(
-          Number(assignment.stateId)
-        )
-      ),
-    [report?.assignments]
-  );
+  const hasBlockingAssignment = reportHasBlockingAssignment(report);
   const assignmentDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
   const discardDisabled = Boolean(report?.statusTerminal || hasBlockingAssignment);
 
@@ -62,6 +76,7 @@ export default function ManagerReportDetailPage() {
     } catch (loadError) {
       setOperators([]);
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar los operadores' });
       return [];
     } finally {
       setIsLoadingOperators(false);
@@ -75,6 +90,11 @@ export default function ManagerReportDetailPage() {
     try {
       const nextReport = await getManagerReportDetail(reportId);
       setReport(nextReport);
+      setActiveView(
+        reportHasBlockingAssignment(nextReport)
+          ? DETAIL_VIEWS.history
+          : DETAIL_VIEWS.review
+      );
       setForm({
         riskLevelId: String(nextReport.riskLevelId ?? ''),
         categoryId: String(nextReport.categoryId ?? ''),
@@ -85,6 +105,7 @@ export default function ManagerReportDetailPage() {
       return nextReport;
     } catch (loadError) {
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar el reporte' });
       return null;
     } finally {
       setIsLoading(false);
@@ -147,7 +168,9 @@ export default function ManagerReportDetailPage() {
 
   const saveMetadata = async () => {
     if (!form.riskLevelId || !form.subtypeId) {
-      setError('Selecciona el nivel de riesgo y la razon del reporte.');
+      const message = 'Selecciona el nivel de riesgo y la razón del reporte.';
+      setError(message);
+      showWarningAlert(message);
       setPendingAction('');
       return;
     }
@@ -165,9 +188,11 @@ export default function ManagerReportDetailPage() {
           ? 'Clasificación actualizada. Los operadores compatibles ya están disponibles.'
           : 'La clasificación del reporte fue actualizada.'
       );
+      showSuccessAlert('La clasificación del reporte fue actualizada.');
       setPendingAction('');
     } catch (saveError) {
       setError(saveError.message);
+      showErrorAlert(saveError);
     } finally {
       setIsSaving(false);
     }
@@ -180,11 +205,13 @@ export default function ManagerReportDetailPage() {
       await assignReport(report.id, selectedOperatorId, assignmentNotes);
       await loadDetail();
       setSuccess('El reporte fue asignado correctamente.');
+      showSuccessAlert(ALERT_MESSAGES.reports.assigned);
       setSelectedOperatorId('');
       setAssignmentNotes('');
       setPendingAction('');
     } catch (assignError) {
       setError(assignError.message);
+      showErrorAlert(assignError);
     } finally {
       setIsSaving(false);
     }
@@ -208,9 +235,11 @@ export default function ManagerReportDetailPage() {
       await discardReport(report.id);
       await loadDetail();
       setSuccess('El reporte fue descartado y se conserva para auditoria.');
+      showSuccessAlert(ALERT_MESSAGES.reports.discarded);
       setPendingAction('');
     } catch (discardError) {
       setError(discardError.message);
+      showErrorAlert(discardError);
     } finally {
       setIsSaving(false);
     }
@@ -240,21 +269,10 @@ export default function ManagerReportDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      <div className="sticky top-2 z-20 flex flex-col gap-2 rounded-lg bg-card/95 p-2 shadow-md backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="ghost" onClick={() => navigate('/manager/reports')}>
-          <ArrowLeft className="size-4" />
-          Volver a reportes
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={discardDisabled || isSaving}
-          onClick={() => setPendingAction('discard')}
-        >
-          <XCircle className="size-4" />
-          Descartar reporte
-        </Button>
-      </div>
+      <Button variant="outline" onClick={() => navigate('/manager/reports')}>
+        <ArrowLeft className="size-4" />
+        Volver a reportes
+      </Button>
 
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -269,28 +287,92 @@ export default function ManagerReportDetailPage() {
 
       <ManagerReportOverview report={report} />
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(380px,0.88fr)]">
-        <div className="overflow-hidden rounded-lg bg-background shadow-sm">
-          <ReportMetadataForm
-            values={form}
-            categories={catalogs.categories}
-            subtypes={catalogs.subtypesByCategory[form.categoryId] ?? []}
-            riskLevels={catalogs.riskLevels}
-            localizations={catalogs.localizations}
-            subareas={catalogs.subareasByLocalization[form.localizationId] ?? []}
-            disabled={report.statusTerminal}
-            isSaving={isSaving}
-            onChange={(field, value) =>
-              setForm((current) => ({ ...current, [field]: value }))
-            }
-            onCategoryChange={changeCategory}
-            onSubtypeChange={changeSubtype}
-            onLocalizationChange={changeLocalization}
-            onSubmit={() => setPendingAction('metadata')}
-          />
-        </div>
+      <div className="sticky top-2 z-20 grid grid-cols-3 rounded-xl bg-muted/95 p-1 shadow-md backdrop-blur">
+        <SegmentedTabButton
+          label="Revisión"
+          active={activeView === DETAIL_VIEWS.review}
+          onClick={() => setActiveView(DETAIL_VIEWS.review)}
+        />
+        <SegmentedTabButton
+          label="Asignar operador"
+          mobileLabel="Asignación"
+          active={activeView === DETAIL_VIEWS.assignment}
+          onClick={() => setActiveView(DETAIL_VIEWS.assignment)}
+        />
+        <SegmentedTabButton
+          label="Historial de asignaciones"
+          mobileLabel="Historial"
+          count={report.assignments?.length ?? 0}
+          active={activeView === DETAIL_VIEWS.history}
+          onClick={() => setActiveView(DETAIL_VIEWS.history)}
+        />
+      </div>
 
-        <div className="overflow-hidden rounded-lg bg-card shadow-sm xl:sticky xl:top-16">
+      {activeView === DETAIL_VIEWS.review && (
+        hasBlockingAssignment ? (
+          <section className="rounded-lg bg-card px-5 py-8 text-center shadow-sm sm:px-7">
+            <h2 className="font-semibold text-foreground">
+              Revisión finalizada
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              La clasificación no puede modificarse porque el reporte ya tiene una asignación.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-5"
+              onClick={() => setActiveView(DETAIL_VIEWS.history)}
+            >
+              Ver historial de asignaciones
+            </Button>
+          </section>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4 rounded-lg bg-card px-5 py-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-7">
+              <div>
+                <h2 className="font-semibold text-foreground">
+                  Decisión de revisión
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Descarta el reporte si no cumple los criterios de gestión.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={discardDisabled || isSaving}
+                onClick={() => setPendingAction('discard')}
+              >
+                <XCircle className="size-4" />
+                Descartar reporte
+              </Button>
+            </div>
+
+            <div className="overflow-hidden rounded-lg bg-background shadow-sm">
+              <ReportMetadataForm
+                values={form}
+                categories={catalogs.categories}
+                subtypes={catalogs.subtypesByCategory[form.categoryId] ?? []}
+                riskLevels={catalogs.riskLevels}
+                localizations={catalogs.localizations}
+                subareas={catalogs.subareasByLocalization[form.localizationId] ?? []}
+                disabled={report.statusTerminal}
+                isSaving={isSaving}
+                onChange={(field, value) =>
+                  setForm((current) => ({ ...current, [field]: value }))
+                }
+                onCategoryChange={changeCategory}
+                onSubtypeChange={changeSubtype}
+                onLocalizationChange={changeLocalization}
+                onSubmit={() => setPendingAction('metadata')}
+              />
+            </div>
+          </div>
+        )
+      )}
+
+      {activeView === DETAIL_VIEWS.assignment && (
+        <div className="overflow-hidden rounded-lg bg-card shadow-sm">
           <OperatorAssignmentPanel
             key={`${form.categoryId}-${form.subtypeId}`}
             operators={operators}
@@ -313,9 +395,11 @@ export default function ManagerReportDetailPage() {
             onAssign={() => setPendingAction('assignment')}
           />
         </div>
-      </div>
+      )}
 
-      <AssignmentHistory assignments={report.assignments} />
+      {activeView === DETAIL_VIEWS.history && (
+        <AssignmentHistory assignments={report.assignments} />
+      )}
 
       <ConfirmationMessage
         open={pendingAction === 'metadata'}

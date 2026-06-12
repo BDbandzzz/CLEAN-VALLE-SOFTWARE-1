@@ -23,6 +23,7 @@ import { Input } from '@/core/components/ui/input';
 import { SelectField } from '@/core/components/ui/select-field';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { deleteManagedSpecialization } from '@/services/adminSpecializationService';
+import { showErrorAlert, showSuccessAlert } from '@/core/services/alertService';
 
 function normalize(value) {
   return String(value ?? '')
@@ -72,9 +73,11 @@ export function SpecializationsList({
     try {
       await deleteManagedSpecialization(specializationToDelete.id);
       setSpecializationToDelete(null);
+      showSuccessAlert('La especialización fue eliminada.');
       await onChanged();
     } catch (operationError) {
       setDeleteError(operationError.message);
+      showErrorAlert(operationError);
     } finally {
       setIsSaving(false);
     }

@@ -4,6 +4,7 @@ import {
   getReportCatalogBundle,
   invalidateReportCatalogCache,
 } from '@/services/reportCatalogService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 const EMPTY_CATALOGS = {
   categories: [],
@@ -32,6 +33,7 @@ export function useReportCatalogs() {
       return nextCatalogs;
     } catch (catalogError) {
       setError(catalogError.message);
+      showErrorAlert(catalogError, { title: 'No fue posible cargar las opciones del formulario' });
       return null;
     } finally {
       setIsLoading(false);

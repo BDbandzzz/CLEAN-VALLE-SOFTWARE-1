@@ -9,6 +9,10 @@ import {
   PASSWORD_REQUIREMENTS,
   validateNewPassword,
 } from '@/modules/auth/utils/passwordValidation';
+import {
+  showErrorAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 
 const INITIAL_VALUES = {
   password: '',
@@ -54,6 +58,7 @@ export function ResetPasswordForm({
 
     if (validationError) {
       setError(validationError);
+      showWarningAlert(validationError);
       return;
     }
 
@@ -66,6 +71,7 @@ export function ResetPasswordForm({
       setConfirmChange(false);
     } catch (submitError) {
       setError(submitError.message);
+      showErrorAlert(submitError);
     }
   };
 

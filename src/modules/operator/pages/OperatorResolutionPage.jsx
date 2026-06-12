@@ -20,6 +20,12 @@ import { ModuleHero } from '@/core/components/ui/module-hero';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { RESOLUTION_REVIEW_STATUS_IDS } from '@/core/constants/domainConstants';
 import { useOperatorReports } from '@/modules/operator/hooks/useOperatorReports';
+import { ALERT_MESSAGES } from '@/core/constants/alertMessages';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showWarningAlert,
+} from '@/core/services/alertService';
 
 const INITIAL_FORM = {
   description: '',
@@ -73,15 +79,21 @@ export default function OperatorResolutionPage() {
     setSuccess('');
 
     if (form.description.trim().length < 10) {
-      setError('Describe la resolucion con al menos 10 caracteres.');
+      const message = 'Describe la resolución con al menos 10 caracteres.';
+      setError(message);
+      showWarningAlert(message);
       return;
     }
     if (form.method.trim().length < 3) {
-      setError('Indica el metodo utilizado para resolver el reporte.');
+      const message = 'Indica el método utilizado para resolver el reporte.';
+      setError(message);
+      showWarningAlert(message);
       return;
     }
     if (!form.resolvedAt) {
-      setError('Selecciona la fecha de resolucion.');
+      const message = 'Selecciona la fecha de resolución.';
+      setError(message);
+      showWarningAlert(message);
       return;
     }
 
@@ -96,9 +108,11 @@ export default function OperatorResolutionPage() {
       await submitResolution(report.id, { ...form, images });
       setConfirmResolution(false);
       setSuccess('Resolucion enviada correctamente para revision.');
+      showSuccessAlert(ALERT_MESSAGES.reports.resolutionSent);
       setImages([]);
     } catch (submitError) {
       setError(submitError.message);
+      showErrorAlert(submitError);
     } finally {
       setIsSubmitting(false);
     }

@@ -4,6 +4,7 @@ import {
   getOperatorReportDashboard,
   submitReportResolution,
 } from '@/services/operatorReportService';
+import { showErrorAlert } from '@/core/services/alertService';
 
 export function useOperatorReports() {
   const [assignedReports, setAssignedReports] = useState([]);
@@ -22,6 +23,7 @@ export function useOperatorReports() {
       return dashboard;
     } catch (loadError) {
       setError(loadError.message);
+      showErrorAlert(loadError, { title: 'No fue posible cargar los reportes asignados' });
       return null;
     } finally {
       setIsLoading(false);

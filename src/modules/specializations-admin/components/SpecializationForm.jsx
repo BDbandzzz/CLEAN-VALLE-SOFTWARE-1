@@ -18,6 +18,11 @@ import {
   createManagedSpecialization,
   updateManagedSpecialization,
 } from '@/services/adminSpecializationService';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showValidationAlert,
+} from '@/core/services/alertService';
 
 const EMPTY_FORM = { categoryId: '', label: '' };
 
@@ -51,6 +56,7 @@ export function SpecializationForm({
     if (!formData.label.trim()) nextErrors.label = 'El nombre es obligatorio.';
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
+      showValidationAlert(nextErrors);
       return false;
     }
     return true;
@@ -74,10 +80,16 @@ export function SpecializationForm({
       }
       setErrors({});
       setConfirmSave(false);
+      showSuccessAlert(
+        isEditing
+          ? 'La especialización fue actualizada.'
+          : 'La especialización fue creada.'
+      );
       await onSaved?.();
     } catch (error) {
       setErrors({ form: error.message });
       setMessage('');
+      showErrorAlert(error);
     } finally {
       setIsSaving(false);
     }

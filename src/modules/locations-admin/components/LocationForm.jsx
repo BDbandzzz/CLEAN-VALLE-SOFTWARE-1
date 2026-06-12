@@ -14,6 +14,11 @@ import { Input } from '@/core/components/ui/input';
 import { Label } from '@/core/components/ui/label';
 import { CONFIRMATION_MESSAGES } from '@/core/constants/confirmationMessages';
 import { useLocationManagement } from '@/modules/locations-admin/context/LocationManagementContext';
+import {
+  showErrorAlert,
+  showSuccessAlert,
+  showValidationAlert,
+} from '@/core/services/alertService';
 
 const EMPTY_FORM = {
   label: '',
@@ -92,6 +97,7 @@ export function LocationForm({ location, onSaved }) {
     }
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
+      showValidationAlert(nextErrors);
       return false;
     }
     return true;
@@ -114,10 +120,16 @@ export function LocationForm({ location, onSaved }) {
       }
       setErrors({});
       setConfirmSave(false);
+      showSuccessAlert(
+        isEditing
+          ? 'La localización fue actualizada correctamente.'
+          : 'La localización fue creada correctamente.'
+      );
       onSaved?.();
     } catch (error) {
       setErrors({ form: error.message });
       setMessage('');
+      showErrorAlert(error);
     }
   };
 
