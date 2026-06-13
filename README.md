@@ -212,13 +212,3 @@ El arranque sigue este orden:
 3. `AppRouter.jsx` selecciona la pagina segun la URL.
 4. Las rutas privadas validan la sesion y el rol.
 5. La pagina utiliza hooks, contextos y servicios para ejecutar sus operaciones.
-
-## Ventajas de la estructura
-
-- Separa las funcionalidades por dominio.
-- Facilita localizar y mantener el codigo.
-- Permite reutilizar componentes y logica compartida.
-- Centraliza la comunicacion con Supabase.
-- Evita mezclar acceso a datos con componentes visuales.
-- Facilita agregar nuevos modulos sin modificar toda la aplicacion.
-- Mantiene centralizados el enrutamiento, la autenticacion y el control por roles.
