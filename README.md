@@ -5,9 +5,14 @@
 - Bryan David Garces Quintero
 - Adony Gabriel Perea
 
+## Tablero Jira
+- https://cleanvalle.atlassian.net/jira/software/projects/CVS1/boards/1/timeline?selectedIssue=CVS1-89
+## Link de aplicacion desplegada
+- http://cleanvalle.ds1.eleueleo.com/manager/reports
+
 ## Descripcion general
 
-CleanValle es una aplicacion web orientada a la gestion de reportes ambientales. El sistema permite registrar reportes, consultar su estado, asignarlos a operadores, registrar resoluciones y administrar la informacion necesaria para el funcionamiento de la plataforma.
+CleanValle es una aplicacion web orientada a la gestion de reportes de problemas universitarios. El sistema permite registrar reportes, consultar su estado, asignarlos a operadores, registrar resoluciones y administrar la informacion necesaria para el funcionamiento de la plataforma.
 
 La aplicacion contempla diferentes tipos de usuario, entre ellos estudiantes, docentes, operadores, gestores y administradores. Las funciones y rutas disponibles se controlan de acuerdo con el rol del usuario autenticado.
 
@@ -20,7 +25,6 @@ La aplicacion contempla diferentes tipos de usuario, entre ellos estudiantes, do
 - **Tailwind CSS:** estilos y diseno visual.
 - **Chart.js:** graficos de los paneles de control.
 - **Radix UI y shadcn:** componentes reutilizables de interfaz.
-- **ESLint:** validacion de calidad y consistencia del codigo.
 
 ## Arquitectura base
 
